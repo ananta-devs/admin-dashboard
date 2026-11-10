@@ -103,7 +103,7 @@ async def assert_test_database_connection(session_or_engine: AsyncSession | Asyn
 def get_enforced_test_database_url() -> str:
     """Retrieve test database URL from environment or settings, guaranteeing test isolation."""
     # Check explicit test database URL
-    test_url = os.environ.get("TEST_DATABASE_URL")
+    test_url = os.environ.get("TEST_DATABASE_URL") or os.environ.get("DATABASE_TEST_URL")
     if not test_url:
         # Check standard DATABASE_URL
         test_url = os.environ.get("DATABASE_URL")

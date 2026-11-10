@@ -74,15 +74,22 @@ jobs:
           DATABASE_SYNC_URL="postgresql+psycopg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise_test" alembic upgrade head
 
       - name: Run Unit Tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise_test
+          TEST_DATABASE_URL: postgresql+asyncpg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise_test
+          DATABASE_TEST_URL: postgresql+asyncpg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise_test
+          DATABASE_SYNC_URL: postgresql+psycopg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise_test
+          REDIS_URL: redis://:dev_secret_redis_pass_change_in_prod@127.0.0.1:6379/0
         run: |
           cd backend
           pytest -v tests/unit
 
       - name: Run Integration Tests
         env:
-          DATABASE_URL: postgresql+asyncpg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise
+          DATABASE_URL: postgresql+asyncpg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise_test
+          TEST_DATABASE_URL: postgresql+asyncpg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise_test
           DATABASE_TEST_URL: postgresql+asyncpg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise_test
-          DATABASE_SYNC_URL: postgresql+psycopg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise
+          DATABASE_SYNC_URL: postgresql+psycopg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise_test
           REDIS_URL: redis://:dev_secret_redis_pass_change_in_prod@127.0.0.1:6379/0
         run: |
           cd backend
