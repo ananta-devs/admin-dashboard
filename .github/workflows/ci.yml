@@ -67,12 +67,11 @@ jobs:
         run: |
           python -c "import psycopg; conn = psycopg.connect('postgresql://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise', autocommit=True); conn.execute('CREATE DATABASE vibe_enterprise_test;') if not conn.execute(\"SELECT 1 FROM pg_database WHERE datname='vibe_enterprise_test'\").fetchone() else None"
 
-      - name: Run Database Migrations
-        env:
-          DATABASE_SYNC_URL: postgresql+psycopg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise
+      - name: Run Database Migrations (Production & Test Databases)
         run: |
           cd backend
-          alembic upgrade head
+          DATABASE_SYNC_URL="postgresql+psycopg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise" alembic upgrade head
+          DATABASE_SYNC_URL="postgresql+psycopg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise_test" alembic upgrade head
 
       - name: Run Unit Tests
         run: |

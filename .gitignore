@@ -55,22 +55,32 @@ backend_env/
 *.key
 *.cert
 
-# Database, Runtime Storage & Backups
+# Database, Runtime Storage & Backups (Root and Backend runtime directories only)
 *.dump
 *.sql.gz
 *.sqlite3
-storage/
-storage/*
-!storage/.gitkeep
-uploads/
-uploads/*
-!uploads/.gitkeep
-backups/
-backups/*
-!backups/.gitkeep
-!backups/wal_archive/.gitkeep
-scratch/
-scratch/*
+/storage/
+/storage/*
+!/storage/.gitkeep
+/uploads/
+/uploads/*
+!/uploads/.gitkeep
+/backups/
+/backups/*
+!/backups/.gitkeep
+!/backups/wal_archive/.gitkeep
+/scratch/
+/scratch/*
+backend/storage/
+backend/storage/*
+!backend/storage/.gitkeep
+backend/uploads/
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Ensure frontend application routes are never ignored
+!frontend/src/app/settings/backups/
+!frontend/src/app/settings/backups/**
 
 # Logs & Debugging
 npm-debug.log*
