@@ -1,0 +1,64 @@
+FROM python:3.11-slim-bookworm
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    NODE_ENV=production \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
+# Install Node.js 20, system dependencies for Chromium, and security hardening tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    gnupg \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    fonts-liberation \
+    fonts-noto-color-emoji \
+    && mkdir -p /etc/apt/keyrings \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create unprivileged service user
+RUN groupadd -g 10001 renderer && \
+    useradd -u 10001 -g renderer -m -s /bin/bash renderer
+
+WORKDIR /app
+
+# Install Python requirements
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt playwright && \
+    playwright install --with-deps chromium && \
+    chmod -R 755 /ms-playwright
+
+# Install Node dependencies for ECharts SSR
+COPY renderers/echarts_ssr/package*.json ./renderers/echarts_ssr/
+WORKDIR /app/renderers/echarts_ssr
+RUN npm ci --omit=dev || npm install --omit=dev
+
+WORKDIR /app
+COPY . .
+
+# Run strictly as unprivileged user with zero database/broker credentials
+USER renderer:renderer
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=15s --timeout=3s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+CMD ["uvicorn", "app.services.renderer_app:renderer_app", "--host", "0.0.0.0", "--port", "8080"]
+

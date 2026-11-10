@@ -1,0 +1,45 @@
+{
+  "coreWebVitals": {
+    "fcpMs": 388,
+    "lcpMs": 388,
+    "cls": 0.0259
+  },
+  "spreadsheetGrid": {
+    "loadLatencyMs": 808,
+    "virtualDomNodes": 56,
+    "scrollCycleMs": 934,
+    "status": "PASS"
+  },
+  "apiLatencies": {
+    "/api/v1/health": {
+      "samples": 20,
+      "p50": 5,
+      "p95": 9,
+      "p99": 9
+    },
+    "/api/v1/workspaces": {
+      "samples": 20,
+      "p50": 45,
+      "p95": 79,
+      "p99": 79
+    },
+    "/api/v1/reports/definitions": {
+      "samples": 20,
+      "p50": 30,
+      "p95": 37,
+      "p99": 37
+    },
+    "/api/v1/files": {
+      "samples": 20,
+      "p50": 32,
+      "p95": 36,
+      "p99": 36
+    },
+    "/api/v1/system/telemetry": {
+      "samples": 20,
+      "p50": 45,
+      "p95": 52,
+      "p99": 52
+    }
+  }
+}

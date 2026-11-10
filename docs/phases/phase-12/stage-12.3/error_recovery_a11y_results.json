@@ -1,0 +1,74 @@
+{
+  "errorRecovery": {
+    "custom404": {
+      "status": 404,
+      "uiVisible": true,
+      "verdict": "PASS"
+    },
+    "networkFault": {
+      "brandStillAlive": true,
+      "verdict": "PASS"
+    }
+  },
+  "accessibility": {
+    "keyboardNavigation": {
+      "tabSteps": 10,
+      "focusedElements": [
+        {
+          "tag": "a",
+          "role": ""
+        },
+        {
+          "tag": "button",
+          "role": ""
+        },
+        {
+          "tag": "a",
+          "role": ""
+        },
+        {
+          "tag": "a",
+          "role": ""
+        },
+        {
+          "tag": "a",
+          "role": ""
+        },
+        {
+          "tag": "a",
+          "role": ""
+        },
+        {
+          "tag": "a",
+          "role": ""
+        },
+        {
+          "tag": "a",
+          "role": ""
+        },
+        {
+          "tag": "a",
+          "role": ""
+        },
+        {
+          "tag": "a",
+          "role": ""
+        }
+      ],
+      "verdict": "PASS"
+    },
+    "ariaLandmarks": {
+      "navCount": 2,
+      "mainCount": 1,
+      "headerCount": 1,
+      "asideCount": 1,
+      "ariaLabelsCount": 9,
+      "verdict": "PASS"
+    },
+    "themeSwitcher": {
+      "toggleVisible": true,
+      "htmlClass": "dark",
+      "verdict": "PASS"
+    }
+  }
+}

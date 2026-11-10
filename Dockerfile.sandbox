@@ -1,0 +1,7 @@
+FROM vibe-analytics-worker:latest
+USER root
+RUN rm -rf /app /root/.cache
+USER 10001:10001
+WORKDIR /workspace
+CMD ["python"]
+

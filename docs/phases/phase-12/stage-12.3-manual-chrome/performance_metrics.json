@@ -1,0 +1,100 @@
+[
+  {
+    "route": "/",
+    "name": "Dashboard",
+    "loadDurationMs": 968,
+    "status": 200,
+    "evaluatedSpeed": "FAST (<1s)"
+  },
+  {
+    "route": "/workspaces",
+    "name": "Workspaces",
+    "loadDurationMs": 729,
+    "status": 200,
+    "evaluatedSpeed": "FAST (<1s)"
+  },
+  {
+    "route": "/reports",
+    "name": "Reports",
+    "loadDurationMs": 713,
+    "status": 200,
+    "evaluatedSpeed": "FAST (<1s)"
+  },
+  {
+    "route": "/files",
+    "name": "Files",
+    "loadDurationMs": 693,
+    "status": 200,
+    "evaluatedSpeed": "FAST (<1s)"
+  },
+  {
+    "route": "/system",
+    "name": "System Health",
+    "loadDurationMs": 713,
+    "status": 200,
+    "evaluatedSpeed": "FAST (<1s)"
+  },
+  {
+    "route": "/spreadsheets",
+    "name": "Spreadsheets",
+    "loadDurationMs": 739,
+    "status": 200,
+    "evaluatedSpeed": "FAST (<1s)"
+  },
+  {
+    "route": "/dashboards",
+    "name": "Dashboards",
+    "loadDurationMs": 710,
+    "status": 200,
+    "evaluatedSpeed": "FAST (<1s)"
+  },
+  {
+    "route": "/analytics",
+    "name": "Analytics",
+    "loadDurationMs": 731,
+    "status": 200,
+    "evaluatedSpeed": "FAST (<1s)"
+  },
+  {
+    "route": "/users",
+    "name": "Users",
+    "loadDurationMs": 701,
+    "status": 200,
+    "evaluatedSpeed": "FAST (<1s)"
+  },
+  {
+    "route": "/roles",
+    "name": "Roles",
+    "loadDurationMs": 694,
+    "status": 200,
+    "evaluatedSpeed": "FAST (<1s)"
+  },
+  {
+    "route": "/audit",
+    "name": "Audit",
+    "loadDurationMs": 673,
+    "status": 200,
+    "evaluatedSpeed": "FAST (<1s)"
+  },
+  {
+    "route": "/settings",
+    "name": "Settings",
+    "loadDurationMs": 704,
+    "status": 200,
+    "evaluatedSpeed": "FAST (<1s)"
+  },
+  {
+    "route": "/settings/backups",
+    "name": "Backups",
+    "loadDurationMs": 709,
+    "status": 200,
+    "evaluatedSpeed": "FAST (<1s)"
+  },
+  {
+    "route": "/integrations",
+    "name": "Integrations",
+    "loadDurationMs": 708,
+    "status": 200,
+    "evaluatedSpeed": "FAST (<1s)"
+  }
+]

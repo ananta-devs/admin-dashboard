@@ -1,0 +1,14 @@
+{
+  "name": "vibe-echarts-ssr",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Server-side SVG chart rendering for VIBE reporting",
+  "main": "render_charts.js",
+  "dependencies": {
+    "echarts": "6.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
+

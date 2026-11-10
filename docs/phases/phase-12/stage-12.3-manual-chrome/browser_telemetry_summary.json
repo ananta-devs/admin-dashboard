@@ -1,0 +1,15 @@
+{
+  "consoleSummary": {
+    "log": 0,
+    "info": 0,
+    "warn": 0,
+    "error": 27
+  },
+  "networkSummary": {
+    "totalRequests": 1138,
+    "status200": 1111,
+    "status304": 0,
+    "status4xx": 27,
+    "status5xx": 0
+  }
+}

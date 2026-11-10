@@ -1,0 +1,42 @@
+{
+  "workspaces": {
+    "create": true,
+    "read": true,
+    "update": true,
+    "delete": true,
+    "status": "PASS"
+  },
+  "reports": {
+    "create": true,
+    "read": true,
+    "update": true,
+    "delete": true,
+    "status": "PASS"
+  },
+  "files": {
+    "create": true,
+    "read": true,
+    "update": true,
+    "delete": true,
+    "status": "PASS"
+  },
+  "spreadsheets": {
+    "read": true,
+    "update": true,
+    "status": "PASS"
+  },
+  "dashboards": {
+    "create": true,
+    "read": true,
+    "update": true,
+    "delete": true,
+    "status": "PASS"
+  },
+  "roles": {
+    "create": true,
+    "read": true,
+    "update": true,
+    "delete": true,
+    "status": "PASS"
+  }
+}

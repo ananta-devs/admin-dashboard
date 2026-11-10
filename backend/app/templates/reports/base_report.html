@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ report.title | e }}</title>
+  <style>
+    @page {
+      size: {{ page_size | default('A4') }} {{ page_orientation | default('portrait') }};
+      margin: 20mm 15mm 20mm 15mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1e293b;
+      background-color: #ffffff;
+      font-size: 10pt;
+      line-height: 1.5;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .report-container {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    /* Header styling */
+    .report-header {
+      border-bottom: 2px solid #3b82f6;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+
+    .brand-logo {
+      font-size: 13pt;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #1e40af;
+      text-transform: uppercase;
+    }
+
+    .brand-tagline {
+      font-size: 7.5pt;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .meta-badge-group {
+      text-align: right;
+    }
+
+    .badge-run {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background-color: #f1f5f9;
+      color: #475569;
+      font-size: 7.5pt;
+      font-family: monospace;
+      font-weight: 600;
+    }
+
+    .report-title {
+      font-size: 18pt;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.2;
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+
+    .report-description {
+      font-size: 9.5pt;
+      color: #475569;
+      margin-bottom: 8px;
+    }
+
+    .metadata-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 8pt;
+      color: #64748b;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed #e2e8f0;
+    }
+
+    .meta-item strong {
+      color: #334155;
+      font-weight: 600;
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+      break-inside: avoid;
+    }
+
+    .kpi-card {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      break-inside: avoid;
+    }
+
+    .kpi-title {
+      font-size: 7.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .kpi-value {
+      font-size: 16pt;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+
+    .kpi-change {
+      font-size: 7.5pt;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .kpi-positive { color: #16a34a; }
+    .kpi-negative { color: #dc2626; }
+    .kpi-neutral { color: #64748b; }
+
+    /* Sections */
+    .report-section {
+      margin-bottom: 24px;
+      break-inside: avoid;
+    }
+
+    .section-page-break {
+      break-before: page;
+      margin-top: 20px;
+    }
+
+    .section-header {
+      margin-bottom: 10px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .section-title {
+      font-size: 12pt;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .section-description {
+      font-size: 8.5pt;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    /* Chart Container */
+    .chart-container {
+      width: 100%;
+      text-align: center;
+      margin: 8px 0;
+      break-inside: avoid;
+    }
+
+    .chart-container svg {
+      max-width: 100%;
+      height: auto;
+      display: inline-block;
+    }
+
+    /* Table Styling */
+    .table-wrapper {
+      width: 100%;
+      margin: 8px 0;
+      overflow-x: hidden;
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8pt;
+      text-align: left;
+    }
+
+    table.data-table thead {
+      display: table-header-group;
+    }
+
+    table.data-table th {
+      background-color: #f1f5f9;
+      color: #334155;
+      font-weight: 600;
+      padding: 6px 8px;
+      border-top: 1px solid #cbd5e1;
+      border-bottom: 1px solid #cbd5e1;
+      text-align: left;
+    }
+
+    table.data-table td {
+      padding: 5px 8px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #1e293b;
+      vertical-align: top;
+    }
+
+    table.data-table tr {
+      break-inside: avoid;
+    }
+
+    table.data-table tbody tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .num-cell {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Truncation warning */
+    .truncation-banner {
+      background-color: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 6px 10px;
+      margin-top: 6px;
+      font-size: 7.5pt;
+      color: #92400e;
+      border-radius: 2px;
+      break-inside: avoid;
+    }
+
+    /* Text narrative section */
+    .text-content {
+      font-size: 9pt;
+      color: #334155;
+      line-height: 1.6;
+    }
+
+    .text-content p {
+      margin-bottom: 8px;
+    }
+
+    /* Footer styling */
+    .report-footer {
+      margin-top: 30px;
+      padding-top: 10px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      font-size: 7.5pt;
+      color: #94a3b8;
+      break-inside: avoid;
+    }
+  </style>
+</head>
+<body>
+  <div class="report-container">
+    <!-- Header -->
+    <header class="report-header">
+      <div class="header-top">
+        <div>
+          <div class="brand-logo">VIBE</div>
+          <div class="brand-tagline">Enterprise Analytics & Intelligence</div>
+        </div>
+        <div class="meta-badge-group">
+          <div class="badge-run">Run: {{ run.id | string | truncate(16, True, '') }}</div>
+        </div>
+      </div>
+      <h1 class="report-title">{{ report.title | e }}</h1>
+      {% if report.description %}
+      <div class="report-description">{{ report.description | e }}</div>
+      {% endif %}
+      <div class="metadata-bar">
+        <span class="meta-item"><strong>Generated:</strong> {{ generated_at_formatted }} UTC</span>
+        <span class="meta-item"><strong>Triggered By:</strong> {{ triggered_by | e }}</span>
+        <span class="meta-item"><strong>Snapshot Generation:</strong> #{{ run.snapshot_generation }}</span>
+        {% if snapshot_metrics and snapshot_metrics.total_rows is not none %}
+        <span class="meta-item"><strong>Total Records:</strong> {{ snapshot_metrics.total_rows }}</span>
+        {% endif %}
+      </div>
+    </header>
+
+    <!-- Top KPI Grid if present -->
+    {% if kpi_metrics and kpi_metrics|length > 0 %}
+    <section class="kpi-grid">
+      {% for kpi in kpi_metrics %}
+      <div class="kpi-card">
+        <div class="kpi-title">{{ kpi.title | e }}</div>
+        <div class="kpi-value">{{ kpi.value | e }}</div>
+        {% if kpi.subtitle %}
+        <div class="kpi-change {% if kpi.trend == 'positive' %}kpi-positive{% elif kpi.trend == 'negative' %}kpi-negative{% else %}kpi-neutral{% endif %}">
+          {{ kpi.subtitle | e }}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    <!-- Report Sections -->
+    {% for section in sections %}
+    <section class="report-section {% if section.page_break_before %}section-page-break{% endif %}">
+      {% if section.title %}
+      <div class="section-header">
+        <h2 class="section-title">{{ section.title | e }}</h2>
+        {% if section.description %}
+        <div class="section-description">{{ section.description | e }}</div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if section.section_type == 'chart' and section.svg_content %}
+      <div class="chart-container">
+        {{ section.svg_content | safe }}
+      </div>
+      {% elif section.section_type == 'table' %}
+      <div class="table-wrapper">
+        <table class="data-table">
+          {% if section.table_columns %}
+          <thead>
+            <tr>
+              {% for col in section.table_columns %}
+              <th {% if col.align == 'right' %}class="num-cell"{% endif %}>{{ col.label | e }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          {% endif %}
+          <tbody>
+            {% for row in section.table_rows %}
+            <tr>
+              {% for cell in row %}
+              <td {% if section.table_columns and section.table_columns[loop.index0].align == 'right' %}class="num-cell"{% endif %}>
+                {{ cell | safe }}
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% if section.is_truncated %}
+        <div class="truncation-banner">
+          Showing top {{ section.row_count }} rows. Full dataset contains {{ section.total_source_rows }} rows in the underlying Parquet snapshot.
+        </div>
+        {% endif %}
+      </div>
+      {% elif section.section_type == 'text' %}
+      <div class="text-content">
+        {{ section.content | e }}
+      </div>
+      {% endif %}
+    </section>
+    {% endfor %}
+
+    <!-- Confidentiality & Security Footer -->
+    <footer class="report-footer">
+      <div>CONFIDENTIAL &bull; FOR INTERNAL ENTERPRISE USE ONLY</div>
+      <div>VIBE BI PLATFORM &bull; RUN ID: {{ run.id }}</div>
+    </footer>
+  </div>
+</body>
+</html>
+

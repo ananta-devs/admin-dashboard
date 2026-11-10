@@ -1,0 +1,1684 @@
+[
+  {
+    "path": "/",
+    "name": "Dashboard / Executive Overview",
+    "title": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "headings": [
+      "PLATFORM",
+      "INTELLIGENCE",
+      "GOVERNANCE",
+      "Platform",
+      "Intelligence"
+    ],
+    "buttonCount": 8,
+    "sampleButtons": [
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Open mobile navigation menu",
+        "ariaLabel": "Open mobile navigation menu",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Search commands, workspaces... Ctrl K",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Toggle theme",
+        "ariaLabel": "Toggle theme",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Notifications",
+        "ariaLabel": "Notifications",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Documentation & Help",
+        "ariaLabel": "Documentation & Help",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Refresh Telemetry",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      }
+    ],
+    "disabledButtons": 0,
+    "inputCount": 0,
+    "sampleInputs": [],
+    "linkCount": 37,
+    "sampleLinks": [
+      {
+        "text": "V VIBE ENTERPRISE",
+        "href": "/"
+      },
+      {
+        "text": "Dashboard",
+        "href": "/"
+      },
+      {
+        "text": "Workspaces",
+        "href": "/workspaces"
+      },
+      {
+        "text": "Spreadsheets MVP",
+        "href": "/spreadsheets"
+      },
+      {
+        "text": "Dashboards New",
+        "href": "/dashboards"
+      },
+      {
+        "text": "Analytics",
+        "href": "/analytics"
+      },
+      {
+        "text": "Google Sheets Connected",
+        "href": "/integrations"
+      },
+      {
+        "text": "Reports",
+        "href": "/reports"
+      }
+    ],
+    "tableCount": 0,
+    "tableHeaders": [],
+    "badgeCount": 0
+  },
+  {
+    "path": "/workspaces",
+    "name": "Workspaces Directory",
+    "title": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "headings": [
+      "PLATFORM",
+      "INTELLIGENCE",
+      "GOVERNANCE",
+      "Platform",
+      "Intelligence"
+    ],
+    "buttonCount": 10,
+    "sampleButtons": [
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Open mobile navigation menu",
+        "ariaLabel": "Open mobile navigation menu",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Search commands, workspaces... Ctrl K",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Toggle theme",
+        "ariaLabel": "Toggle theme",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Notifications",
+        "ariaLabel": "Notifications",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Documentation & Help",
+        "ariaLabel": "Documentation & Help",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "New Workspace",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Edit Default Workspace",
+        "ariaLabel": "Edit Default Workspace",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Delete Default Workspace",
+        "ariaLabel": "Delete Default Workspace",
+        "disabled": false,
+        "type": "button"
+      }
+    ],
+    "disabledButtons": 0,
+    "inputCount": 1,
+    "sampleInputs": [
+      {
+        "tag": "input",
+        "type": "text",
+        "placeholder": "Search workspaces by name or slug...",
+        "disabled": false,
+        "name": ""
+      }
+    ],
+    "linkCount": 28,
+    "sampleLinks": [
+      {
+        "text": "V VIBE ENTERPRISE",
+        "href": "/"
+      },
+      {
+        "text": "Dashboard",
+        "href": "/"
+      },
+      {
+        "text": "Workspaces",
+        "href": "/workspaces"
+      },
+      {
+        "text": "Spreadsheets MVP",
+        "href": "/spreadsheets"
+      },
+      {
+        "text": "Dashboards New",
+        "href": "/dashboards"
+      },
+      {
+        "text": "Analytics",
+        "href": "/analytics"
+      },
+      {
+        "text": "Google Sheets Connected",
+        "href": "/integrations"
+      },
+      {
+        "text": "Reports",
+        "href": "/reports"
+      }
+    ],
+    "tableCount": 0,
+    "tableHeaders": [],
+    "badgeCount": 0
+  },
+  {
+    "path": "/reports",
+    "name": "Enterprise Reports Subsystem",
+    "title": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "headings": [
+      "PLATFORM",
+      "INTELLIGENCE",
+      "GOVERNANCE",
+      "Platform",
+      "Intelligence"
+    ],
+    "buttonCount": 9,
+    "sampleButtons": [
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Open mobile navigation menu",
+        "ariaLabel": "Open mobile navigation menu",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Search commands, workspaces... Ctrl K",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Toggle theme",
+        "ariaLabel": "Toggle theme",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Notifications",
+        "ariaLabel": "Notifications",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Documentation & Help",
+        "ariaLabel": "Documentation & Help",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "New Report",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Create Report Definition",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      }
+    ],
+    "disabledButtons": 0,
+    "inputCount": 2,
+    "sampleInputs": [
+      {
+        "tag": "select",
+        "type": "text",
+        "placeholder": "",
+        "disabled": false,
+        "name": "rep-ws-select"
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "placeholder": "Search report definitions...",
+        "disabled": false,
+        "name": ""
+      }
+    ],
+    "linkCount": 28,
+    "sampleLinks": [
+      {
+        "text": "V VIBE ENTERPRISE",
+        "href": "/"
+      },
+      {
+        "text": "Dashboard",
+        "href": "/"
+      },
+      {
+        "text": "Workspaces",
+        "href": "/workspaces"
+      },
+      {
+        "text": "Spreadsheets MVP",
+        "href": "/spreadsheets"
+      },
+      {
+        "text": "Dashboards New",
+        "href": "/dashboards"
+      },
+      {
+        "text": "Analytics",
+        "href": "/analytics"
+      },
+      {
+        "text": "Google Sheets Connected",
+        "href": "/integrations"
+      },
+      {
+        "text": "Reports",
+        "href": "/reports"
+      }
+    ],
+    "tableCount": 0,
+    "tableHeaders": [],
+    "badgeCount": 0
+  },
+  {
+    "path": "/files",
+    "name": "File Storage & Artifacts",
+    "title": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "headings": [
+      "PLATFORM",
+      "INTELLIGENCE",
+      "GOVERNANCE",
+      "Platform",
+      "Intelligence"
+    ],
+    "buttonCount": 9,
+    "sampleButtons": [
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Open mobile navigation menu",
+        "ariaLabel": "Open mobile navigation menu",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Search commands, workspaces... Ctrl K",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Toggle theme",
+        "ariaLabel": "Toggle theme",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Notifications",
+        "ariaLabel": "Notifications",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Documentation & Help",
+        "ariaLabel": "Documentation & Help",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Upload File",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Upload First File",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      }
+    ],
+    "disabledButtons": 0,
+    "inputCount": 2,
+    "sampleInputs": [
+      {
+        "tag": "input",
+        "type": "text",
+        "placeholder": "Search files by name...",
+        "disabled": false,
+        "name": ""
+      },
+      {
+        "tag": "select",
+        "type": "text",
+        "placeholder": "",
+        "disabled": false,
+        "name": "file-type-filter"
+      }
+    ],
+    "linkCount": 28,
+    "sampleLinks": [
+      {
+        "text": "V VIBE ENTERPRISE",
+        "href": "/"
+      },
+      {
+        "text": "Dashboard",
+        "href": "/"
+      },
+      {
+        "text": "Workspaces",
+        "href": "/workspaces"
+      },
+      {
+        "text": "Spreadsheets MVP",
+        "href": "/spreadsheets"
+      },
+      {
+        "text": "Dashboards New",
+        "href": "/dashboards"
+      },
+      {
+        "text": "Analytics",
+        "href": "/analytics"
+      },
+      {
+        "text": "Google Sheets Connected",
+        "href": "/integrations"
+      },
+      {
+        "text": "Reports",
+        "href": "/reports"
+      }
+    ],
+    "tableCount": 0,
+    "tableHeaders": [],
+    "badgeCount": 0
+  },
+  {
+    "path": "/system",
+    "name": "System Health & Diagnostic Telemetry",
+    "title": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "headings": [
+      "PLATFORM",
+      "INTELLIGENCE",
+      "GOVERNANCE",
+      "Platform",
+      "Intelligence"
+    ],
+    "buttonCount": 8,
+    "sampleButtons": [
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Open mobile navigation menu",
+        "ariaLabel": "Open mobile navigation menu",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Search commands, workspaces... Ctrl K",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Toggle theme",
+        "ariaLabel": "Toggle theme",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Notifications",
+        "ariaLabel": "Notifications",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Documentation & Help",
+        "ariaLabel": "Documentation & Help",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Refresh Diagnostics",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      }
+    ],
+    "disabledButtons": 0,
+    "inputCount": 1,
+    "sampleInputs": [
+      {
+        "tag": "input",
+        "type": "checkbox",
+        "placeholder": "",
+        "disabled": false,
+        "name": ""
+      }
+    ],
+    "linkCount": 28,
+    "sampleLinks": [
+      {
+        "text": "V VIBE ENTERPRISE",
+        "href": "/"
+      },
+      {
+        "text": "Dashboard",
+        "href": "/"
+      },
+      {
+        "text": "Workspaces",
+        "href": "/workspaces"
+      },
+      {
+        "text": "Spreadsheets MVP",
+        "href": "/spreadsheets"
+      },
+      {
+        "text": "Dashboards New",
+        "href": "/dashboards"
+      },
+      {
+        "text": "Analytics",
+        "href": "/analytics"
+      },
+      {
+        "text": "Google Sheets Connected",
+        "href": "/integrations"
+      },
+      {
+        "text": "Reports",
+        "href": "/reports"
+      }
+    ],
+    "tableCount": 0,
+    "tableHeaders": [],
+    "badgeCount": 0
+  },
+  {
+    "path": "/spreadsheets",
+    "name": "Virtual Grid Spreadsheets",
+    "title": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "headings": [
+      "PLATFORM",
+      "INTELLIGENCE",
+      "GOVERNANCE",
+      "Platform",
+      "Intelligence"
+    ],
+    "buttonCount": 11,
+    "sampleButtons": [
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Open mobile navigation menu",
+        "ariaLabel": "Open mobile navigation menu",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Search commands, workspaces... Ctrl K",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Toggle theme",
+        "ariaLabel": "Toggle theme",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Notifications",
+        "ariaLabel": "Notifications",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Documentation & Help",
+        "ariaLabel": "Documentation & Help",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Undo edit (Ctrl+Z)",
+        "ariaLabel": "Undo edit (Ctrl+Z)",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Redo edit (Ctrl+Y)",
+        "ariaLabel": "Redo edit (Ctrl+Y)",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "New Workbook",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      }
+    ],
+    "disabledButtons": 0,
+    "inputCount": 2,
+    "sampleInputs": [
+      {
+        "tag": "input",
+        "type": "text",
+        "placeholder": "",
+        "disabled": false,
+        "name": ""
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "placeholder": "Enter a value or formula (=SUM, =AVERAGE, =IF...)",
+        "disabled": false,
+        "name": ""
+      }
+    ],
+    "linkCount": 28,
+    "sampleLinks": [
+      {
+        "text": "V VIBE ENTERPRISE",
+        "href": "/"
+      },
+      {
+        "text": "Dashboard",
+        "href": "/"
+      },
+      {
+        "text": "Workspaces",
+        "href": "/workspaces"
+      },
+      {
+        "text": "Spreadsheets MVP",
+        "href": "/spreadsheets"
+      },
+      {
+        "text": "Dashboards New",
+        "href": "/dashboards"
+      },
+      {
+        "text": "Analytics",
+        "href": "/analytics"
+      },
+      {
+        "text": "Google Sheets Connected",
+        "href": "/integrations"
+      },
+      {
+        "text": "Reports",
+        "href": "/reports"
+      }
+    ],
+    "tableCount": 0,
+    "tableHeaders": [],
+    "badgeCount": 0
+  },
+  {
+    "path": "/analytics",
+    "name": "Analytics & Job Execution Studio",
+    "title": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "headings": [
+      "PLATFORM",
+      "INTELLIGENCE",
+      "GOVERNANCE",
+      "Platform",
+      "Intelligence"
+    ],
+    "buttonCount": 11,
+    "sampleButtons": [
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Open mobile navigation menu",
+        "ariaLabel": "Open mobile navigation menu",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Search commands, workspaces... Ctrl K",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Toggle theme",
+        "ariaLabel": "Toggle theme",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Notifications",
+        "ariaLabel": "Notifications",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Documentation & Help",
+        "ariaLabel": "Documentation & Help",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Refresh",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "New Analysis",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Background Analytics Jobs",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      }
+    ],
+    "disabledButtons": 0,
+    "inputCount": 3,
+    "sampleInputs": [
+      {
+        "tag": "input",
+        "type": "text",
+        "placeholder": "Search jobs by ID or operation...",
+        "disabled": false,
+        "name": ""
+      },
+      {
+        "tag": "select",
+        "type": "text",
+        "placeholder": "",
+        "disabled": false,
+        "name": ""
+      },
+      {
+        "tag": "input",
+        "type": "checkbox",
+        "placeholder": "",
+        "disabled": false,
+        "name": ""
+      }
+    ],
+    "linkCount": 28,
+    "sampleLinks": [
+      {
+        "text": "V VIBE ENTERPRISE",
+        "href": "/"
+      },
+      {
+        "text": "Dashboard",
+        "href": "/"
+      },
+      {
+        "text": "Workspaces",
+        "href": "/workspaces"
+      },
+      {
+        "text": "Spreadsheets MVP",
+        "href": "/spreadsheets"
+      },
+      {
+        "text": "Dashboards New",
+        "href": "/dashboards"
+      },
+      {
+        "text": "Analytics",
+        "href": "/analytics"
+      },
+      {
+        "text": "Google Sheets Connected",
+        "href": "/integrations"
+      },
+      {
+        "text": "Reports",
+        "href": "/reports"
+      }
+    ],
+    "tableCount": 1,
+    "tableHeaders": [
+      "Job ID & Operation",
+      "Status",
+      "Progress / Stage",
+      "Attempts",
+      "Created",
+      "Actions"
+    ],
+    "badgeCount": 0
+  },
+  {
+    "path": "/dashboards",
+    "name": "Dashboard Studio & KPI Cards",
+    "title": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "headings": [
+      "PLATFORM",
+      "INTELLIGENCE",
+      "GOVERNANCE",
+      "Platform",
+      "Intelligence"
+    ],
+    "buttonCount": 9,
+    "sampleButtons": [
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Open mobile navigation menu",
+        "ariaLabel": "Open mobile navigation menu",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Search commands, workspaces... Ctrl K",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Toggle theme",
+        "ariaLabel": "Toggle theme",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Notifications",
+        "ariaLabel": "Notifications",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Documentation & Help",
+        "ariaLabel": "Documentation & Help",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "New Dashboard",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Refresh",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      }
+    ],
+    "disabledButtons": 0,
+    "inputCount": 0,
+    "sampleInputs": [],
+    "linkCount": 28,
+    "sampleLinks": [
+      {
+        "text": "V VIBE ENTERPRISE",
+        "href": "/"
+      },
+      {
+        "text": "Dashboard",
+        "href": "/"
+      },
+      {
+        "text": "Workspaces",
+        "href": "/workspaces"
+      },
+      {
+        "text": "Spreadsheets MVP",
+        "href": "/spreadsheets"
+      },
+      {
+        "text": "Dashboards New",
+        "href": "/dashboards"
+      },
+      {
+        "text": "Analytics",
+        "href": "/analytics"
+      },
+      {
+        "text": "Google Sheets Connected",
+        "href": "/integrations"
+      },
+      {
+        "text": "Reports",
+        "href": "/reports"
+      }
+    ],
+    "tableCount": 0,
+    "tableHeaders": [],
+    "badgeCount": 0
+  },
+  {
+    "path": "/users",
+    "name": "User Administration & Directory",
+    "title": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "headings": [
+      "PLATFORM",
+      "INTELLIGENCE",
+      "GOVERNANCE",
+      "Platform",
+      "Intelligence"
+    ],
+    "buttonCount": 12,
+    "sampleButtons": [
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Open mobile navigation menu",
+        "ariaLabel": "Open mobile navigation menu",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Search commands, workspaces... Ctrl K",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Toggle theme",
+        "ariaLabel": "Toggle theme",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Notifications",
+        "ariaLabel": "Notifications",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Documentation & Help",
+        "ariaLabel": "Documentation & Help",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Simulate 403",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Invite Member",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Active Members (1)",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      }
+    ],
+    "disabledButtons": 0,
+    "inputCount": 0,
+    "sampleInputs": [],
+    "linkCount": 28,
+    "sampleLinks": [
+      {
+        "text": "V VIBE ENTERPRISE",
+        "href": "/"
+      },
+      {
+        "text": "Dashboard",
+        "href": "/"
+      },
+      {
+        "text": "Workspaces",
+        "href": "/workspaces"
+      },
+      {
+        "text": "Spreadsheets MVP",
+        "href": "/spreadsheets"
+      },
+      {
+        "text": "Dashboards New",
+        "href": "/dashboards"
+      },
+      {
+        "text": "Analytics",
+        "href": "/analytics"
+      },
+      {
+        "text": "Google Sheets Connected",
+        "href": "/integrations"
+      },
+      {
+        "text": "Reports",
+        "href": "/reports"
+      }
+    ],
+    "tableCount": 1,
+    "tableHeaders": [
+      "User",
+      "Assigned Roles",
+      "Joined Date",
+      "Actions"
+    ],
+    "badgeCount": 0
+  },
+  {
+    "path": "/roles",
+    "name": "Roles & RBAC Permission Catalog",
+    "title": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "headings": [
+      "PLATFORM",
+      "INTELLIGENCE",
+      "GOVERNANCE",
+      "Platform",
+      "Intelligence"
+    ],
+    "buttonCount": 9,
+    "sampleButtons": [
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Open mobile navigation menu",
+        "ariaLabel": "Open mobile navigation menu",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Search commands, workspaces... Ctrl K",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Toggle theme",
+        "ariaLabel": "Toggle theme",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Notifications",
+        "ariaLabel": "Notifications",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Documentation & Help",
+        "ariaLabel": "Documentation & Help",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Simulate 403",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Create Custom Role",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      }
+    ],
+    "disabledButtons": 0,
+    "inputCount": 0,
+    "sampleInputs": [],
+    "linkCount": 28,
+    "sampleLinks": [
+      {
+        "text": "V VIBE ENTERPRISE",
+        "href": "/"
+      },
+      {
+        "text": "Dashboard",
+        "href": "/"
+      },
+      {
+        "text": "Workspaces",
+        "href": "/workspaces"
+      },
+      {
+        "text": "Spreadsheets MVP",
+        "href": "/spreadsheets"
+      },
+      {
+        "text": "Dashboards New",
+        "href": "/dashboards"
+      },
+      {
+        "text": "Analytics",
+        "href": "/analytics"
+      },
+      {
+        "text": "Google Sheets Connected",
+        "href": "/integrations"
+      },
+      {
+        "text": "Reports",
+        "href": "/reports"
+      }
+    ],
+    "tableCount": 0,
+    "tableHeaders": [],
+    "badgeCount": 0
+  },
+  {
+    "path": "/audit",
+    "name": "Security Audit Logs & Compliance",
+    "title": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "headings": [
+      "PLATFORM",
+      "INTELLIGENCE",
+      "GOVERNANCE",
+      "Platform",
+      "Intelligence"
+    ],
+    "buttonCount": 14,
+    "sampleButtons": [
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Open mobile navigation menu",
+        "ariaLabel": "Open mobile navigation menu",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Search commands, workspaces... Ctrl K",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Toggle theme",
+        "ariaLabel": "Toggle theme",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Notifications",
+        "ariaLabel": "Notifications",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Documentation & Help",
+        "ariaLabel": "Documentation & Help",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Simulate 403",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Inspect",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Inspect",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      }
+    ],
+    "disabledButtons": 0,
+    "inputCount": 1,
+    "sampleInputs": [
+      {
+        "tag": "input",
+        "type": "text",
+        "placeholder": "Search action, actor, target...",
+        "disabled": false,
+        "name": ""
+      }
+    ],
+    "linkCount": 28,
+    "sampleLinks": [
+      {
+        "text": "V VIBE ENTERPRISE",
+        "href": "/"
+      },
+      {
+        "text": "Dashboard",
+        "href": "/"
+      },
+      {
+        "text": "Workspaces",
+        "href": "/workspaces"
+      },
+      {
+        "text": "Spreadsheets MVP",
+        "href": "/spreadsheets"
+      },
+      {
+        "text": "Dashboards New",
+        "href": "/dashboards"
+      },
+      {
+        "text": "Analytics",
+        "href": "/analytics"
+      },
+      {
+        "text": "Google Sheets Connected",
+        "href": "/integrations"
+      },
+      {
+        "text": "Reports",
+        "href": "/reports"
+      }
+    ],
+    "tableCount": 1,
+    "tableHeaders": [
+      "Timestamp (UTC)",
+      "Action",
+      "Actor",
+      "Target Type & ID",
+      "Metadata"
+    ],
+    "badgeCount": 0
+  },
+  {
+    "path": "/settings",
+    "name": "System & Organization Settings",
+    "title": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "headings": [
+      "PLATFORM",
+      "INTELLIGENCE",
+      "GOVERNANCE",
+      "Platform",
+      "Intelligence"
+    ],
+    "buttonCount": 10,
+    "sampleButtons": [
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Open mobile navigation menu",
+        "ariaLabel": "Open mobile navigation menu",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Search commands, workspaces... Ctrl K",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Toggle theme",
+        "ariaLabel": "Toggle theme",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Notifications",
+        "ariaLabel": "Notifications",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Documentation & Help",
+        "ariaLabel": "Documentation & Help",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Simulate 403",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Save Profile",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Transfer Ownership",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      }
+    ],
+    "disabledButtons": 0,
+    "inputCount": 2,
+    "sampleInputs": [
+      {
+        "tag": "input",
+        "type": "text",
+        "placeholder": "",
+        "disabled": false,
+        "name": ""
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "placeholder": "",
+        "disabled": true,
+        "name": ""
+      }
+    ],
+    "linkCount": 28,
+    "sampleLinks": [
+      {
+        "text": "V VIBE ENTERPRISE",
+        "href": "/"
+      },
+      {
+        "text": "Dashboard",
+        "href": "/"
+      },
+      {
+        "text": "Workspaces",
+        "href": "/workspaces"
+      },
+      {
+        "text": "Spreadsheets MVP",
+        "href": "/spreadsheets"
+      },
+      {
+        "text": "Dashboards New",
+        "href": "/dashboards"
+      },
+      {
+        "text": "Analytics",
+        "href": "/analytics"
+      },
+      {
+        "text": "Google Sheets Connected",
+        "href": "/integrations"
+      },
+      {
+        "text": "Reports",
+        "href": "/reports"
+      }
+    ],
+    "tableCount": 0,
+    "tableHeaders": [],
+    "badgeCount": 0
+  },
+  {
+    "path": "/settings/backups",
+    "name": "Disaster Recovery & Backups",
+    "title": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "headings": [
+      "PLATFORM",
+      "INTELLIGENCE",
+      "GOVERNANCE",
+      "Platform",
+      "Intelligence"
+    ],
+    "buttonCount": 8,
+    "sampleButtons": [
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Open mobile navigation menu",
+        "ariaLabel": "Open mobile navigation menu",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Search commands, workspaces... Ctrl K",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Toggle theme",
+        "ariaLabel": "Toggle theme",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Notifications",
+        "ariaLabel": "Notifications",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Documentation & Help",
+        "ariaLabel": "Documentation & Help",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Refresh Status",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      }
+    ],
+    "disabledButtons": 0,
+    "inputCount": 0,
+    "sampleInputs": [],
+    "linkCount": 28,
+    "sampleLinks": [
+      {
+        "text": "V VIBE ENTERPRISE",
+        "href": "/"
+      },
+      {
+        "text": "Dashboard",
+        "href": "/"
+      },
+      {
+        "text": "Workspaces",
+        "href": "/workspaces"
+      },
+      {
+        "text": "Spreadsheets MVP",
+        "href": "/spreadsheets"
+      },
+      {
+        "text": "Dashboards New",
+        "href": "/dashboards"
+      },
+      {
+        "text": "Analytics",
+        "href": "/analytics"
+      },
+      {
+        "text": "Google Sheets Connected",
+        "href": "/integrations"
+      },
+      {
+        "text": "Reports",
+        "href": "/reports"
+      }
+    ],
+    "tableCount": 0,
+    "tableHeaders": [],
+    "badgeCount": 0
+  },
+  {
+    "path": "/integrations",
+    "name": "Connected Integrations",
+    "title": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "headings": [
+      "PLATFORM",
+      "INTELLIGENCE",
+      "GOVERNANCE",
+      "Platform",
+      "Intelligence"
+    ],
+    "buttonCount": 9,
+    "sampleButtons": [
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Collapse sidebar",
+        "ariaLabel": "Collapse sidebar",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Open mobile navigation menu",
+        "ariaLabel": "Open mobile navigation menu",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Search commands, workspaces... Ctrl K",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Toggle theme",
+        "ariaLabel": "Toggle theme",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Notifications",
+        "ariaLabel": "Notifications",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Documentation & Help",
+        "ariaLabel": "Documentation & Help",
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Refresh",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      },
+      {
+        "text": "Connect Google Account",
+        "ariaLabel": null,
+        "disabled": false,
+        "type": "button"
+      }
+    ],
+    "disabledButtons": 0,
+    "inputCount": 0,
+    "sampleInputs": [],
+    "linkCount": 28,
+    "sampleLinks": [
+      {
+        "text": "V VIBE ENTERPRISE",
+        "href": "/"
+      },
+      {
+        "text": "Dashboard",
+        "href": "/"
+      },
+      {
+        "text": "Workspaces",
+        "href": "/workspaces"
+      },
+      {
+        "text": "Spreadsheets MVP",
+        "href": "/spreadsheets"
+      },
+      {
+        "text": "Dashboards New",
+        "href": "/dashboards"
+      },
+      {
+        "text": "Analytics",
+        "href": "/analytics"
+      },
+      {
+        "text": "Google Sheets Connected",
+        "href": "/integrations"
+      },
+      {
+        "text": "Reports",
+        "href": "/reports"
+      }
+    ],
+    "tableCount": 0,
+    "tableHeaders": [],
+    "badgeCount": 0
+  }
+]

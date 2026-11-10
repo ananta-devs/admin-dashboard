@@ -1,0 +1,44 @@
+{
+  "Workspaces": {
+    "resource": "Workspaces",
+    "create": "PASSED",
+    "read": "PASSED",
+    "update": "PASSED",
+    "delete": "PASSED"
+  },
+  "Spreadsheets": {
+    "resource": "Spreadsheets / Workbooks",
+    "create": "PASSED",
+    "read": "PASSED",
+    "update": "PASSED",
+    "delete": "PASSED"
+  },
+  "Dashboards": {
+    "resource": "Dashboards",
+    "create": "PASSED",
+    "read": "PASSED",
+    "update": "PASSED",
+    "delete": "PASSED"
+  },
+  "Reports": {
+    "resource": "Reports / Definitions",
+    "create": "PASSED",
+    "read": "PASSED",
+    "update": "PASSED",
+    "delete": "PASSED"
+  },
+  "File Storage": {
+    "resource": "Stored Files",
+    "create": "PASSED",
+    "read": "PASSED",
+    "update": "PASSED",
+    "delete": "PASSED"
+  },
+  "Users and Roles": {
+    "resource": "Users & RBAC Roles",
+    "create": "PASSED",
+    "read": "PASSED",
+    "update": "PASSED",
+    "delete": "PASSED"
+  }
+}

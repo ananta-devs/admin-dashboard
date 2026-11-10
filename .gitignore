@@ -1,0 +1,88 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Testing & Test Artifacts
+coverage/
+.nyc_output
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+test-results/
+playwright-report/
+playwright-results.json
+blob-report/
+allure-results/
+
+# Build & Next.js
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Python & Linters
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+backend_env/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.eggs/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.cert
+
+# Database, Runtime Storage & Backups
+*.dump
+*.sql.gz
+*.sqlite3
+storage/
+storage/*
+!storage/.gitkeep
+uploads/
+uploads/*
+!uploads/.gitkeep
+backups/
+backups/*
+!backups/.gitkeep
+!backups/wal_archive/.gitkeep
+scratch/
+scratch/*
+
+# Logs & Debugging
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

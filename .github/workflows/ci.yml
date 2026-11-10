@@ -1,0 +1,121 @@
+name: CI Validation Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-checks:
+    name: Backend Quality, Test & Migrations
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: vibe_enterprise
+          POSTGRES_USER: vibe_admin
+          POSTGRES_PASSWORD: dev_secret_postgres_pass_change_in_prod
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        command: redis-server --requirepass dev_secret_redis_pass_change_in_prod --maxmemory 256mb --maxmemory-policy noeviction
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli -a dev_secret_redis_pass_change_in_prod ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install Locked Dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.lock
+          pip install ruff mypy
+
+      - name: Run Ruff Linter & Formatter Check
+        run: |
+          cd backend
+          ruff check .
+          ruff format --check .
+
+      - name: Run Mypy Type Checker
+        run: |
+          cd backend
+          mypy app --explicit-package-bases
+
+      - name: Run Database Migrations
+        env:
+          DATABASE_SYNC_URL: postgresql+psycopg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise
+        run: |
+          cd backend
+          alembic upgrade head
+
+      - name: Run Unit Tests
+        run: |
+          cd backend
+          pytest -v tests/unit
+
+      - name: Run Integration Tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise
+          REDIS_URL: redis://:dev_secret_redis_pass_change_in_prod@127.0.0.1:6379/0
+        run: |
+          cd backend
+          pytest -v tests/integration
+
+  frontend-checks:
+    name: Frontend Lint, Type-Check, Test & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Reproducible Clean Install
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run Linting
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: Run Type Checking
+        run: |
+          cd frontend
+          npx tsc --noEmit
+
+      - name: Run Unit Tests
+        run: |
+          cd frontend
+          npx vitest run
+
+      - name: Build Next.js
+        run: |
+          cd frontend
+          npm run build

@@ -1,0 +1,85 @@
+{
+  "Workflow A": {
+    "name": "Auth & Session Persistence",
+    "status": "PASSED",
+    "details": {
+      "registeredEmail": "flow-admin-2926b0fa@vibe.internal",
+      "invalidCredsRejected": true,
+      "sessionCookieSecure": true,
+      "csrfTokenReceived": true
+    }
+  },
+  "Workflow B": {
+    "name": "Workspace Management",
+    "status": "PASSED",
+    "details": {
+      "workspaceName": "Analytics Hub 2926b0fa",
+      "slug": "analytics-hub-2926b0fa",
+      "verifiedInDom": true
+    }
+  },
+  "Workflow C": {
+    "name": "Spreadsheet Grid & Formulas",
+    "status": "PASSED",
+    "details": {
+      "initialCellsRendered": true,
+      "gridInteractive": true
+    }
+  },
+  "Workflow D": {
+    "name": "Dashboard Studio & Widgets",
+    "status": "PASSED",
+    "details": {
+      "dashboardTitle": "Executive Ops 2926b0fa",
+      "widgetStudioReady": true
+    }
+  },
+  "Workflow E": {
+    "name": "Reports Subsystem",
+    "status": "PASSED",
+    "details": {
+      "reportTitle": "Quarterly Strategy Brief 2926b0fa",
+      "executionEngineActive": true
+    }
+  },
+  "Workflow F": {
+    "name": "File Storage & Artifacts",
+    "status": "PASSED",
+    "details": {
+      "quotaBarRendered": true,
+      "uploadModalVerified": true
+    }
+  },
+  "Workflow G": {
+    "name": "User & Role Management",
+    "status": "PASSED",
+    "details": {
+      "inviteFlowInteractive": true,
+      "rbacCatalogRendered": true
+    }
+  },
+  "Workflow H": {
+    "name": "System Health Telemetry & Backups",
+    "status": "PASSED",
+    "details": {
+      "telemetryActive": true,
+      "disasterRecoveryDashboardRendered": true
+    }
+  },
+  "Workflow I": {
+    "name": "Connected Integrations",
+    "status": "PASSED",
+    "details": {
+      "connectorsRendered": true,
+      "csrfVerified": true
+    }
+  },
+  "Workflow J": {
+    "name": "Security Audit Ledger",
+    "status": "PASSED",
+    "details": {
+      "rowCount": 6,
+      "modalInspected": true
+    }
+  }
+}

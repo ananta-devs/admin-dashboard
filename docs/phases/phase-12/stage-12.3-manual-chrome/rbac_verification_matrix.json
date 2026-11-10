@@ -1,0 +1,254 @@
+[
+  {
+    "role": "Super Admin",
+    "route": "/",
+    "name": "Dashboard",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Full Authenticated Access"
+  },
+  {
+    "role": "Super Admin",
+    "route": "/workspaces",
+    "name": "Workspaces",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Full Authenticated Access"
+  },
+  {
+    "role": "Super Admin",
+    "route": "/reports",
+    "name": "Reports",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Full Authenticated Access"
+  },
+  {
+    "role": "Super Admin",
+    "route": "/files",
+    "name": "Files",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Full Authenticated Access"
+  },
+  {
+    "role": "Super Admin",
+    "route": "/system",
+    "name": "System Health",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Full Authenticated Access"
+  },
+  {
+    "role": "Super Admin",
+    "route": "/spreadsheets",
+    "name": "Spreadsheets",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Full Authenticated Access"
+  },
+  {
+    "role": "Super Admin",
+    "route": "/dashboards",
+    "name": "Dashboards",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Full Authenticated Access"
+  },
+  {
+    "role": "Super Admin",
+    "route": "/analytics",
+    "name": "Analytics",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Full Authenticated Access"
+  },
+  {
+    "role": "Super Admin",
+    "route": "/users",
+    "name": "Users",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Full Authenticated Access"
+  },
+  {
+    "role": "Super Admin",
+    "route": "/roles",
+    "name": "Roles",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Full Authenticated Access"
+  },
+  {
+    "role": "Super Admin",
+    "route": "/audit",
+    "name": "Audit",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Full Authenticated Access"
+  },
+  {
+    "role": "Super Admin",
+    "route": "/settings",
+    "name": "Settings",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Full Authenticated Access"
+  },
+  {
+    "role": "Super Admin",
+    "route": "/settings/backups",
+    "name": "Backups",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Full Authenticated Access"
+  },
+  {
+    "role": "Super Admin",
+    "route": "/integrations",
+    "name": "Integrations",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Full Authenticated Access"
+  },
+  {
+    "role": "Unauthenticated",
+    "route": "/",
+    "name": "Dashboard",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Public / Fallback Demo View"
+  },
+  {
+    "role": "Unauthenticated",
+    "route": "/workspaces",
+    "name": "Workspaces",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Public / Fallback Demo View"
+  },
+  {
+    "role": "Unauthenticated",
+    "route": "/reports",
+    "name": "Reports",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Public / Fallback Demo View"
+  },
+  {
+    "role": "Unauthenticated",
+    "route": "/files",
+    "name": "Files",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Public / Fallback Demo View"
+  },
+  {
+    "role": "Unauthenticated",
+    "route": "/system",
+    "name": "System Health",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Public / Fallback Demo View"
+  },
+  {
+    "role": "Unauthenticated",
+    "route": "/spreadsheets",
+    "name": "Spreadsheets",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Public / Fallback Demo View"
+  },
+  {
+    "role": "Unauthenticated",
+    "route": "/dashboards",
+    "name": "Dashboards",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Public / Fallback Demo View"
+  },
+  {
+    "role": "Unauthenticated",
+    "route": "/analytics",
+    "name": "Analytics",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Public / Fallback Demo View"
+  },
+  {
+    "role": "Unauthenticated",
+    "route": "/users",
+    "name": "Users",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Public / Fallback Demo View"
+  },
+  {
+    "role": "Unauthenticated",
+    "route": "/roles",
+    "name": "Roles",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Public / Fallback Demo View"
+  },
+  {
+    "role": "Unauthenticated",
+    "route": "/audit",
+    "name": "Audit",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Public / Fallback Demo View"
+  },
+  {
+    "role": "Unauthenticated",
+    "route": "/settings",
+    "name": "Settings",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Public / Fallback Demo View"
+  },
+  {
+    "role": "Unauthenticated",
+    "route": "/settings/backups",
+    "name": "Backups",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Public / Fallback Demo View"
+  },
+  {
+    "role": "Unauthenticated",
+    "route": "/integrations",
+    "name": "Integrations",
+    "httpStatus": 200,
+    "accessible": true,
+    "pageTitle": "Vibe Enterprise — Admin & Data Intelligence Platform",
+    "behavior": "Public / Fallback Demo View"
+  }
+]

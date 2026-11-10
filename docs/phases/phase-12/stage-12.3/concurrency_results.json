@@ -1,0 +1,42 @@
+[
+  {
+    "tier": 2,
+    "totalDurationMs": 65,
+    "workspacesCreated": 2,
+    "workspacesSuccess": true,
+    "filesUploaded": 2,
+    "filesSuccess": true,
+    "crossTenantIsolation": true,
+    "verdict": "PASS"
+  },
+  {
+    "tier": 3,
+    "totalDurationMs": 113,
+    "workspacesCreated": 3,
+    "workspacesSuccess": true,
+    "filesUploaded": 3,
+    "filesSuccess": true,
+    "crossTenantIsolation": true,
+    "verdict": "PASS"
+  },
+  {
+    "tier": 5,
+    "totalDurationMs": 148,
+    "workspacesCreated": 5,
+    "workspacesSuccess": true,
+    "filesUploaded": 5,
+    "filesSuccess": true,
+    "crossTenantIsolation": true,
+    "verdict": "PASS"
+  },
+  {
+    "tier": 10,
+    "totalDurationMs": 373,
+    "workspacesCreated": 10,
+    "workspacesSuccess": true,
+    "filesUploaded": 10,
+    "filesSuccess": true,
+    "crossTenantIsolation": true,
+    "verdict": "PASS"
+  }
+]

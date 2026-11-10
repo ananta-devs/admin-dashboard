@@ -1,0 +1,522 @@
+{
+  "total_users": 25,
+  "total_orgs": 25,
+  "total_memberships": 25,
+  "total_workspaces": 28,
+  "total_workbooks": 0,
+  "total_dashboards": 0,
+  "total_reports": 4,
+  "total_report_runs": 2,
+  "total_analytics_jobs": 0,
+  "audit_counts": {
+    "administrative_audit_events": 0
+  },
+  "users": [
+    {
+      "id": "fd3f0293-682c-4276-9120-8f278f7945e6",
+      "email": "owner-b77e6b@example.com",
+      "name": "Owner b77e6b",
+      "created_at": "2026-11-04T15:49:13.336832+00:00"
+    },
+    {
+      "id": "5a5180ed-4401-4592-8f61-008be2e420ff",
+      "email": "owner-f61102@example.com",
+      "name": "Owner f61102",
+      "created_at": "2026-11-04T15:49:14.095433+00:00"
+    },
+    {
+      "id": "5e0b2728-6b6e-4372-b24d-f37661fe0e0e",
+      "email": "owner2-5aff43@example.com",
+      "name": "Owner Two 5aff43",
+      "created_at": "2026-11-04T15:49:14.313940+00:00"
+    },
+    {
+      "id": "1e58671d-1e93-4224-99b5-45011ae55d80",
+      "email": "owner-740e8f@example.com",
+      "name": "Owner 740e8f",
+      "created_at": "2026-11-04T15:49:14.627593+00:00"
+    },
+    {
+      "id": "08cb2a05-8874-4ae9-a954-8456404ddc48",
+      "email": "fileuser1-cfb32e@example.com",
+      "name": "File User 1 cfb32e",
+      "created_at": "2026-11-04T16:05:14.448176+00:00"
+    },
+    {
+      "id": "b1bba8d9-723b-421a-8dcc-ed697b2bf7d9",
+      "email": "fileuser1-89050b@example.com",
+      "name": "File User 1 89050b",
+      "created_at": "2026-11-04T16:05:17.103701+00:00"
+    },
+    {
+      "id": "bcba8b4b-8a45-4f59-891c-92ebdd10a458",
+      "email": "fileuser1-4ad540@example.com",
+      "name": "File User 1 4ad540",
+      "created_at": "2026-11-04T16:05:18.357062+00:00"
+    },
+    {
+      "id": "871912fa-9690-4ef2-8ed7-de8dfaf4d984",
+      "email": "fileuser2-4d05d1@example.com",
+      "name": "File User 2 4d05d1",
+      "created_at": "2026-11-04T16:05:18.673163+00:00"
+    },
+    {
+      "id": "ff3e825e-d7db-42a6-b00f-c9941c379ee3",
+      "email": "fileuser1-4e9286@example.com",
+      "name": "File User 1 4e9286",
+      "created_at": "2026-11-04T16:05:34.520220+00:00"
+    },
+    {
+      "id": "1f51e32e-c246-4226-beff-c77baea10444",
+      "email": "fileuser1-754e3b@example.com",
+      "name": "File User 1 754e3b",
+      "created_at": "2026-11-04T16:06:08.527744+00:00"
+    },
+    {
+      "id": "0393be54-e104-4109-ae9b-1264fa8085d1",
+      "email": "fileuser1-1083ae@example.com",
+      "name": "File User 1 1083ae",
+      "created_at": "2026-11-04T16:06:12.182193+00:00"
+    },
+    {
+      "id": "b3bbf38f-185e-494f-b005-2bd812d3d35d",
+      "email": "fileuser1-c88a11@example.com",
+      "name": "File User 1 c88a11",
+      "created_at": "2026-11-04T16:06:14.653951+00:00"
+    },
+    {
+      "id": "41a027a3-38d5-443a-8402-0e0efd2239af",
+      "email": "fileuser2-482eab@example.com",
+      "name": "File User 2 482eab",
+      "created_at": "2026-11-04T16:06:15.085155+00:00"
+    },
+    {
+      "id": "99ad5a4d-92b7-4297-84dd-36b87c9ea9e3",
+      "email": "owner-688fc3@example.com",
+      "name": "Owner 688fc3",
+      "created_at": "2026-11-04T16:19:48.427490+00:00"
+    },
+    {
+      "id": "5d29e481-4aa0-426e-a13d-e2205dff0126",
+      "email": "owner-0f1792@example.com",
+      "name": "Owner 0f1792",
+      "created_at": "2026-11-04T16:19:49.778227+00:00"
+    },
+    {
+      "id": "56715a8e-b5fe-4017-9937-e36b48c5b5f8",
+      "email": "owner2-f25773@example.com",
+      "name": "Owner Two f25773",
+      "created_at": "2026-11-04T16:19:50.138748+00:00"
+    },
+    {
+      "id": "587cba48-1f92-4168-b3ac-d59dabfd1efb",
+      "email": "owner-424f40@example.com",
+      "name": "Owner 424f40",
+      "created_at": "2026-11-04T16:19:50.724324+00:00"
+    },
+    {
+      "id": "a64ddb49-ee65-479b-bc87-a46d5343f256",
+      "email": "rep_owner_77e7de7d@example.com",
+      "name": "User f8c8dc68",
+      "created_at": "2026-11-04T16:19:55.937901+00:00"
+    },
+    {
+      "id": "152045f6-3e6c-41f3-b5fe-8160c19fd17a",
+      "email": "run_owner_5cc5b032@example.com",
+      "name": "User 37cb78ad",
+      "created_at": "2026-11-04T16:19:59.207592+00:00"
+    },
+    {
+      "id": "b8bc05a7-bbee-4e10-b422-e22e34e38965",
+      "email": "owner-32acab@example.com",
+      "name": "Owner 32acab",
+      "created_at": "2026-11-04T16:21:33.354797+00:00"
+    },
+    {
+      "id": "15ed9a89-811f-4061-b3b7-067a45e450a0",
+      "email": "owner-b6dad3@example.com",
+      "name": "Owner b6dad3",
+      "created_at": "2026-11-04T16:21:34.667670+00:00"
+    },
+    {
+      "id": "cec072cd-137a-4298-92ed-fd73e1c26603",
+      "email": "owner2-c946fe@example.com",
+      "name": "Owner Two c946fe",
+      "created_at": "2026-11-04T16:21:34.981548+00:00"
+    },
+    {
+      "id": "da0aef07-960c-4ec2-8ad7-f3fd2b98f9a4",
+      "email": "owner-113d25@example.com",
+      "name": "Owner 113d25",
+      "created_at": "2026-11-04T16:21:35.547226+00:00"
+    },
+    {
+      "id": "7cfdaa9f-af73-4135-98ef-9c48545bf289",
+      "email": "rep_owner_72d892c1@example.com",
+      "name": "User 616ff970",
+      "created_at": "2026-11-04T16:21:41.301595+00:00"
+    },
+    {
+      "id": "96e75768-7fe2-4be3-8d82-8982a59dc791",
+      "email": "run_owner_6f7dcd45@example.com",
+      "name": "User bf52d7bb",
+      "created_at": "2026-11-04T16:21:44.694606+00:00"
+    }
+  ],
+  "orgs": [
+    {
+      "id": "c25d7997-cf2d-4961-9784-2af701ccd8bf",
+      "name": "Workspace Test Org b77e6b",
+      "slug": "ws-org-b77e6b",
+      "created_at": "2026-11-04T15:49:13.316717+00:00"
+    },
+    {
+      "id": "b6816309-9664-4619-b48f-55bbebc38eed",
+      "name": "Workspace Test Org f61102",
+      "slug": "ws-org-f61102",
+      "created_at": "2026-11-04T15:49:14.084345+00:00"
+    },
+    {
+      "id": "2e88214e-df3c-41c4-9e24-6d0e62a3f173",
+      "name": "Tenant Two Org 5aff43",
+      "slug": "tenant2-5aff43",
+      "created_at": "2026-11-04T15:49:14.303902+00:00"
+    },
+    {
+      "id": "2179cd73-f95b-4636-b871-1633b886e707",
+      "name": "Workspace Test Org 740e8f",
+      "slug": "ws-org-740e8f",
+      "created_at": "2026-11-04T15:49:14.617585+00:00"
+    },
+    {
+      "id": "f5ebb087-b880-4d1c-9230-93dbf3e28f8a",
+      "name": "File Org 1 cfb32e",
+      "slug": "file-org1-cfb32e",
+      "created_at": "2026-11-04T16:05:14.416395+00:00"
+    },
+    {
+      "id": "51f0bc53-1fb6-4672-9393-ebf8c7f8eaa6",
+      "name": "File Org 1 89050b",
+      "slug": "file-org1-89050b",
+      "created_at": "2026-11-04T16:05:17.062378+00:00"
+    },
+    {
+      "id": "ba515742-00d3-4b90-8fef-c366e0531a10",
+      "name": "File Org 1 4ad540",
+      "slug": "file-org1-4ad540",
+      "created_at": "2026-11-04T16:05:18.323563+00:00"
+    },
+    {
+      "id": "b282bfd9-4d04-451c-86fb-df03997fc63d",
+      "name": "File Org 2 4d05d1",
+      "slug": "file-org2-4d05d1",
+      "created_at": "2026-11-04T16:05:18.661740+00:00"
+    },
+    {
+      "id": "8346586c-ff8d-46a7-a683-92051e6c2237",
+      "name": "File Org 1 4e9286",
+      "slug": "file-org1-4e9286",
+      "created_at": "2026-11-04T16:05:34.495577+00:00"
+    },
+    {
+      "id": "d507d774-4d14-4086-95dc-58a546f00279",
+      "name": "File Org 1 754e3b",
+      "slug": "file-org1-754e3b",
+      "created_at": "2026-11-04T16:06:08.496974+00:00"
+    },
+    {
+      "id": "2b93da6f-26fd-4055-aaf9-c2623bfdf8e3",
+      "name": "File Org 1 1083ae",
+      "slug": "file-org1-1083ae",
+      "created_at": "2026-11-04T16:06:12.158446+00:00"
+    },
+    {
+      "id": "1a347e2b-032a-4ce6-88c8-fb19e9aa9775",
+      "name": "File Org 1 c88a11",
+      "slug": "file-org1-c88a11",
+      "created_at": "2026-11-04T16:06:14.621335+00:00"
+    },
+    {
+      "id": "9abffde1-2025-47d3-bbcc-2d944859165b",
+      "name": "File Org 2 482eab",
+      "slug": "file-org2-482eab",
+      "created_at": "2026-11-04T16:06:15.061189+00:00"
+    },
+    {
+      "id": "370f24ec-98f1-4e69-8bb0-e3a40881c786",
+      "name": "Workspace Test Org 688fc3",
+      "slug": "ws-org-688fc3",
+      "created_at": "2026-11-04T16:19:48.398509+00:00"
+    },
+    {
+      "id": "fd55bf9f-bceb-48bf-b9bd-dab7b83b08d4",
+      "name": "Workspace Test Org 0f1792",
+      "slug": "ws-org-0f1792",
+      "created_at": "2026-11-04T16:19:49.753055+00:00"
+    },
+    {
+      "id": "34b3ac9a-2e48-45f4-8a19-a4e5a6c55535",
+      "name": "Tenant Two Org f25773",
+      "slug": "tenant2-f25773",
+      "created_at": "2026-11-04T16:19:50.118717+00:00"
+    },
+    {
+      "id": "c8fde6b3-85eb-4b3b-acb9-43349a66619b",
+      "name": "Workspace Test Org 424f40",
+      "slug": "ws-org-424f40",
+      "created_at": "2026-11-04T16:19:50.706936+00:00"
+    },
+    {
+      "id": "020a00e1-3e61-40c8-9bd4-b414408732fc",
+      "name": "Report Org f8c8dc68",
+      "slug": "report-org-f8c8dc68",
+      "created_at": "2026-11-04T16:19:55.916715+00:00"
+    },
+    {
+      "id": "c6f2ba68-1485-4c5c-8b7f-a2d31853d6d6",
+      "name": "Report Org 37cb78ad",
+      "slug": "report-org-37cb78ad",
+      "created_at": "2026-11-04T16:19:59.198513+00:00"
+    },
+    {
+      "id": "c16f6091-e6f9-4821-b0a6-1c27c9823352",
+      "name": "Workspace Test Org 32acab",
+      "slug": "ws-org-32acab",
+      "created_at": "2026-11-04T16:21:33.321923+00:00"
+    },
+    {
+      "id": "630fa523-1a64-44c7-bf0c-1bec05911922",
+      "name": "Workspace Test Org b6dad3",
+      "slug": "ws-org-b6dad3",
+      "created_at": "2026-11-04T16:21:34.650775+00:00"
+    },
+    {
+      "id": "2e396f41-dfd0-4c88-a8fc-e0855213e073",
+      "name": "Tenant Two Org c946fe",
+      "slug": "tenant2-c946fe",
+      "created_at": "2026-11-04T16:21:34.971886+00:00"
+    },
+    {
+      "id": "e2872f9d-870e-4c6b-902a-047dcb4a7c7d",
+      "name": "Workspace Test Org 113d25",
+      "slug": "ws-org-113d25",
+      "created_at": "2026-11-04T16:21:35.517351+00:00"
+    },
+    {
+      "id": "ac265078-0b35-44a2-94ea-e22ab48ff3e7",
+      "name": "Report Org 616ff970",
+      "slug": "report-org-616ff970",
+      "created_at": "2026-11-04T16:21:41.293467+00:00"
+    },
+    {
+      "id": "025d442b-933b-410a-9dc9-4b22bfc951ab",
+      "name": "Report Org bf52d7bb",
+      "slug": "report-org-bf52d7bb",
+      "created_at": "2026-11-04T16:21:44.687320+00:00"
+    }
+  ],
+  "workspaces": [
+    {
+      "id": "867d4e04-a84a-47c2-974d-54c6711754ac",
+      "org_id": "c25d7997-cf2d-4961-9784-2af701ccd8bf",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "7f7b1f62-2a4b-4eb6-8689-e4be760b3a22",
+      "org_id": "c25d7997-cf2d-4961-9784-2af701ccd8bf",
+      "name": "Finance Analytics",
+      "slug": "finance-analytics"
+    },
+    {
+      "id": "0576d6b5-a1d8-4f62-b228-c051900e15aa",
+      "org_id": "b6816309-9664-4619-b48f-55bbebc38eed",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "bb59b7d6-3373-45a9-b1f9-730b7aa70cd0",
+      "org_id": "2e88214e-df3c-41c4-9e24-6d0e62a3f173",
+      "name": "Tenant 2 Default",
+      "slug": "default"
+    },
+    {
+      "id": "148ff81f-eedb-420a-9b37-3ce270820732",
+      "org_id": "2179cd73-f95b-4636-b871-1633b886e707",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "c8862899-318b-4dff-986d-0929e01d6c83",
+      "org_id": "f5ebb087-b880-4d1c-9230-93dbf3e28f8a",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "48862c21-2e12-4eda-9b78-80069ae7270f",
+      "org_id": "51f0bc53-1fb6-4672-9393-ebf8c7f8eaa6",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "198d2854-3efc-473f-8c38-442e7900b80b",
+      "org_id": "ba515742-00d3-4b90-8fef-c366e0531a10",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "d6ff3c7b-5827-4d8d-a88d-effd29b6bab2",
+      "org_id": "b282bfd9-4d04-451c-86fb-df03997fc63d",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "880a1cde-87e4-4973-9e1f-27774e5f699d",
+      "org_id": "8346586c-ff8d-46a7-a683-92051e6c2237",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "df2ce4a0-ba4d-414c-9639-004e08216126",
+      "org_id": "d507d774-4d14-4086-95dc-58a546f00279",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "7e22e9fa-67fa-44ba-bee8-5ded50075fce",
+      "org_id": "2b93da6f-26fd-4055-aaf9-c2623bfdf8e3",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "a76173e7-c92e-430d-b234-d153e1abb1cf",
+      "org_id": "1a347e2b-032a-4ce6-88c8-fb19e9aa9775",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "e0f5890e-ade5-42b8-b150-8f6bbc88514f",
+      "org_id": "9abffde1-2025-47d3-bbcc-2d944859165b",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "ce5aa483-b3e9-4cd0-b467-0cd3b8acbbef",
+      "org_id": "370f24ec-98f1-4e69-8bb0-e3a40881c786",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "490140d7-cc6c-4d16-9234-8ee5b923d461",
+      "org_id": "370f24ec-98f1-4e69-8bb0-e3a40881c786",
+      "name": "Finance Analytics",
+      "slug": "finance-analytics"
+    },
+    {
+      "id": "192fd6fa-db3e-48fb-bd2d-673a2ebbcde9",
+      "org_id": "fd55bf9f-bceb-48bf-b9bd-dab7b83b08d4",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "46384c76-a176-4cc3-a32f-ea216f09b7b4",
+      "org_id": "34b3ac9a-2e48-45f4-8a19-a4e5a6c55535",
+      "name": "Tenant 2 Default",
+      "slug": "default"
+    },
+    {
+      "id": "71d6e2f0-52ab-4594-8845-04c684d2ee71",
+      "org_id": "c8fde6b3-85eb-4b3b-acb9-43349a66619b",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "c1d30774-b8f2-4913-be9c-e821fa21889d",
+      "org_id": "020a00e1-3e61-40c8-9bd4-b414408732fc",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "64614d3f-a6a2-4076-8a1c-2b73a07a6c50",
+      "org_id": "c6f2ba68-1485-4c5c-8b7f-a2d31853d6d6",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "7862a2ad-39d1-4c7e-87c6-5488cb743734",
+      "org_id": "c16f6091-e6f9-4821-b0a6-1c27c9823352",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "8990af81-7212-47ec-9c55-4de4e800b2e8",
+      "org_id": "c16f6091-e6f9-4821-b0a6-1c27c9823352",
+      "name": "Finance Analytics",
+      "slug": "finance-analytics"
+    },
+    {
+      "id": "9e5b7ccd-8d5e-4e93-833e-3dc8b538036e",
+      "org_id": "630fa523-1a64-44c7-bf0c-1bec05911922",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "0915b6f5-3ea0-42ee-a6a9-042971c7ce18",
+      "org_id": "2e396f41-dfd0-4c88-a8fc-e0855213e073",
+      "name": "Tenant 2 Default",
+      "slug": "default"
+    },
+    {
+      "id": "0fa0938e-261d-430b-849c-a27396d21fd5",
+      "org_id": "e2872f9d-870e-4c6b-902a-047dcb4a7c7d",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "7a4c44ed-3ab6-4089-a4df-7347316d9144",
+      "org_id": "ac265078-0b35-44a2-94ea-e22ab48ff3e7",
+      "name": "Default Workspace",
+      "slug": "default"
+    },
+    {
+      "id": "8b616aa8-bf14-4b1c-bb51-4fc26a7542f5",
+      "org_id": "025d442b-933b-410a-9dc9-4b22bfc951ab",
+      "name": "Default Workspace",
+      "slug": "default"
+    }
+  ],
+  "reports": [
+    {
+      "id": "518c5d75-c213-4d20-9b70-84c10f83a449",
+      "org_id": "020a00e1-3e61-40c8-9bd4-b414408732fc",
+      "title": "Quarterly Operations Report"
+    },
+    {
+      "id": "b50342e4-77ed-499d-b03f-c9757960e410",
+      "org_id": "c6f2ba68-1485-4c5c-8b7f-a2d31853d6d6",
+      "title": "API Download Test Report"
+    },
+    {
+      "id": "7dbaaf69-549c-4478-bc8c-20a2201f9d95",
+      "org_id": "ac265078-0b35-44a2-94ea-e22ab48ff3e7",
+      "title": "Quarterly Operations Report"
+    },
+    {
+      "id": "0bc47833-0812-42e3-8c6a-15eb51f8da99",
+      "org_id": "025d442b-933b-410a-9dc9-4b22bfc951ab",
+      "title": "API Download Test Report"
+    }
+  ],
+  "report_runs": [
+    {
+      "id": "f45d1320-78c6-4e55-ae35-dccad33eb843",
+      "org_id": "c6f2ba68-1485-4c5c-8b7f-a2d31853d6d6",
+      "status": "failed"
+    },
+    {
+      "id": "553afe53-cd83-4904-8b56-57162d947352",
+      "org_id": "025d442b-933b-410a-9dc9-4b22bfc951ab",
+      "status": "succeeded"
+    }
+  ]
+}
