@@ -90,7 +90,12 @@ class ExternalIntegration(Base):
     )
 
     __table_args__ = (
-        UniqueConstraint("organization_id", "provider", "account_email", name="uq_external_integrations_org_prov_email"),
+        UniqueConstraint(
+            "organization_id",
+            "provider",
+            "account_email",
+            name="uq_external_integrations_org_prov_email",
+        ),
         Index("ix_external_integrations_org_prov", "organization_id", "provider"),
     )
 

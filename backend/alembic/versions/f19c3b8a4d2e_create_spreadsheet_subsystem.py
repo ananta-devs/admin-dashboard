@@ -35,14 +35,28 @@ def upgrade() -> None:
     op.create_table(
         "workbooks",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4),
-        sa.Column("organization_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "organization_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("workspace_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
-        sa.Column("created_by_user_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
+        sa.Column(
+            "created_by_user_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
         sa.Column("version", sa.Integer(), nullable=False, server_default="1"),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.UniqueConstraint("id", "organization_id", name="uq_workbooks_id_org"),
         sa.ForeignKeyConstraint(
             ["workspace_id", "organization_id"],
@@ -66,8 +80,12 @@ def upgrade() -> None:
         sa.Column("row_count", sa.Integer(), nullable=False, server_default="1000"),
         sa.Column("column_count", sa.Integer(), nullable=False, server_default="26"),
         sa.Column("version", sa.Integer(), nullable=False, server_default="1"),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.UniqueConstraint("id", "organization_id", name="uq_sheets_id_org"),
         sa.UniqueConstraint("workbook_id", "name", name="uq_sheets_workbook_name"),
         sa.ForeignKeyConstraint(
@@ -84,15 +102,24 @@ def upgrade() -> None:
     op.create_table(
         "sheet_columns",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4),
-        sa.Column("sheet_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("sheets.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "sheet_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("sheets.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("column_index", sa.Integer(), nullable=False),
         sa.Column("name", sa.String(length=50), nullable=False),
         sa.Column("data_type", sa.String(length=20), nullable=False, server_default="text"),
         sa.Column("width", sa.Integer(), nullable=False, server_default="100"),
         sa.Column("format", sa.String(length=50), nullable=True),
         sa.Column("is_hidden", sa.Boolean(), nullable=False, server_default="false"),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.UniqueConstraint("sheet_id", "column_index", name="uq_sheet_columns_sheet_col_idx"),
     )
     op.create_index("ix_sheet_columns_sheet_id", "sheet_columns", ["sheet_id"])
@@ -104,10 +131,16 @@ def upgrade() -> None:
         sa.Column("sheet_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("organization_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("row_index", sa.Integer(), nullable=False),
-        sa.Column("cells", postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default="{}"),
+        sa.Column(
+            "cells", postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default="{}"
+        ),
         sa.Column("version", sa.Integer(), nullable=False, server_default="1"),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.UniqueConstraint("sheet_id", "row_index", name="uq_sheet_rows_sheet_row_idx"),
         sa.ForeignKeyConstraint(
             ["sheet_id", "organization_id"],
@@ -127,8 +160,12 @@ def upgrade() -> None:
         sa.Column("organization_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("precedent_cell_ref", sa.String(length=20), nullable=False),
         sa.Column("dependent_cell_ref", sa.String(length=20), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.UniqueConstraint("sheet_id", "precedent_cell_ref", "dependent_cell_ref", name="uq_sheet_deps_prec_dep"),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
+        sa.UniqueConstraint(
+            "sheet_id", "precedent_cell_ref", "dependent_cell_ref", name="uq_sheet_deps_prec_dep"
+        ),
         sa.ForeignKeyConstraint(
             ["sheet_id", "organization_id"],
             ["sheets.id", "sheets.organization_id"],
@@ -136,8 +173,12 @@ def upgrade() -> None:
             name="fk_sheet_deps_sheet_org",
         ),
     )
-    op.create_index("ix_sheet_deps_precedent", "sheet_cell_dependencies", ["sheet_id", "precedent_cell_ref"])
-    op.create_index("ix_sheet_deps_dependent", "sheet_cell_dependencies", ["sheet_id", "dependent_cell_ref"])
+    op.create_index(
+        "ix_sheet_deps_precedent", "sheet_cell_dependencies", ["sheet_id", "precedent_cell_ref"]
+    )
+    op.create_index(
+        "ix_sheet_deps_dependent", "sheet_cell_dependencies", ["sheet_id", "dependent_cell_ref"]
+    )
 
     # 7. Create sheet_cell_history table
     op.create_table(
@@ -156,9 +197,16 @@ def upgrade() -> None:
         sa.Column("new_formula", sa.Text(), nullable=True),
         sa.Column("row_version_before", sa.Integer(), nullable=False),
         sa.Column("row_version_after", sa.Integer(), nullable=False),
-        sa.Column("edited_by_user_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
+        sa.Column(
+            "edited_by_user_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
         sa.Column("is_undone", sa.Boolean(), nullable=False, server_default="false"),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.ForeignKeyConstraint(
             ["sheet_id", "organization_id"],
             ["sheets.id", "sheets.organization_id"],
@@ -166,11 +214,16 @@ def upgrade() -> None:
             name="fk_sheet_history_sheet_org",
         ),
     )
-    op.create_index("ix_sheet_history_sheet_cell", "sheet_cell_history", ["sheet_id", "cell_ref", "created_at"])
-    op.create_index("ix_sheet_history_sheet_created", "sheet_cell_history", ["sheet_id", "created_at"])
+    op.create_index(
+        "ix_sheet_history_sheet_cell", "sheet_cell_history", ["sheet_id", "cell_ref", "created_at"]
+    )
+    op.create_index(
+        "ix_sheet_history_sheet_created", "sheet_cell_history", ["sheet_id", "created_at"]
+    )
 
     # 8. Seed permissions table with spreadsheet permission codes
     from datetime import datetime, timezone
+
     now = datetime.now(UTC)
 
     permissions_table = sa.table(
@@ -184,10 +237,38 @@ def upgrade() -> None:
     )
 
     spreadsheet_perms = [
-        {"id": uuid.uuid4(), "code": "spreadsheets.read", "name": "View Spreadsheets", "description": "View workbooks, sheets, and grid data", "category": "spreadsheets", "created_at": now},
-        {"id": uuid.uuid4(), "code": "spreadsheets.create", "name": "Create Spreadsheets", "description": "Create new workbooks and sheets", "category": "spreadsheets", "created_at": now},
-        {"id": uuid.uuid4(), "code": "spreadsheets.update", "name": "Edit Spreadsheets", "description": "Edit cells, formulas, columns, and sheets", "category": "spreadsheets", "created_at": now},
-        {"id": uuid.uuid4(), "code": "spreadsheets.delete", "name": "Delete Spreadsheets", "description": "Delete workbooks and sheets", "category": "spreadsheets", "created_at": now},
+        {
+            "id": uuid.uuid4(),
+            "code": "spreadsheets.read",
+            "name": "View Spreadsheets",
+            "description": "View workbooks, sheets, and grid data",
+            "category": "spreadsheets",
+            "created_at": now,
+        },
+        {
+            "id": uuid.uuid4(),
+            "code": "spreadsheets.create",
+            "name": "Create Spreadsheets",
+            "description": "Create new workbooks and sheets",
+            "category": "spreadsheets",
+            "created_at": now,
+        },
+        {
+            "id": uuid.uuid4(),
+            "code": "spreadsheets.update",
+            "name": "Edit Spreadsheets",
+            "description": "Edit cells, formulas, columns, and sheets",
+            "category": "spreadsheets",
+            "created_at": now,
+        },
+        {
+            "id": uuid.uuid4(),
+            "code": "spreadsheets.delete",
+            "name": "Delete Spreadsheets",
+            "description": "Delete workbooks and sheets",
+            "category": "spreadsheets",
+            "created_at": now,
+        },
     ]
     op.bulk_insert(permissions_table, spreadsheet_perms)
 
@@ -195,7 +276,9 @@ def upgrade() -> None:
     # Fetch all newly created permission IDs
     connection = op.get_bind()
     perm_map = {}
-    rows = connection.execute(sa.text("SELECT code, id FROM permissions WHERE code LIKE 'spreadsheets.%'")).fetchall()
+    rows = connection.execute(
+        sa.text("SELECT code, id FROM permissions WHERE code LIKE 'spreadsheets.%'")
+    ).fetchall()
     for code, p_id in rows:
         perm_map[code] = p_id
 
@@ -211,20 +294,45 @@ def upgrade() -> None:
         sa.column("organization_id", postgresql.UUID(as_uuid=True)),
     )
 
-    org_roles = connection.execute(sa.text("SELECT id, organization_id, slug FROM organization_roles WHERE is_system = true")).fetchall()
+    org_roles = connection.execute(
+        sa.text("SELECT id, organization_id, slug FROM organization_roles WHERE is_system = true")
+    ).fetchall()
     role_perm_entries = []
     for r_id, org_id, slug in org_roles:
         if slug in ("owner", "admin"):
-            for code in ("spreadsheets.read", "spreadsheets.create", "spreadsheets.update", "spreadsheets.delete"):
+            for code in (
+                "spreadsheets.read",
+                "spreadsheets.create",
+                "spreadsheets.update",
+                "spreadsheets.delete",
+            ):
                 if code in perm_map:
-                    role_perm_entries.append({"role_id": r_id, "permission_id": perm_map[code], "organization_id": org_id})
+                    role_perm_entries.append(
+                        {
+                            "role_id": r_id,
+                            "permission_id": perm_map[code],
+                            "organization_id": org_id,
+                        }
+                    )
         elif slug == "member":
             for code in ("spreadsheets.read", "spreadsheets.create", "spreadsheets.update"):
                 if code in perm_map:
-                    role_perm_entries.append({"role_id": r_id, "permission_id": perm_map[code], "organization_id": org_id})
+                    role_perm_entries.append(
+                        {
+                            "role_id": r_id,
+                            "permission_id": perm_map[code],
+                            "organization_id": org_id,
+                        }
+                    )
         elif slug == "viewer":
             if "spreadsheets.read" in perm_map:
-                role_perm_entries.append({"role_id": r_id, "permission_id": perm_map["spreadsheets.read"], "organization_id": org_id})
+                role_perm_entries.append(
+                    {
+                        "role_id": r_id,
+                        "permission_id": perm_map["spreadsheets.read"],
+                        "organization_id": org_id,
+                    }
+                )
 
     if role_perm_entries:
         op.bulk_insert(role_perms_table, role_perm_entries)
@@ -233,14 +341,14 @@ def upgrade() -> None:
 def downgrade() -> None:
     # 1. Remove spreadsheet permissions from role_permissions
     connection = op.get_bind()
-    connection.execute(sa.text(
-        "DELETE FROM role_permissions WHERE permission_id IN (SELECT id FROM permissions WHERE code LIKE 'spreadsheets.%')"
-    ))
+    connection.execute(
+        sa.text(
+            "DELETE FROM role_permissions WHERE permission_id IN (SELECT id FROM permissions WHERE code LIKE 'spreadsheets.%')"
+        )
+    )
 
     # 2. Delete spreadsheet permissions from permissions table
-    connection.execute(sa.text(
-        "DELETE FROM permissions WHERE code LIKE 'spreadsheets.%'"
-    ))
+    connection.execute(sa.text("DELETE FROM permissions WHERE code LIKE 'spreadsheets.%'"))
 
     # 3. Drop tables in reverse order
     op.drop_table("sheet_cell_history")

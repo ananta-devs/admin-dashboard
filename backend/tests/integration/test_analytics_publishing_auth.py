@@ -123,6 +123,7 @@ async def test_publishing_missing_analytics_export_permission_403(
     ctx = await create_tenant_and_result(api_client, db_session, "no_export")
 
     from app.services.permission import PermissionService
+
     original_check = PermissionService.check_membership_has_permission
 
     async def mock_check_perm(self, membership_id, perm_code, organization_id=None):
@@ -149,6 +150,7 @@ async def test_publishing_missing_spreadsheets_create_permission_403(
     ctx = await create_tenant_and_result(api_client, db_session, "no_create")
 
     from app.services.permission import PermissionService
+
     original_check = PermissionService.check_membership_has_permission
 
     async def mock_check_perm(self, membership_id, perm_code, organization_id=None):
@@ -230,4 +232,3 @@ async def test_publishing_concurrent_duplicate_idempotency(
     )
     sheets = (await db_session.execute(sheet_stmt)).scalars().all()
     assert len(sheets) == 1
-

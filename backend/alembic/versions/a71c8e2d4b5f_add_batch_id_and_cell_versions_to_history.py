@@ -69,4 +69,3 @@ def downgrade() -> None:
         table_name="sheet_cell_history",
     )
     op.drop_column("sheet_cell_history", "batch_id")
-

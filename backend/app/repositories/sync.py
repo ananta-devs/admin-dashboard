@@ -72,9 +72,7 @@ class SpreadsheetSyncRepository:
         await self.session.flush()
         return mapping
 
-    async def delete_mapping(
-        self, mapping_id: uuid.UUID, organization_id: uuid.UUID
-    ) -> bool:
+    async def delete_mapping(self, mapping_id: uuid.UUID, organization_id: uuid.UUID) -> bool:
         stmt = (
             delete(SpreadsheetSyncMapping)
             .where(
@@ -129,9 +127,7 @@ class SpreadsheetSyncRepository:
     # Conflicts
     # =========================================================================
 
-    async def create_conflict(
-        self, conflict: SpreadsheetSyncConflict
-    ) -> SpreadsheetSyncConflict:
+    async def create_conflict(self, conflict: SpreadsheetSyncConflict) -> SpreadsheetSyncConflict:
         self.session.add(conflict)
         await self.session.flush()
         return conflict
@@ -189,4 +185,3 @@ class SpreadsheetSyncRepository:
         )
         res = await self.session.execute(stmt)
         return res.scalar_one() or 0
-

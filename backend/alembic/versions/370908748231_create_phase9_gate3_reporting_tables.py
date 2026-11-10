@@ -53,7 +53,9 @@ def upgrade() -> None:
         sa.Column("title", sa.String(length=255), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("format", sa.String(length=20), nullable=False, server_default="pdf"),
-        sa.Column("page_orientation", sa.String(length=20), nullable=False, server_default="portrait"),
+        sa.Column(
+            "page_orientation", sa.String(length=20), nullable=False, server_default="portrait"
+        ),
         sa.Column("page_size", sa.String(length=20), nullable=False, server_default="a4"),
         sa.Column("header_text", sa.String(length=255), nullable=True),
         sa.Column("footer_text", sa.String(length=255), nullable=True),
@@ -67,8 +69,12 @@ def upgrade() -> None:
             sa.ForeignKey("users.id", ondelete="SET NULL"),
             nullable=True,
         ),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.Column("archived_at", sa.DateTime(timezone=True), nullable=True),
         sa.UniqueConstraint("id", "organization_id", name="uq_report_defs_id_org"),
         sa.ForeignKeyConstraint(
@@ -88,8 +94,12 @@ def upgrade() -> None:
     op.create_index("ix_report_defs_workspace_id", "report_definitions", ["workspace_id"])
     op.create_index("ix_report_defs_dashboard_id", "report_definitions", ["dashboard_id"])
     op.create_index("ix_report_defs_created_by", "report_definitions", ["created_by_user_id"])
-    op.create_index("ix_report_defs_org_workspace", "report_definitions", ["organization_id", "workspace_id"])
-    op.create_index("ix_report_defs_org_archived", "report_definitions", ["organization_id", "is_archived"])
+    op.create_index(
+        "ix_report_defs_org_workspace", "report_definitions", ["organization_id", "workspace_id"]
+    )
+    op.create_index(
+        "ix_report_defs_org_archived", "report_definitions", ["organization_id", "is_archived"]
+    )
 
     # 2. report_sections
     op.create_table(
@@ -102,13 +112,24 @@ def upgrade() -> None:
         sa.Column("title", sa.String(length=255), nullable=True),
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("custom_content", sa.Text(), nullable=True),
-        sa.Column("override_query_config", postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default=sa.text("'{}'::jsonb")),
+        sa.Column(
+            "override_query_config",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=False,
+            server_default=sa.text("'{}'::jsonb"),
+        ),
         sa.Column("sort_order", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("page_break_after", sa.Boolean(), nullable=False, server_default="false"),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.UniqueConstraint("id", "organization_id", name="uq_report_sections_id_org"),
-        sa.UniqueConstraint("report_definition_id", "sort_order", name="uq_report_sections_def_order"),
+        sa.UniqueConstraint(
+            "report_definition_id", "sort_order", name="uq_report_sections_def_order"
+        ),
         sa.ForeignKeyConstraint(
             ["report_definition_id", "organization_id"],
             ["report_definitions.id", "report_definitions.organization_id"],
@@ -125,7 +146,9 @@ def upgrade() -> None:
     op.create_index("ix_report_sections_def_id", "report_sections", ["report_definition_id"])
     op.create_index("ix_report_sections_org_id", "report_sections", ["organization_id"])
     op.create_index("ix_report_sections_widget_id", "report_sections", ["widget_id"])
-    op.create_index("ix_report_sections_def_order", "report_sections", ["report_definition_id", "sort_order"])
+    op.create_index(
+        "ix_report_sections_def_order", "report_sections", ["report_definition_id", "sort_order"]
+    )
 
     # 3. report_runs
     op.create_table(
@@ -149,8 +172,18 @@ def upgrade() -> None:
         sa.Column("attempt_count", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("max_attempts", sa.Integer(), nullable=False, server_default="3"),
         sa.Column("snapshot_schema_version", sa.Integer(), nullable=False, server_default="1"),
-        sa.Column("report_snapshot", postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default=sa.text("'{}'::jsonb")),
-        sa.Column("data_revision_ref", postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default=sa.text("'{}'::jsonb")),
+        sa.Column(
+            "report_snapshot",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=False,
+            server_default=sa.text("'{}'::jsonb"),
+        ),
+        sa.Column(
+            "data_revision_ref",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=False,
+            server_default=sa.text("'{}'::jsonb"),
+        ),
         sa.Column("artifact_path", sa.String(length=500), nullable=True),
         sa.Column("file_size_bytes", sa.BigInteger(), nullable=True),
         sa.Column("checksum_sha256", sa.String(length=64), nullable=True),
@@ -163,13 +196,21 @@ def upgrade() -> None:
             sa.ForeignKey("users.id", ondelete="SET NULL"),
             nullable=True,
         ),
-        sa.Column("queued_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "queued_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.UniqueConstraint("id", "organization_id", name="uq_report_runs_id_org"),
-        sa.UniqueConstraint("organization_id", "idempotency_key", name="uq_report_runs_org_idempotency"),
+        sa.UniqueConstraint(
+            "organization_id", "idempotency_key", name="uq_report_runs_org_idempotency"
+        ),
         sa.ForeignKeyConstraint(
             ["report_definition_id", "organization_id"],
             ["report_definitions.id", "report_definitions.organization_id"],
@@ -183,7 +224,10 @@ def upgrade() -> None:
             name="fk_report_runs_workspace_org",
         ),
         sa.CheckConstraint("trigger_type IN ('manual', 'api')", name="ck_report_runs_trigger_type"),
-        sa.CheckConstraint("status IN ('queued', 'running', 'succeeded', 'failed', 'cancelled')", name="ck_report_runs_status"),
+        sa.CheckConstraint(
+            "status IN ('queued', 'running', 'succeeded', 'failed', 'cancelled')",
+            name="ck_report_runs_status",
+        ),
     )
     op.create_index("ix_report_runs_org_id", "report_runs", ["organization_id"])
     op.create_index("ix_report_runs_def_id", "report_runs", ["report_definition_id"])
@@ -192,7 +236,11 @@ def upgrade() -> None:
     op.create_index("ix_report_runs_idempotency", "report_runs", ["idempotency_key"])
     op.create_index("ix_report_runs_claim_token", "report_runs", ["claim_token"])
     op.create_index("ix_report_runs_lease_expires", "report_runs", ["lease_expires_at"])
-    op.create_index("ix_report_runs_org_status_created", "report_runs", ["organization_id", "status", "created_at"])
+    op.create_index(
+        "ix_report_runs_org_status_created",
+        "report_runs",
+        ["organization_id", "status", "created_at"],
+    )
 
     # 4. report_download_tokens
     op.create_table(
@@ -217,7 +265,9 @@ def upgrade() -> None:
         sa.Column("download_count", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("max_downloads", sa.Integer(), nullable=False, server_default="1"),
         sa.Column("last_downloaded_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.UniqueConstraint("token_hash", name="uq_report_download_tokens_hash"),
         sa.ForeignKeyConstraint(
             ["run_id", "organization_id"],
@@ -227,9 +277,15 @@ def upgrade() -> None:
         ),
     )
     op.create_index("ix_report_download_tokens_run_id", "report_download_tokens", ["run_id"])
-    op.create_index("ix_report_download_tokens_org_id", "report_download_tokens", ["organization_id"])
+    op.create_index(
+        "ix_report_download_tokens_org_id", "report_download_tokens", ["organization_id"]
+    )
     op.create_index("ix_report_download_tokens_expires", "report_download_tokens", ["expires_at"])
-    op.create_index("ix_report_download_tokens_lookup", "report_download_tokens", ["token_hash", "is_revoked", "expires_at"])
+    op.create_index(
+        "ix_report_download_tokens_lookup",
+        "report_download_tokens",
+        ["token_hash", "is_revoked", "expires_at"],
+    )
 
     # 5. report_outbox_events
     op.create_table(
@@ -242,14 +298,26 @@ def upgrade() -> None:
             sa.ForeignKey("organizations.id", ondelete="CASCADE"),
             nullable=False,
         ),
-        sa.Column("event_type", sa.String(length=50), nullable=False, server_default="report.run.dispatched"),
-        sa.Column("payload", postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default=sa.text("'{}'::jsonb")),
+        sa.Column(
+            "event_type",
+            sa.String(length=50),
+            nullable=False,
+            server_default="report.run.dispatched",
+        ),
+        sa.Column(
+            "payload",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=False,
+            server_default=sa.text("'{}'::jsonb"),
+        ),
         sa.Column("attempts", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("locked_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("locked_by", sa.String(length=100), nullable=True),
         sa.Column("last_error", sa.Text(), nullable=True),
         sa.Column("published_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.ForeignKeyConstraint(
             ["run_id", "organization_id"],
             ["report_runs.id", "report_runs.organization_id"],
@@ -259,7 +327,9 @@ def upgrade() -> None:
     )
     op.create_index("ix_report_outbox_run_id", "report_outbox_events", ["run_id"])
     op.create_index("ix_report_outbox_org_id", "report_outbox_events", ["organization_id"])
-    op.create_index("ix_report_outbox_pending", "report_outbox_events", ["published_at", "locked_at"])
+    op.create_index(
+        "ix_report_outbox_pending", "report_outbox_events", ["published_at", "locked_at"]
+    )
 
     # 6. Seed 6 report permissions into permissions table
     now = datetime.now(UTC)
@@ -274,18 +344,62 @@ def upgrade() -> None:
     )
 
     reporting_perms = [
-        {"id": uuid.uuid4(), "code": "reports.read", "name": "View Reports", "description": "View report definitions, sections, and historical run metadata", "category": "reports", "created_at": now},
-        {"id": uuid.uuid4(), "code": "reports.create", "name": "Create Reports", "description": "Create new report definitions and configure sections", "category": "reports", "created_at": now},
-        {"id": uuid.uuid4(), "code": "reports.update", "name": "Update Reports", "description": "Edit report definitions, section layout, and query overrides", "category": "reports", "created_at": now},
-        {"id": uuid.uuid4(), "code": "reports.delete", "name": "Delete Reports", "description": "Archive or delete report definitions", "category": "reports", "created_at": now},
-        {"id": uuid.uuid4(), "code": "reports.run", "name": "Execute Report Generation", "description": "Trigger on-demand asynchronous report generation runs", "category": "reports", "created_at": now},
-        {"id": uuid.uuid4(), "code": "reports.export", "name": "Download Report Artifacts", "description": "Download completed PDF and data report artifacts", "category": "reports", "created_at": now},
+        {
+            "id": uuid.uuid4(),
+            "code": "reports.read",
+            "name": "View Reports",
+            "description": "View report definitions, sections, and historical run metadata",
+            "category": "reports",
+            "created_at": now,
+        },
+        {
+            "id": uuid.uuid4(),
+            "code": "reports.create",
+            "name": "Create Reports",
+            "description": "Create new report definitions and configure sections",
+            "category": "reports",
+            "created_at": now,
+        },
+        {
+            "id": uuid.uuid4(),
+            "code": "reports.update",
+            "name": "Update Reports",
+            "description": "Edit report definitions, section layout, and query overrides",
+            "category": "reports",
+            "created_at": now,
+        },
+        {
+            "id": uuid.uuid4(),
+            "code": "reports.delete",
+            "name": "Delete Reports",
+            "description": "Archive or delete report definitions",
+            "category": "reports",
+            "created_at": now,
+        },
+        {
+            "id": uuid.uuid4(),
+            "code": "reports.run",
+            "name": "Execute Report Generation",
+            "description": "Trigger on-demand asynchronous report generation runs",
+            "category": "reports",
+            "created_at": now,
+        },
+        {
+            "id": uuid.uuid4(),
+            "code": "reports.export",
+            "name": "Download Report Artifacts",
+            "description": "Download completed PDF and data report artifacts",
+            "category": "reports",
+            "created_at": now,
+        },
     ]
     op.bulk_insert(permissions_table, reporting_perms)
 
     # 7. Backfill system roles with Gate 3 permissions
     connection = op.get_bind()
-    rows = connection.execute(sa.text("SELECT code, id FROM permissions WHERE code LIKE 'reports.%'")).fetchall()
+    rows = connection.execute(
+        sa.text("SELECT code, id FROM permissions WHERE code LIKE 'reports.%'")
+    ).fetchall()
     perm_map = {code: p_id for code, p_id in rows}
 
     role_perms_table = sa.table(
@@ -295,11 +409,26 @@ def upgrade() -> None:
         sa.column("created_at", sa.DateTime(timezone=True)),
     )
 
-    owner_admin_perms = ["reports.read", "reports.create", "reports.update", "reports.delete", "reports.run", "reports.export"]
-    member_perms = ["reports.read", "reports.create", "reports.update", "reports.run", "reports.export"]
+    owner_admin_perms = [
+        "reports.read",
+        "reports.create",
+        "reports.update",
+        "reports.delete",
+        "reports.run",
+        "reports.export",
+    ]
+    member_perms = [
+        "reports.read",
+        "reports.create",
+        "reports.update",
+        "reports.run",
+        "reports.export",
+    ]
     viewer_perms = ["reports.read", "reports.export"]
 
-    role_rows = connection.execute(sa.text("SELECT id, slug FROM organization_roles WHERE is_system = true")).fetchall()
+    role_rows = connection.execute(
+        sa.text("SELECT id, slug FROM organization_roles WHERE is_system = true")
+    ).fetchall()
     role_perms_to_insert = []
     for r_id, r_slug in role_rows:
         target_codes = []
@@ -312,11 +441,13 @@ def upgrade() -> None:
 
         for code in target_codes:
             if code in perm_map:
-                role_perms_to_insert.append({
-                    "role_id": r_id,
-                    "permission_id": perm_map[code],
-                    "created_at": now,
-                })
+                role_perms_to_insert.append(
+                    {
+                        "role_id": r_id,
+                        "permission_id": perm_map[code],
+                        "created_at": now,
+                    }
+                )
 
     if role_perms_to_insert:
         op.bulk_insert(role_perms_table, role_perms_to_insert)
@@ -325,7 +456,8 @@ def upgrade() -> None:
 def downgrade() -> None:
     # 1. Clean up role permissions for reporting
     connection = op.get_bind()
-    connection.execute(sa.text("""
+    connection.execute(
+        sa.text("""
         DELETE FROM role_permissions
         WHERE permission_id IN (
             SELECT id FROM permissions
@@ -333,15 +465,18 @@ def downgrade() -> None:
                 'reports.read', 'reports.create', 'reports.update', 'reports.delete', 'reports.run', 'reports.export'
             )
         )
-    """))
+    """)
+    )
 
     # 2. Delete reporting permissions
-    connection.execute(sa.text("""
+    connection.execute(
+        sa.text("""
         DELETE FROM permissions
         WHERE code IN (
             'reports.read', 'reports.create', 'reports.update', 'reports.delete', 'reports.run', 'reports.export'
         )
-    """))
+    """)
+    )
 
     # 3. Drop reporting tables in reverse order
     op.drop_table("report_outbox_events")
@@ -353,4 +488,3 @@ def downgrade() -> None:
     # 4. Drop unique constraints added to dashboard tables
     op.drop_constraint("uq_dashboard_widgets_id_org", "dashboard_widgets", type_="unique")
     op.drop_constraint("uq_dashboards_id_org", "dashboards", type_="unique")
-

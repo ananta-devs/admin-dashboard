@@ -67,17 +67,13 @@ class PythonScriptService:
             created = await self.script_repo.create(script)
         return created
 
-    async def get_script(
-        self, script_id: uuid.UUID, organization_id: uuid.UUID
-    ) -> PythonScript:
+    async def get_script(self, script_id: uuid.UUID, organization_id: uuid.UUID) -> PythonScript:
         script = await self.script_repo.get_by_id(script_id, organization_id)
         if not script:
             raise EntityNotFoundError("PythonScript", str(script_id))
         return script
 
-    async def list_scripts(
-        self, organization_id: uuid.UUID
-    ) -> Sequence[PythonScript]:
+    async def list_scripts(self, organization_id: uuid.UUID) -> Sequence[PythonScript]:
         return await self.script_repo.list_by_organization(organization_id)
 
     async def update_script(
@@ -89,7 +85,12 @@ class PythonScriptService:
         can_manage_any: bool = False,
     ) -> PythonScript:
         script = await self.get_script(script_id, organization_id)
-        if script.created_by_user_id and user_id and script.created_by_user_id != user_id and not can_manage_any:
+        if (
+            script.created_by_user_id
+            and user_id
+            and script.created_by_user_id != user_id
+            and not can_manage_any
+        ):
             raise ForbiddenError("You do not have permission to modify another user's script.")
 
         async with transaction(self.session):
@@ -117,7 +118,12 @@ class PythonScriptService:
         can_manage_any: bool = False,
     ) -> None:
         script = await self.get_script(script_id, organization_id)
-        if script.created_by_user_id and user_id and script.created_by_user_id != user_id and not can_manage_any:
+        if (
+            script.created_by_user_id
+            and user_id
+            and script.created_by_user_id != user_id
+            and not can_manage_any
+        ):
             raise ForbiddenError("You do not have permission to delete another user's script.")
 
         async with transaction(self.session):
@@ -167,7 +173,9 @@ class PythonScriptService:
                 # If first row contains strings, treat as headers
                 header_row = 0
                 if 0 in raw_matrix:
-                    headers = [str(raw_matrix[0].get(c, col_to_letter(c))) for c in range(max_c_idx + 1)]
+                    headers = [
+                        str(raw_matrix[0].get(c, col_to_letter(c))) for c in range(max_c_idx + 1)
+                    ]
                     header_row = 1
 
                 records: list[dict[str, Any]] = []
@@ -225,9 +233,7 @@ class PythonScriptService:
         await self.get_script(script_id, organization_id)
         return await self.run_repo.list_by_script(script_id, organization_id)
 
-    async def get_run(
-        self, run_id: uuid.UUID, organization_id: uuid.UUID
-    ) -> PythonScriptRun:
+    async def get_run(self, run_id: uuid.UUID, organization_id: uuid.UUID) -> PythonScriptRun:
         run = await self.run_repo.get_by_id(run_id, organization_id)
         if not run:
             raise EntityNotFoundError("PythonScriptRun", str(run_id))

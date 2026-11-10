@@ -21,7 +21,6 @@ from app.services.backup.wal_archiver import (
     WAL_SEGMENT_SIZE,
     WalArchivalError,
     WalArchiverService,
-    WalConflictError,
 )
 
 
@@ -32,7 +31,14 @@ def _worker_publish(spool_dir_str: str, src_path_str: str, segment_name: str, qu
         is_new, digest = archiver.archive_segment(src_path_str, segment_name)
         queue.put({"success": True, "is_new": is_new, "digest": digest, "pid": os.getpid()})
     except Exception as e:
-        queue.put({"success": False, "error_type": type(e).__name__, "error_msg": str(e), "pid": os.getpid()})
+        queue.put(
+            {
+                "success": False,
+                "error_type": type(e).__name__,
+                "error_msg": str(e),
+                "pid": os.getpid(),
+            }
+        )
 
 
 def test_concurrent_multiprocess_identical_publication():
@@ -49,8 +55,12 @@ def test_concurrent_multiprocess_identical_publication():
         src_file.write_bytes(content)
 
         queue = mp.Queue()
-        p1 = mp.Process(target=_worker_publish, args=(str(spool_dir), str(src_file), segment_name, queue))
-        p2 = mp.Process(target=_worker_publish, args=(str(spool_dir), str(src_file), segment_name, queue))
+        p1 = mp.Process(
+            target=_worker_publish, args=(str(spool_dir), str(src_file), segment_name, queue)
+        )
+        p2 = mp.Process(
+            target=_worker_publish, args=(str(spool_dir), str(src_file), segment_name, queue)
+        )
 
         p1.start()
         p2.start()
@@ -90,8 +100,12 @@ def test_concurrent_multiprocess_conflicting_publication():
         src_file_b.write_bytes(data_b)
 
         queue = mp.Queue()
-        p1 = mp.Process(target=_worker_publish, args=(str(spool_dir), str(src_file_a), segment_name, queue))
-        p2 = mp.Process(target=_worker_publish, args=(str(spool_dir), str(src_file_b), segment_name, queue))
+        p1 = mp.Process(
+            target=_worker_publish, args=(str(spool_dir), str(src_file_a), segment_name, queue)
+        )
+        p2 = mp.Process(
+            target=_worker_publish, args=(str(spool_dir), str(src_file_b), segment_name, queue)
+        )
 
         p1.start()
         p2.start()
@@ -102,7 +116,9 @@ def test_concurrent_multiprocess_conflicting_publication():
 
         # One process must succeed, and the other must fail with WalConflictError
         successes = [r for r in results if r["success"] is True]
-        conflicts = [r for r in results if r["success"] is False and r["error_type"] == "WalConflictError"]
+        conflicts = [
+            r for r in results if r["success"] is False and r["error_type"] == "WalConflictError"
+        ]
 
         assert len(successes) == 1
         assert len(conflicts) == 1
@@ -136,7 +152,9 @@ def test_symlink_substitution_rejection():
         src_file = Path(tmp_dir) / "src"
         src_file.write_bytes(b"Z" * WAL_SEGMENT_SIZE)
 
-        with pytest.raises(WalArchivalError, match="Refusing to publish to symbolic link destination"):
+        with pytest.raises(
+            WalArchivalError, match="Refusing to publish to symbolic link destination"
+        ):
             archiver.archive_segment(src_file, segment_name)
 
 
@@ -153,6 +171,7 @@ def test_unexpected_hardlink_attack_rejected(monkeypatch):
 
         # Intercept staging stat to simulate an external hardlink created during staging
         orig_stat = Path.stat
+
         def patched_stat(self, *args, **kwargs):
             st = orig_stat(self, *args, **kwargs)
             if ".tmp_" in self.name:
@@ -161,6 +180,7 @@ def test_unexpected_hardlink_attack_rejected(monkeypatch):
                     st_nlink = 2
                     st_size = st.st_size
                     st_mode = st.st_mode
+
                 return FakeStat()
             return st
 
@@ -219,6 +239,7 @@ def test_retained_writable_descriptor_cannot_mutate_published_wal(monkeypatch):
 
         # Hook calculate_file_sha256 during staging to simulate a process grabbing an open writable handle
         orig_calc = archiver.calculate_file_sha256
+
         def hooking_calc(path):
             if ".tmp_" in str(path):
                 # Open a writable file descriptor to the staging file
@@ -247,4 +268,3 @@ def test_retained_writable_descriptor_cannot_mutate_published_wal(monkeypatch):
         assert dest.is_file()
         assert dest.read_bytes() == content
         assert archiver.calculate_file_sha256(dest) == original_digest
-

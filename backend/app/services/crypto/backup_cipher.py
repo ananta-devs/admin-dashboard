@@ -7,17 +7,17 @@ deterministic nonce derivation (NIST SP 800-38D), and 43-byte AEAD frame authent
 
 from __future__ import annotations
 
-import hmac
 import hashlib
+import hmac
 import os
 import struct
 import uuid
-from typing import BinaryIO, Iterator, Tuple
+from typing import BinaryIO
 
+from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDFExpand
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.keywrap import aes_key_wrap, aes_key_unwrap
+from cryptography.hazmat.primitives.keywrap import aes_key_unwrap, aes_key_wrap
 
 # Header Constants
 HEADER_MAGIC = b"VIBEENC1"
@@ -52,7 +52,7 @@ class BackupCipherService:
         self.master_kek = master_kek
         self.key_id = key_id_bytes.ljust(16, b"\x00")
 
-    def derive_keys(self, master_salt: bytes) -> Tuple[bytes, bytes]:
+    def derive_keys(self, master_salt: bytes) -> tuple[bytes, bytes]:
         """Derive KEK_wrap and Key_header_mac using HKDF-SHA256 (RFC 5869)."""
         if len(master_salt) != 16:
             raise CryptoProtocolError("Master salt must be exactly 16 bytes.")
@@ -93,7 +93,9 @@ class BackupCipherService:
             + wrapped_dek
         )
         if len(prefix) != HEADER_PREFIX_SIZE:
-            raise CryptoProtocolError(f"Header prefix length mismatch: {len(prefix)} != {HEADER_PREFIX_SIZE}")
+            raise CryptoProtocolError(
+                f"Header prefix length mismatch: {len(prefix)} != {HEADER_PREFIX_SIZE}"
+            )
 
         mac = hmac.new(key_header_mac, prefix, hashlib.sha256).digest()[:HEADER_MAC_SIZE]
         header = prefix + mac
@@ -101,10 +103,12 @@ class BackupCipherService:
             raise CryptoProtocolError(f"Total header size mismatch: {len(header)} != {HEADER_SIZE}")
         return header
 
-    def parse_header(self, header_bytes: bytes) -> Tuple[bytes, bytes, bytes, bytes, bytes]:
+    def parse_header(self, header_bytes: bytes) -> tuple[bytes, bytes, bytes, bytes, bytes]:
         """Parse and verify the 128-byte header. Returns (artifact_id, key_id, base_nonce, dek, header_mac)."""
         if len(header_bytes) != HEADER_SIZE:
-            raise CryptoProtocolError(f"Invalid header size: expected {HEADER_SIZE}, got {len(header_bytes)}")
+            raise CryptoProtocolError(
+                f"Invalid header size: expected {HEADER_SIZE}, got {len(header_bytes)}"
+            )
 
         magic = header_bytes[0:8]
         if magic != HEADER_MAGIC:
@@ -129,11 +133,15 @@ class BackupCipherService:
 
         # Verify key ID matches this cipher instance
         if key_id != self.key_id:
-            raise CryptoProtocolError(f"Key ID mismatch: header has {key_id!r}, expected {self.key_id!r}")
+            raise CryptoProtocolError(
+                f"Key ID mismatch: header has {key_id!r}, expected {self.key_id!r}"
+            )
 
         # Derive subkeys and verify header authentication
         kek_wrap, key_header_mac = self.derive_keys(master_salt)
-        calculated_mac = hmac.new(key_header_mac, header_bytes[:116], hashlib.sha256).digest()[:HEADER_MAC_SIZE]
+        calculated_mac = hmac.new(key_header_mac, header_bytes[:116], hashlib.sha256).digest()[
+            :HEADER_MAC_SIZE
+        ]
         if not hmac.compare_digest(calculated_mac, header_mac):
             raise CryptoProtocolError("Header HMAC authentication failed.")
 
@@ -152,7 +160,9 @@ class BackupCipherService:
     def derive_chunk_iv(base_nonce: bytes, chunk_idx: int) -> bytes:
         """Derive 12-byte IV for chunk index: base_nonce XOR (0x00000000 || uint64_be(chunk_idx))."""
         if chunk_idx < 0 or chunk_idx > MAX_CHUNKS_PER_DEK:
-            raise CryptoProtocolError(f"Chunk index {chunk_idx} exceeds maximum allowed invocations.")
+            raise CryptoProtocolError(
+                f"Chunk index {chunk_idx} exceeds maximum allowed invocations."
+            )
         iv_mask = struct.pack(">I", 0) + struct.pack(">Q", chunk_idx)
         return bytes(a ^ b for a, b in zip(base_nonce, iv_mask))
 
@@ -181,7 +191,7 @@ class BackupCipherService:
         master_salt: bytes | None = None,
         base_nonce: bytes | None = None,
         dek: bytes | None = None,
-    ) -> Tuple[int, str]:
+    ) -> tuple[int, str]:
         """Encrypt input stream to output stream. Returns (total_bytes_written, sha256_digest)."""
         artifact_id = artifact_id or uuid.uuid4().bytes
         master_salt = master_salt or os.urandom(16)
@@ -191,7 +201,9 @@ class BackupCipherService:
         kek_wrap, key_header_mac = self.derive_keys(master_salt)
         wrapped_dek = aes_key_wrap(kek_wrap, dek)
 
-        header = self.build_header(artifact_id, master_salt, base_nonce, wrapped_dek, key_header_mac)
+        header = self.build_header(
+            artifact_id, master_salt, base_nonce, wrapped_dek, key_header_mac
+        )
         header_mac = header[116:128]
 
         hasher = hashlib.sha256()
@@ -213,7 +225,13 @@ class BackupCipherService:
             ct = enc.update(b"") + enc.finalize()
             tag = enc.tag
 
-            frame = struct.pack(">Q", chunk_idx) + struct.pack(">B", is_final) + struct.pack(">I", length) + ct + tag
+            frame = (
+                struct.pack(">Q", chunk_idx)
+                + struct.pack(">B", is_final)
+                + struct.pack(">I", length)
+                + ct
+                + tag
+            )
             out_stream.write(frame)
             hasher.update(frame)
             total_written += len(frame)
@@ -231,7 +249,13 @@ class BackupCipherService:
             ct = enc.update(read_buffer) + enc.finalize()
             tag = enc.tag
 
-            frame = struct.pack(">Q", chunk_idx) + struct.pack(">B", is_final) + struct.pack(">I", length) + ct + tag
+            frame = (
+                struct.pack(">Q", chunk_idx)
+                + struct.pack(">B", is_final)
+                + struct.pack(">I", length)
+                + ct
+                + tag
+            )
             out_stream.write(frame)
             hasher.update(frame)
             total_written += len(frame)
@@ -241,7 +265,7 @@ class BackupCipherService:
 
         return total_written, hasher.hexdigest()
 
-    def decrypt_stream(self, in_stream: BinaryIO, out_stream: BinaryIO) -> Tuple[int, bytes]:
+    def decrypt_stream(self, in_stream: BinaryIO, out_stream: BinaryIO) -> tuple[int, bytes]:
         """Decrypt input stream to output stream. Returns (total_plaintext_bytes, artifact_id)."""
         header_bytes = in_stream.read(HEADER_SIZE)
         if len(header_bytes) != HEADER_SIZE:
@@ -258,14 +282,18 @@ class BackupCipherService:
             frame_header = in_stream.read(13)
             if not frame_header:
                 if not terminal_encountered:
-                    raise CryptoProtocolError("Stream truncated: EOF reached before terminal frame.")
+                    raise CryptoProtocolError(
+                        "Stream truncated: EOF reached before terminal frame."
+                    )
                 break
 
             if terminal_encountered:
                 raise CryptoProtocolError("Trailing data encountered after terminal frame.")
 
             if len(frame_header) != 13:
-                raise CryptoProtocolError(f"Incomplete frame header: expected 13 bytes, got {len(frame_header)}")
+                raise CryptoProtocolError(
+                    f"Incomplete frame header: expected 13 bytes, got {len(frame_header)}"
+                )
 
             chunk_idx = struct.unpack(">Q", frame_header[0:8])[0]
             is_final = frame_header[8]
@@ -277,7 +305,9 @@ class BackupCipherService:
                 )
 
             if length > DEFAULT_CHUNK_SIZE:
-                raise CryptoProtocolError(f"Chunk payload length {length} exceeds maximum chunk size.")
+                raise CryptoProtocolError(
+                    f"Chunk payload length {length} exceeds maximum chunk size."
+                )
 
             # Read ciphertext (length bytes) + tag (16 bytes)
             ct_and_tag = in_stream.read(length + 16)
@@ -295,7 +325,9 @@ class BackupCipherService:
                 dec.authenticate_additional_data(aad)
                 pt = dec.update(ct) + dec.finalize()
             except Exception as e:
-                raise CryptoProtocolError(f"AEAD authentication failed on chunk {chunk_idx}: {e}") from e
+                raise CryptoProtocolError(
+                    f"AEAD authentication failed on chunk {chunk_idx}: {e}"
+                ) from e
 
             out_stream.write(pt)
             total_plaintext += len(pt)
@@ -306,4 +338,3 @@ class BackupCipherService:
             expected_chunk_idx += 1
 
         return total_plaintext, artifact_id
-

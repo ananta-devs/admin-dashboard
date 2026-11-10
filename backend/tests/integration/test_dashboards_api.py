@@ -127,7 +127,9 @@ async def test_dashboard_and_widget_crud_lifecycle(
     assert dash_data["title"] == "Executive KPI Dashboard"
 
     # Create dummy sheet for widget data source
-    wb = Workbook(organization_id=org_id, workspace_id=ws_id, name="Dash WB", created_by_user_id=user_id)
+    wb = Workbook(
+        organization_id=org_id, workspace_id=ws_id, name="Dash WB", created_by_user_id=user_id
+    )
     db_session.add(wb)
     await db_session.flush()
     sheet = Sheet(workbook_id=wb.id, organization_id=org_id, name="MetricsSheet")
@@ -245,7 +247,9 @@ async def test_polars_query_aggregation_engine(
     ws_id = ws_list[0].id
 
     # Create sheet with structured sales data
-    wb = Workbook(organization_id=org_id, workspace_id=ws_id, name="Sales WB", created_by_user_id=user_id)
+    wb = Workbook(
+        organization_id=org_id, workspace_id=ws_id, name="Sales WB", created_by_user_id=user_id
+    )
     db_session.add(wb)
     await db_session.flush()
 
@@ -500,7 +504,12 @@ async def test_specialized_dashboard_visualizations(
 
     ws_repo = WorkspaceRepository(db_session)
     ws_list = await ws_repo.list_by_organization(org_id)
-    wb = Workbook(organization_id=org_id, workspace_id=ws_list[0].id, name="Test WB", created_by_user_id=user_id)
+    wb = Workbook(
+        organization_id=org_id,
+        workspace_id=ws_list[0].id,
+        name="Test WB",
+        created_by_user_id=user_id,
+    )
     db_session.add(wb)
     await db_session.flush()
 
@@ -509,11 +518,39 @@ async def test_specialized_dashboard_visualizations(
     await db_session.flush()
 
     # Populate rows: Price (A), Units (B)
-    r0 = SheetRow(sheet_id=sheet.id, organization_id=org_id, row_index=0, cells={"A": {"v": "Price", "c": "Price", "f": None}, "B": {"v": "Units", "c": "Units", "f": None}})
-    r1 = SheetRow(sheet_id=sheet.id, organization_id=org_id, row_index=1, cells={"A": {"v": 10, "c": 10, "f": None}, "B": {"v": 100, "c": 100, "f": None}})
-    r2 = SheetRow(sheet_id=sheet.id, organization_id=org_id, row_index=2, cells={"A": {"v": 20, "c": 20, "f": None}, "B": {"v": 80, "c": 80, "f": None}})
-    r3 = SheetRow(sheet_id=sheet.id, organization_id=org_id, row_index=3, cells={"A": {"v": 30, "c": 30, "f": None}, "B": {"v": 60, "c": 60, "f": None}})
-    r4 = SheetRow(sheet_id=sheet.id, organization_id=org_id, row_index=4, cells={"A": {"v": 40, "c": 40, "f": None}, "B": {"v": 40, "c": 40, "f": None}})
+    r0 = SheetRow(
+        sheet_id=sheet.id,
+        organization_id=org_id,
+        row_index=0,
+        cells={
+            "A": {"v": "Price", "c": "Price", "f": None},
+            "B": {"v": "Units", "c": "Units", "f": None},
+        },
+    )
+    r1 = SheetRow(
+        sheet_id=sheet.id,
+        organization_id=org_id,
+        row_index=1,
+        cells={"A": {"v": 10, "c": 10, "f": None}, "B": {"v": 100, "c": 100, "f": None}},
+    )
+    r2 = SheetRow(
+        sheet_id=sheet.id,
+        organization_id=org_id,
+        row_index=2,
+        cells={"A": {"v": 20, "c": 20, "f": None}, "B": {"v": 80, "c": 80, "f": None}},
+    )
+    r3 = SheetRow(
+        sheet_id=sheet.id,
+        organization_id=org_id,
+        row_index=3,
+        cells={"A": {"v": 30, "c": 30, "f": None}, "B": {"v": 60, "c": 60, "f": None}},
+    )
+    r4 = SheetRow(
+        sheet_id=sheet.id,
+        organization_id=org_id,
+        row_index=4,
+        cells={"A": {"v": 40, "c": 40, "f": None}, "B": {"v": 40, "c": 40, "f": None}},
+    )
     db_session.add_all([r0, r1, r2, r3, r4])
     await db_session.commit()
 
@@ -538,7 +575,9 @@ async def test_specialized_dashboard_visualizations(
         headers={"X-CSRF-Token": csrf_token},
     )
     assert w_hist.status_code == 201
-    hist_q = await api_client.post(f"/api/v1/dashboards/{dash_id}/widgets/{w_hist.json()['id']}/query")
+    hist_q = await api_client.post(
+        f"/api/v1/dashboards/{dash_id}/widgets/{w_hist.json()['id']}/query"
+    )
     assert hist_q.status_code == 200
     assert "bin" in hist_q.json()["columns"]
     assert "count" in hist_q.json()["columns"]
@@ -557,7 +596,9 @@ async def test_specialized_dashboard_visualizations(
         headers={"X-CSRF-Token": csrf_token},
     )
     assert w_corr.status_code == 201
-    corr_q = await api_client.post(f"/api/v1/dashboards/{dash_id}/widgets/{w_corr.json()['id']}/query")
+    corr_q = await api_client.post(
+        f"/api/v1/dashboards/{dash_id}/widgets/{w_corr.json()['id']}/query"
+    )
     assert corr_q.status_code == 200
     assert "variable" in corr_q.json()["columns"]
     assert "Price" in corr_q.json()["columns"]
@@ -579,7 +620,9 @@ async def test_specialized_dashboard_visualizations(
         headers={"X-CSRF-Token": csrf_token},
     )
     assert w_box.status_code == 201
-    box_q = await api_client.post(f"/api/v1/dashboards/{dash_id}/widgets/{w_box.json()['id']}/query")
+    box_q = await api_client.post(
+        f"/api/v1/dashboards/{dash_id}/widgets/{w_box.json()['id']}/query"
+    )
     assert box_q.status_code == 200
     assert "median" in box_q.json()["columns"]
     assert "min" in box_q.json()["columns"]
@@ -600,7 +643,9 @@ async def test_specialized_dashboard_visualizations(
         headers={"X-CSRF-Token": csrf_token},
     )
     assert w_stats.status_code == 201
-    stats_q = await api_client.post(f"/api/v1/dashboards/{dash_id}/widgets/{w_stats.json()['id']}/query")
+    stats_q = await api_client.post(
+        f"/api/v1/dashboards/{dash_id}/widgets/{w_stats.json()['id']}/query"
+    )
     assert stats_q.status_code == 200
     assert "mean" in stats_q.json()["columns"]
     assert "std" in stats_q.json()["columns"]
@@ -625,7 +670,9 @@ async def test_specialized_dashboard_visualizations(
         headers={"X-CSRF-Token": csrf_token},
     )
     assert w_tbl.status_code == 201
-    tbl_q = await api_client.post(f"/api/v1/dashboards/{dash_id}/widgets/{w_tbl.json()['id']}/query")
+    tbl_q = await api_client.post(
+        f"/api/v1/dashboards/{dash_id}/widgets/{w_tbl.json()['id']}/query"
+    )
     assert tbl_q.status_code == 200
     tbl_body = tbl_q.json()
     assert tbl_body["columns"] == ["Price", "Units"]
@@ -664,7 +711,7 @@ async def test_specialized_dashboard_visualizations(
 
     # Cross-tenant widget export blocked (random UUID)
     bad_dash_id = uuid.uuid4()
-    bad_export = await api_client.get(f"/api/v1/dashboards/{bad_dash_id}/widgets/{widget_tbl_id}/export")
+    bad_export = await api_client.get(
+        f"/api/v1/dashboards/{bad_dash_id}/widgets/{widget_tbl_id}/export"
+    )
     assert bad_export.status_code == 404
-
-

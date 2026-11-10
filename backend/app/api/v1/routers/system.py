@@ -35,4 +35,3 @@ async def get_system_telemetry(
     """
     service = SystemHealthService(session)
     return await service.get_subsystems_telemetry(membership.organization_id)
-

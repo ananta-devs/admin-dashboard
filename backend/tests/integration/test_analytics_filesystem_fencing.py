@@ -84,7 +84,9 @@ async def create_test_context(api_client: AsyncClient, db_session: AsyncSession,
 
 
 @pytest.mark.asyncio
-async def test_filesystem_artifacts_fenced_by_claim_generation(api_client: AsyncClient, db_session: AsyncSession):
+async def test_filesystem_artifacts_fenced_by_claim_generation(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """Proves Worker 1 (gen 1) and Worker 2 (gen 2) write to distinct paths; Worker 1 cannot overwrite Worker 2."""
     org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
         api_client, db_session, "fs_fence"
@@ -132,7 +134,9 @@ async def test_filesystem_artifacts_fenced_by_claim_generation(api_client: Async
 
 
 @pytest.mark.asyncio
-async def test_snapshot_identity_preserved_across_retries(api_client: AsyncClient, db_session: AsyncSession):
+async def test_snapshot_identity_preserved_across_retries(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """Proves that a retrying job reuses the exact same immutable snapshot from attempt 1."""
     org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
         api_client, db_session, "snap_retry"
@@ -206,6 +210,7 @@ async def test_snapshot_identity_preserved_across_retries(api_client: AsyncClien
 
     # Verify result computed on the reused snapshot (mean should be 50.0, NOT 9999.0!)
     from app.repositories.analytics import AnalyticsResultRepository
+
     res_repo = AnalyticsResultRepository(db_session)
     result_obj = await res_repo.get_by_job_id_scoped(job_id, org_id)
     assert result_obj is not None

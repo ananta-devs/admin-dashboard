@@ -60,9 +60,7 @@ class ReportDownloadTokenService:
         redis_client = await cls.get_redis_client()
         if redis_client:
             try:
-                await redis_client.set(
-                    f"report:download:{token_hash}", serialized, ex=ttl_seconds
-                )
+                await redis_client.set(f"report:download:{token_hash}", serialized, ex=ttl_seconds)
                 await redis_client.aclose()
             except Exception as e:
                 logger.warning(f"Failed to store download token in Redis: {e}")
@@ -106,13 +104,17 @@ class ReportDownloadTokenService:
                     return json.loads(raw_json)
                 else:
                     # Token missing or already consumed in Redis
-                    raise InvalidTokenError("Download token is invalid, expired, or has already been consumed.")
+                    raise InvalidTokenError(
+                        "Download token is invalid, expired, or has already been consumed."
+                    )
             except InvalidTokenError:
                 raise
             except Exception as e:
                 logger.error(f"Redis getdel error: {e}")
                 if settings.ENVIRONMENT == "production":
-                    raise InvalidTokenError("Download token verification failed (storage unavailable).") from e
+                    raise InvalidTokenError(
+                        "Download token verification failed (storage unavailable)."
+                    ) from e
         elif settings.ENVIRONMENT == "production":
             raise InvalidTokenError("Download token verification failed (storage unavailable).")
 
@@ -126,4 +128,3 @@ class ReportDownloadTokenService:
                         return payload
 
         raise InvalidTokenError("Download token is invalid, expired, or has already been consumed.")
-

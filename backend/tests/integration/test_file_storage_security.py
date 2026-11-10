@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import base64
 import uuid
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -61,6 +62,7 @@ async def test_org(db_session: AsyncSession):
     org = await db_session.get(Organization, org_read.id)
     user = await db_session.get(User, user_read.id)
     from app.repositories.membership import MembershipRepository
+
     m_repo = MembershipRepository(db_session)
     membership = await m_repo.get(organization_id=org.id, user_id=user.id)
     return {"org": org, "user": user, "membership": membership}
@@ -103,8 +105,14 @@ async def test_active_markup_rejected_in_csv_and_txt(test_org, session_factory):
                     "content_type": mime,
                 }
                 res = await client.post("/api/v1/files/upload", json=payload)
-                assert res.status_code == 400, f"Expected 400 for malicious file {filename}, got {res.status_code}: {res.text}"
-                assert "active content" in res.text.lower() or "markup" in res.text.lower() or "not allowed" in res.text.lower()
+                assert res.status_code == 400, (
+                    f"Expected 400 for malicious file {filename}, got {res.status_code}: {res.text}"
+                )
+                assert (
+                    "active content" in res.text.lower()
+                    or "markup" in res.text.lower()
+                    or "not allowed" in res.text.lower()
+                )
     finally:
         app.dependency_overrides.clear()
 
@@ -146,8 +154,13 @@ async def test_double_extensions_rejected(test_org, session_factory):
                     "content_type": "text/csv",
                 }
                 res = await client.post("/api/v1/files/upload", json=payload)
-                assert res.status_code == 400, f"Expected 400 for {filename}, got {res.status_code}: {res.text}"
-                assert any(k in res.text.lower() for k in ("multiple extensions", "suspicious", "prohibited", "not permitted"))
+                assert res.status_code == 400, (
+                    f"Expected 400 for {filename}, got {res.status_code}: {res.text}"
+                )
+                assert any(
+                    k in res.text.lower()
+                    for k in ("multiple extensions", "suspicious", "prohibited", "not permitted")
+                )
     finally:
         app.dependency_overrides.clear()
 

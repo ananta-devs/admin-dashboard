@@ -20,6 +20,7 @@ from datetime import UTC, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy import create_engine, text
+
 from scripts.e2e_cleanup import cleanup_run, get_sync_db_url
 
 
@@ -33,7 +34,9 @@ def run_cleanup_safety_tests() -> bool:
 
     with engine.connect() as conn:
         actual_db = conn.execute(text("SELECT current_database();")).scalar()
-        assert actual_db == "vibe_enterprise_test", f"Safety test must run on vibe_enterprise_test, got {actual_db}"
+        assert actual_db == "vibe_enterprise_test", (
+            f"Safety test must run on vibe_enterprise_test, got {actual_db}"
+        )
 
     # -------------------------------------------------------------------------
     # TEST E: Wrong database refusal (Must fail closed before touching data)
@@ -98,7 +101,9 @@ def run_cleanup_safety_tests() -> bool:
             text("SELECT id FROM administrative_audit_events WHERE id = :id"),
             {"id": unrelated_event_id},
         ).fetchone()
-        assert row is not None, "Test A FAILED: Unrelated NULL-organization audit event was improperly deleted!"
+        assert row is not None, (
+            "Test A FAILED: Unrelated NULL-organization audit event was improperly deleted!"
+        )
         print("  -> PASSED: Unrelated NULL-organization audit record was strictly preserved.")
 
         # Clean up the test fixture event
@@ -123,29 +128,51 @@ def run_cleanup_safety_tests() -> bool:
     with engine.begin() as conn:
         # Seed Run A
         conn.execute(
-            text("INSERT INTO organizations (id, name, slug, created_at, updated_at) VALUES (:id, 'Org A', :slug, :now, :now)"),
+            text(
+                "INSERT INTO organizations (id, name, slug, created_at, updated_at) VALUES (:id, 'Org A', :slug, :now, :now)"
+            ),
             {"id": org_a_id, "slug": f"org-a-{run_a}", "now": now},
         )
         conn.execute(
-            text("INSERT INTO users (id, email, normalized_email, display_name, created_at, updated_at) VALUES (:id, :email, :n_email, 'User A', :now, :now)"),
-            {"id": user_a_id, "email": f"user_a_{run_a}@vibe.internal", "n_email": f"user_a_{run_a}@vibe.internal", "now": now},
+            text(
+                "INSERT INTO users (id, email, normalized_email, display_name, created_at, updated_at) VALUES (:id, :email, :n_email, 'User A', :now, :now)"
+            ),
+            {
+                "id": user_a_id,
+                "email": f"user_a_{run_a}@vibe.internal",
+                "n_email": f"user_a_{run_a}@vibe.internal",
+                "now": now,
+            },
         )
         conn.execute(
-            text("INSERT INTO administrative_audit_events (id, organization_id, organization_slug, actor_user_id, action, target_type, target_id, occurred_at) VALUES (:id, :org_id, 'org-a', :user_id, 'USER_LOGIN', 'User', 'u-a', :now)"),
+            text(
+                "INSERT INTO administrative_audit_events (id, organization_id, organization_slug, actor_user_id, action, target_type, target_id, occurred_at) VALUES (:id, :org_id, 'org-a', :user_id, 'USER_LOGIN', 'User', 'u-a', :now)"
+            ),
             {"id": uuid.uuid4(), "org_id": org_a_id, "user_id": user_a_id, "now": now},
         )
 
         # Seed Run B
         conn.execute(
-            text("INSERT INTO organizations (id, name, slug, created_at, updated_at) VALUES (:id, 'Org B', :slug, :now, :now)"),
+            text(
+                "INSERT INTO organizations (id, name, slug, created_at, updated_at) VALUES (:id, 'Org B', :slug, :now, :now)"
+            ),
             {"id": org_b_id, "slug": f"org-b-{run_b}", "now": now},
         )
         conn.execute(
-            text("INSERT INTO users (id, email, normalized_email, display_name, created_at, updated_at) VALUES (:id, :email, :n_email, 'User B', :now, :now)"),
-            {"id": user_b_id, "email": f"user_b_{run_b}@vibe.internal", "n_email": f"user_b_{run_b}@vibe.internal", "now": now},
+            text(
+                "INSERT INTO users (id, email, normalized_email, display_name, created_at, updated_at) VALUES (:id, :email, :n_email, 'User B', :now, :now)"
+            ),
+            {
+                "id": user_b_id,
+                "email": f"user_b_{run_b}@vibe.internal",
+                "n_email": f"user_b_{run_b}@vibe.internal",
+                "now": now,
+            },
         )
         conn.execute(
-            text("INSERT INTO administrative_audit_events (id, organization_id, organization_slug, actor_user_id, action, target_type, target_id, occurred_at) VALUES (:id, :org_id, 'org-b', :user_id, 'USER_LOGIN', 'User', 'u-b', :now)"),
+            text(
+                "INSERT INTO administrative_audit_events (id, organization_id, organization_slug, actor_user_id, action, target_type, target_id, occurred_at) VALUES (:id, :org_id, 'org-b', :user_id, 'USER_LOGIN', 'User', 'u-b', :now)"
+            ),
             {"id": uuid.uuid4(), "org_id": org_b_id, "user_id": user_b_id, "now": now},
         )
 
@@ -159,21 +186,39 @@ def run_cleanup_safety_tests() -> bool:
 
     with engine.begin() as conn:
         # Verify Run A is completely gone
-        row_org_a = conn.execute(text("SELECT id FROM organizations WHERE id = :id"), {"id": org_a_id}).fetchone()
-        row_user_a = conn.execute(text("SELECT id FROM users WHERE id = :id"), {"id": user_a_id}).fetchone()
-        row_audit_a = conn.execute(text("SELECT id FROM administrative_audit_events WHERE actor_user_id = :id"), {"id": user_a_id}).fetchone()
+        row_org_a = conn.execute(
+            text("SELECT id FROM organizations WHERE id = :id"), {"id": org_a_id}
+        ).fetchone()
+        row_user_a = conn.execute(
+            text("SELECT id FROM users WHERE id = :id"), {"id": user_a_id}
+        ).fetchone()
+        row_audit_a = conn.execute(
+            text("SELECT id FROM administrative_audit_events WHERE actor_user_id = :id"),
+            {"id": user_a_id},
+        ).fetchone()
 
         assert row_org_a is None, "Test B FAILED: Org A was not deleted!"
         assert row_user_a is None, "Test B FAILED: User A was not deleted!"
         assert row_audit_a is None, "Test B FAILED: Audit event for User A was not deleted!"
 
         # Verify Run B is 100% intact
-        row_org_b = conn.execute(text("SELECT id FROM organizations WHERE id = :id"), {"id": org_b_id}).fetchone()
-        row_user_b = conn.execute(text("SELECT id FROM users WHERE id = :id"), {"id": user_b_id}).fetchone()
-        row_audit_b = conn.execute(text("SELECT id FROM administrative_audit_events WHERE actor_user_id = :id"), {"id": user_b_id}).fetchone()
+        row_org_b = conn.execute(
+            text("SELECT id FROM organizations WHERE id = :id"), {"id": org_b_id}
+        ).fetchone()
+        row_user_b = conn.execute(
+            text("SELECT id FROM users WHERE id = :id"), {"id": user_b_id}
+        ).fetchone()
+        row_audit_b = conn.execute(
+            text("SELECT id FROM administrative_audit_events WHERE actor_user_id = :id"),
+            {"id": user_b_id},
+        ).fetchone()
 
-        assert row_org_b is not None, "Test B FAILED: Org B was improperly deleted during Run A cleanup!"
-        assert row_user_b is not None, "Test B FAILED: User B was improperly deleted during Run A cleanup!"
+        assert row_org_b is not None, (
+            "Test B FAILED: Org B was improperly deleted during Run A cleanup!"
+        )
+        assert row_user_b is not None, (
+            "Test B FAILED: User B was improperly deleted during Run A cleanup!"
+        )
         assert row_audit_b is not None, "Test B FAILED: Audit event B was improperly deleted!"
         print("  -> PASSED: Cross-run isolation and exact identifier targeting verified.")
 
@@ -197,31 +242,50 @@ def run_cleanup_safety_tests() -> bool:
 
     with engine.begin() as conn:
         conn.execute(
-            text("INSERT INTO organizations (id, name, slug, created_at, updated_at) VALUES (:id, 'Org D', :slug, :now, :now)"),
+            text(
+                "INSERT INTO organizations (id, name, slug, created_at, updated_at) VALUES (:id, 'Org D', :slug, :now, :now)"
+            ),
             {"id": org_d_id, "slug": f"org-d-{run_d}", "now": now},
         )
         conn.execute(
-            text("INSERT INTO workspaces (id, organization_id, name, slug, created_at, updated_at) VALUES (:id, :org_id, 'WS D', 'ws-d', :now, :now)"),
+            text(
+                "INSERT INTO workspaces (id, organization_id, name, slug, created_at, updated_at) VALUES (:id, :org_id, 'WS D', 'ws-d', :now, :now)"
+            ),
             {"id": ws_d_id, "org_id": org_d_id, "now": now},
         )
         conn.execute(
-            text("INSERT INTO workbooks (id, organization_id, workspace_id, name, created_at, updated_at) VALUES (:id, :org_id, :ws_id, 'WB D', :now, :now)"),
+            text(
+                "INSERT INTO workbooks (id, organization_id, workspace_id, name, created_at, updated_at) VALUES (:id, :org_id, :ws_id, 'WB D', :now, :now)"
+            ),
             {"id": wb_d_id, "org_id": org_d_id, "ws_id": ws_d_id, "now": now},
         )
         conn.execute(
-            text("INSERT INTO sheets (id, organization_id, workbook_id, name, position, row_count, column_count, created_at, updated_at) VALUES (:id, :org_id, :wb_id, 'Sheet1', 0, 100, 26, :now, :now)"),
+            text(
+                "INSERT INTO sheets (id, organization_id, workbook_id, name, position, row_count, column_count, created_at, updated_at) VALUES (:id, :org_id, :wb_id, 'Sheet1', 0, 100, 26, :now, :now)"
+            ),
             {"id": sheet_d_id, "org_id": org_d_id, "wb_id": wb_d_id, "now": now},
         )
         conn.execute(
-            text("INSERT INTO users (id, email, normalized_email, display_name, created_at, updated_at) VALUES (:id, :email, :n_email, 'User D', :now, :now)"),
-            {"id": user_d_id, "email": f"user_d_{run_d}@vibe.internal", "n_email": f"user_d_{run_d}@vibe.internal", "now": now},
+            text(
+                "INSERT INTO users (id, email, normalized_email, display_name, created_at, updated_at) VALUES (:id, :email, :n_email, 'User D', :now, :now)"
+            ),
+            {
+                "id": user_d_id,
+                "email": f"user_d_{run_d}@vibe.internal",
+                "n_email": f"user_d_{run_d}@vibe.internal",
+                "now": now,
+            },
         )
         conn.execute(
-            text("INSERT INTO user_credentials (id, user_id, password_hash, password_changed_at, created_at, updated_at) VALUES (:cred_id, :user_id, 'argon2_dummy', :now, :now, :now)"),
+            text(
+                "INSERT INTO user_credentials (id, user_id, password_hash, password_changed_at, created_at, updated_at) VALUES (:cred_id, :user_id, 'argon2_dummy', :now, :now, :now)"
+            ),
             {"cred_id": uuid.uuid4(), "user_id": user_d_id, "now": now},
         )
         conn.execute(
-            text("INSERT INTO authentication_sessions (id, user_id, active_organization_id, token_hash, csrf_token_hash, created_at, last_seen_at, idle_expires_at, absolute_expires_at) VALUES (:id, :user_id, :org_id, 'hash1', 'csrf1', :now, :now, :now, :now)"),
+            text(
+                "INSERT INTO authentication_sessions (id, user_id, active_organization_id, token_hash, csrf_token_hash, created_at, last_seen_at, idle_expires_at, absolute_expires_at) VALUES (:id, :user_id, :org_id, 'hash1', 'csrf1', :now, :now, :now, :now)"
+            ),
             {"id": uuid.uuid4(), "user_id": user_d_id, "org_id": org_d_id, "now": now},
         )
 
@@ -233,8 +297,31 @@ def run_cleanup_safety_tests() -> bool:
     print(f"  -> Cleanup Run D Counts: {counts_d}")
 
     with engine.begin() as conn:
-        for tbl in ["organizations", "workspaces", "workbooks", "sheets", "users", "user_credentials", "authentication_sessions"]:
-            cnt = conn.execute(text(f"SELECT count(*) FROM {tbl} WHERE id = :id"), {"id": org_d_id if "org" in tbl else (ws_d_id if tbl == "workspaces" else (wb_d_id if tbl == "workbooks" else (sheet_d_id if tbl == "sheets" else user_d_id)))}).scalar()
+        for tbl in [
+            "organizations",
+            "workspaces",
+            "workbooks",
+            "sheets",
+            "users",
+            "user_credentials",
+            "authentication_sessions",
+        ]:
+            cnt = conn.execute(
+                text(f"SELECT count(*) FROM {tbl} WHERE id = :id"),
+                {
+                    "id": org_d_id
+                    if "org" in tbl
+                    else (
+                        ws_d_id
+                        if tbl == "workspaces"
+                        else (
+                            wb_d_id
+                            if tbl == "workbooks"
+                            else (sheet_d_id if tbl == "sheets" else user_d_id)
+                        )
+                    )
+                },
+            ).scalar()
             assert cnt == 0, f"Test D FAILED: Table {tbl} still has test record after cleanup!"
         print("  -> PASSED: Complete foreign-key cascading and dependency integrity confirmed.")
 

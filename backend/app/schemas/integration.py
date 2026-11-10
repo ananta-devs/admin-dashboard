@@ -77,4 +77,3 @@ class GoogleSpreadsheetValuesResponse(BaseModel):
     values: list[list[Any]] = Field(default_factory=list)
     total_rows: int
     total_columns: int
-

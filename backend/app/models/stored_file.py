@@ -6,7 +6,16 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, CheckConstraint, DateTime, ForeignKey, ForeignKeyConstraint, Index, String, UniqueConstraint
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Index,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -76,9 +85,9 @@ class StoredFile(Base):
     )
 
     # Relationships
-    organization: Mapped["Organization"] = relationship()
-    workspace: Mapped["Workspace | None"] = relationship(overlaps="organization")
-    uploaded_by_user: Mapped["User | None"] = relationship()
+    organization: Mapped[Organization] = relationship()
+    workspace: Mapped[Workspace | None] = relationship(overlaps="organization")
+    uploaded_by_user: Mapped[User | None] = relationship()
 
     def __repr__(self) -> str:
         return f"<StoredFile id={self.id} org={self.organization_id} name={self.filename!r} size={self.size_bytes}>"

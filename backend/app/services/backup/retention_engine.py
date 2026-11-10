@@ -11,8 +11,7 @@ Fulfills Phase 10 Stage 5 requirements:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Set
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -30,8 +29,8 @@ class BackupArtifactMetadata:
     s3_key: str
     s3_version_id: str
     sha256: str
-    promoted_tiers: Set[str] = field(default_factory=set)  # {'DAILY', 'WEEKLY', 'MONTHLY'}
-    retention_expires_at: Optional[datetime] = None
+    promoted_tiers: set[str] = field(default_factory=set)  # {'DAILY', 'WEEKLY', 'MONTHLY'}
+    retention_expires_at: datetime | None = None
 
 
 @dataclass
@@ -59,7 +58,7 @@ class RetentionEngine:
         self.weekly_retention_days = weekly_retention_days
         self.monthly_retention_days = monthly_retention_days
 
-    def evaluate_gfs_promotions(self, backups: List[BackupArtifactMetadata]) -> None:
+    def evaluate_gfs_promotions(self, backups: list[BackupArtifactMetadata]) -> None:
         """Assign GFS tiers and compute retention expiration without creating duplicate artifacts."""
         for b in backups:
             created = b.created_at
@@ -78,25 +77,25 @@ class RetentionEngine:
                 max_days = max(max_days, self.monthly_retention_days)
 
             b.retention_expires_at = datetime.fromtimestamp(
-                created.timestamp() + (max_days * 86400), tz=timezone.utc
+                created.timestamp() + (max_days * 86400), tz=UTC
             )
 
     def resolve_prunable_backups(
         self,
-        backups: List[BackupArtifactMetadata],
-        wal_segments: List[WalSegmentMetadata],
-        now: Optional[datetime] = None,
-    ) -> Tuple[List[BackupArtifactMetadata], List[WalSegmentMetadata]]:
+        backups: list[BackupArtifactMetadata],
+        wal_segments: list[WalSegmentMetadata],
+        now: datetime | None = None,
+    ) -> tuple[list[BackupArtifactMetadata], list[WalSegmentMetadata]]:
         """Identify prunable base backups and WAL segments using fail-closed dependency graph.
 
         Returns (prunable_backups, prunable_wal_segments).
         """
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         self.evaluate_gfs_promotions(backups)
 
         # 1. Classify backups as retained or expired
-        retained_backups: List[BackupArtifactMetadata] = []
-        expired_backups: List[BackupArtifactMetadata] = []
+        retained_backups: list[BackupArtifactMetadata] = []
+        expired_backups: list[BackupArtifactMetadata] = []
 
         for b in backups:
             if b.retention_expires_at and b.retention_expires_at > now:
@@ -112,7 +111,7 @@ class RetentionEngine:
                 expired_backups.remove(latest)
 
         # 2. Build map of all WAL segments required by retained backups
-        required_wal_names: Set[str] = set()
+        required_wal_names: set[str] = set()
         wal_by_name = {w.segment_name: w for w in wal_segments}
 
         for b in retained_backups:
@@ -132,7 +131,7 @@ class RetentionEngine:
                 required_wal_names.add(stop_wal)
 
         # 3. WAL segments required by any retained backup CANNOT be pruned
-        prunable_wal: List[WalSegmentMetadata] = []
+        prunable_wal: list[WalSegmentMetadata] = []
         for w in wal_segments:
             # Check if segment is in required set or newer than the earliest retained backup
             if w.segment_name not in required_wal_names:
@@ -142,4 +141,3 @@ class RetentionEngine:
                     prunable_wal.append(w)
 
         return expired_backups, prunable_wal
-

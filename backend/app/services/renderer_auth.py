@@ -44,7 +44,9 @@ class RendererAuthService:
             raise AuthenticationError(f"Control characters or newlines not allowed in {field_name}")
         val_str = raw_str.strip()
         if len(val_str) > 128:
-            raise AuthenticationError(f"{field_name} exceeds maximum allowable length of 128 characters")
+            raise AuthenticationError(
+                f"{field_name} exceeds maximum allowable length of 128 characters"
+            )
         try:
             # If valid UUID, normalize to lowercase canonical string
             return str(uuid.UUID(val_str)).lower()
@@ -178,7 +180,9 @@ class RendererAuthService:
                 del cls._seen_nonces[k]
 
             if nonce in cls._seen_nonces:
-                raise AuthenticationError("Renderer request nonce already consumed (replay detected)")
+                raise AuthenticationError(
+                    "Renderer request nonce already consumed (replay detected)"
+                )
 
             cls._seen_nonces[nonce] = now
 
@@ -213,21 +217,27 @@ class RendererAuthService:
                 key = f"report:nonce:{nonce}"
                 acquired = await client.set(key, "1", nx=True, ex=cls.NONCE_TTL_SECONDS)
                 if not acquired:
-                    raise AuthenticationError("Renderer request nonce already consumed (replay detected)")
+                    raise AuthenticationError(
+                        "Renderer request nonce already consumed (replay detected)"
+                    )
                 return
             except AuthenticationError:
                 raise
             except Exception as e:
                 logger.error(f"Redis distributed replay protection error: {e}")
                 if settings.ENVIRONMENT == "production":
-                    raise AuthenticationError("Authentication storage unavailable (replay protection failure)") from e
+                    raise AuthenticationError(
+                        "Authentication storage unavailable (replay protection failure)"
+                    ) from e
             finally:
                 if created_client and client:
                     await client.aclose()
 
         # If Redis is unavailable in production, fail closed
         if settings.ENVIRONMENT == "production":
-            raise AuthenticationError("Authentication storage unavailable (replay protection failure)")
+            raise AuthenticationError(
+                "Authentication storage unavailable (replay protection failure)"
+            )
 
         # Development / non-production fallback to in-memory store
         cls._verify_nonce_memory(nonce)
@@ -298,6 +308,8 @@ class RendererAuthService:
         )
 
         if settings.ENVIRONMENT == "production":
-            raise AuthenticationError("Synchronous nonce verification is prohibited in production; use verify_request_async")
+            raise AuthenticationError(
+                "Synchronous nonce verification is prohibited in production; use verify_request_async"
+            )
 
         cls._verify_nonce_memory(nonce)

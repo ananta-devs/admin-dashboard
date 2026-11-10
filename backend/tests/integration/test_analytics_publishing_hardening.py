@@ -289,7 +289,11 @@ async def test_publish_cell_batch_failure_rolls_back_sheet_creation(
 
     # Mock update_cells_batch to simulate crash
     from unittest.mock import patch
-    with patch("app.services.spreadsheet.SpreadsheetService.update_cells_batch", side_effect=RuntimeError("Database row lock timeout")):
+
+    with patch(
+        "app.services.spreadsheet.SpreadsheetService.update_cells_batch",
+        side_effect=RuntimeError("Database row lock timeout"),
+    ):
         with pytest.raises(RuntimeError):
             await analytics_svc.publish_result_to_sheet(
                 result_id=result_id,

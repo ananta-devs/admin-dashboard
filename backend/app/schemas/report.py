@@ -44,7 +44,9 @@ class ReportDefinitionUpdateInput(BaseModel):
 class ReportSectionCreateInput(BaseModel):
     """Payload to add a section block to a report definition."""
 
-    section_type: str = Field(..., max_length=50, description="'chart', 'table', 'summary', or 'markdown'")
+    section_type: str = Field(
+        ..., max_length=50, description="'chart', 'table', 'summary', or 'markdown'"
+    )
     title: str | None = Field(None, max_length=255)
     description: str | None = None
     widget_id: uuid.UUID | None = None
@@ -107,6 +109,7 @@ class ReportDefinitionRead(BaseModel):
     def check_unloaded_sections(cls, data: Any) -> Any:
         if hasattr(data, "__table__"):
             from sqlalchemy import inspect as sa_inspect
+
             try:
                 insp = sa_inspect(data)
                 if "sections" in insp.unloaded:
@@ -168,4 +171,3 @@ class ReportDownloadTokenResponse(BaseModel):
     download_token: str
     download_url: str
     expires_in_seconds: int
-

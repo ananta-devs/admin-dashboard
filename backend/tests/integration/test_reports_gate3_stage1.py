@@ -14,7 +14,7 @@ from __future__ import annotations
 import hashlib
 import secrets
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from typing import Any
 
 import pytest
@@ -25,10 +25,9 @@ from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 from app.db.base import utc_now
-from app.models.organization import Organization
-from app.models.user import User
 from app.models.dashboard import Dashboard, DashboardWidget
 from app.models.membership import OrganizationMembership
+from app.models.organization import Organization
 from app.models.permission import Permission
 from app.models.report import (
     ReportDefinition,
@@ -38,7 +37,8 @@ from app.models.report import (
     ReportRunStatus,
     ReportSection,
 )
-from app.models.role import MembershipRole, OrganizationRole
+from app.models.role import MembershipRole
+from app.models.user import User
 from app.models.workspace import Workspace
 from app.services.permission import PermissionService
 from app.services.role import RoleService
@@ -413,7 +413,9 @@ async def test_gate3_cross_tenant_references_strictly_rejected(db_session: Async
 
 
 @pytest.mark.asyncio
-async def test_gate3_historical_preservation_and_deletion_semantics(db_session: AsyncSession) -> None:
+async def test_gate3_historical_preservation_and_deletion_semantics(
+    db_session: AsyncSession,
+) -> None:
     """Verify ON DELETE SET NULL (column_name) preserves entities while maintaining org isolation."""
     uid = uuid.uuid4().hex[:8]
     t = await create_tenant_hierarchy(db_session, uid)
@@ -478,7 +480,9 @@ async def test_gate3_historical_preservation_and_deletion_semantics(db_session: 
     await db_session.flush()
 
     res_sec = await db_session.execute(
-        select(ReportSection).where(ReportSection.id == section_id).execution_options(populate_existing=True)
+        select(ReportSection)
+        .where(ReportSection.id == section_id)
+        .execution_options(populate_existing=True)
     )
     reloaded_section = res_sec.scalar_one_or_none()
     assert reloaded_section is not None
@@ -490,7 +494,9 @@ async def test_gate3_historical_preservation_and_deletion_semantics(db_session: 
     await db_session.flush()
 
     res_def = await db_session.execute(
-        select(ReportDefinition).where(ReportDefinition.id == report_def_id).execution_options(populate_existing=True)
+        select(ReportDefinition)
+        .where(ReportDefinition.id == report_def_id)
+        .execution_options(populate_existing=True)
     )
     reloaded_def = res_def.scalar_one_or_none()
     assert reloaded_def is not None
@@ -504,12 +510,16 @@ async def test_gate3_historical_preservation_and_deletion_semantics(db_session: 
     await db_session.flush()
 
     res_sec_del = await db_session.execute(
-        select(ReportSection).where(ReportSection.id == section_id).execution_options(populate_existing=True)
+        select(ReportSection)
+        .where(ReportSection.id == section_id)
+        .execution_options(populate_existing=True)
     )
     assert res_sec_del.scalar_one_or_none() is None  # CASCADE
 
     res_run = await db_session.execute(
-        select(ReportRun).where(ReportRun.id == report_run_id).execution_options(populate_existing=True)
+        select(ReportRun)
+        .where(ReportRun.id == report_run_id)
+        .execution_options(populate_existing=True)
     )
     reloaded_run = res_run.scalar_one_or_none()
     assert reloaded_run is not None  # PRESERVED HISTORICAL SNAPSHOT
@@ -522,7 +532,9 @@ async def test_gate3_historical_preservation_and_deletion_semantics(db_session: 
     await db_session.flush()
 
     res_run_ws = await db_session.execute(
-        select(ReportRun).where(ReportRun.id == report_run_id).execution_options(populate_existing=True)
+        select(ReportRun)
+        .where(ReportRun.id == report_run_id)
+        .execution_options(populate_existing=True)
     )
     reloaded_run_after_ws_del = res_run_ws.scalar_one_or_none()
     assert reloaded_run_after_ws_del is not None
@@ -534,12 +546,16 @@ async def test_gate3_historical_preservation_and_deletion_semantics(db_session: 
     await db_session.flush()
 
     res_tok = await db_session.execute(
-        select(ReportDownloadToken).where(ReportDownloadToken.id == download_token_id).execution_options(populate_existing=True)
+        select(ReportDownloadToken)
+        .where(ReportDownloadToken.id == download_token_id)
+        .execution_options(populate_existing=True)
     )
     assert res_tok.scalar_one_or_none() is None  # CASCADE
 
     res_out = await db_session.execute(
-        select(ReportOutboxEvent).where(ReportOutboxEvent.id == outbox_event_id).execution_options(populate_existing=True)
+        select(ReportOutboxEvent)
+        .where(ReportOutboxEvent.id == outbox_event_id)
+        .execution_options(populate_existing=True)
     )
     assert res_out.scalar_one_or_none() is None  # CASCADE
 
@@ -712,7 +728,9 @@ async def test_gate3_rbac_permissions_and_role_matrix(db_session: AsyncSession) 
     viewer_perms = await set_role("viewer")
     assert "reports.read" in viewer_perms
     assert "reports.export" in viewer_perms
-    assert "reports.run" not in viewer_perms  # Viewer CANNOT execute runs (expensive compute workload)
+    assert (
+        "reports.run" not in viewer_perms
+    )  # Viewer CANNOT execute runs (expensive compute workload)
     assert "reports.create" not in viewer_perms
     assert "reports.update" not in viewer_perms
     assert "reports.delete" not in viewer_perms

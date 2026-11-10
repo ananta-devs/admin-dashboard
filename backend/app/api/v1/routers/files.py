@@ -153,7 +153,9 @@ async def download_file(
 ) -> FileResponse:
     """Download stored file artifact with safe Content-Disposition attachment header."""
     service = FileStorageService(session)
-    physical_path, file_meta = await service.get_file_for_download(file_id, membership.organization_id)
+    physical_path, file_meta = await service.get_file_for_download(
+        file_id, membership.organization_id
+    )
 
     safe_name = _sanitize_header_filename(file_meta.filename, fallback="download")
     headers = {
@@ -180,7 +182,9 @@ async def preview_file(
 ) -> FileResponse:
     """Serve file inline for safe preview rendering with restrictive Content-Security-Policy."""
     service = FileStorageService(session)
-    physical_path, file_meta = await service.get_file_for_download(file_id, membership.organization_id)
+    physical_path, file_meta = await service.get_file_for_download(
+        file_id, membership.organization_id
+    )
 
     safe_name = _sanitize_header_filename(file_meta.filename, fallback="preview")
     ext = Path(file_meta.filename).suffix.lower()

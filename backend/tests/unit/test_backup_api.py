@@ -1,7 +1,8 @@
 """Unit tests for Phase 10 Backup & Disaster Recovery API Endpoints."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 
@@ -17,7 +18,7 @@ def mock_auth_user():
         email="admin@enterprise.vibe",
         normalized_email="admin@enterprise.vibe",
         display_name="Admin",
-        email_verified_at=datetime.now(timezone.utc),
+        email_verified_at=datetime.now(UTC),
     )
 
 

@@ -1,11 +1,13 @@
 import uuid
+
 import pytest
-from app.models.organization import Organization
-from app.models.user import User
+from sqlalchemy import select
+
 from app.models.membership import OrganizationMembership
 from app.models.notification import UserNotificationState
+from app.models.organization import Organization
+from app.models.user import User
 from app.services.notification import NotificationService
-from sqlalchemy import select
 
 
 @pytest.mark.asyncio
@@ -41,7 +43,9 @@ async def test_notification_service_postgres_operations(db_session):
 
     # 1. Mark single notification as read in PostgreSQL
     notif_id = "test-notif-1"
-    await service.mark_single_read(user_id=user_id, organization_id=org_id, notification_id=notif_id)
+    await service.mark_single_read(
+        user_id=user_id, organization_id=org_id, notification_id=notif_id
+    )
 
     # Verify directly from database
     res = await db_session.execute(
@@ -59,7 +63,9 @@ async def test_notification_service_postgres_operations(db_session):
 
     # 2. Mark multiple as read in PostgreSQL
     ids = ["test-notif-2", "test-notif-3"]
-    marked = await service.mark_all_read(user_id=user_id, organization_id=org_id, notification_ids=ids)
+    marked = await service.mark_all_read(
+        user_id=user_id, organization_id=org_id, notification_ids=ids
+    )
     assert marked == 2
 
     # Verify multiple marked
@@ -76,7 +82,9 @@ async def test_notification_service_postgres_operations(db_session):
         assert s.is_read is True
 
     # 3. Dismiss notification in PostgreSQL
-    await service.dismiss_notification(user_id=user_id, organization_id=org_id, notification_id="test-notif-1")
+    await service.dismiss_notification(
+        user_id=user_id, organization_id=org_id, notification_id="test-notif-1"
+    )
     db_session.expire_all()
     res_dismiss = await db_session.execute(
         select(UserNotificationState).where(

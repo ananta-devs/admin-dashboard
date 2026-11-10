@@ -93,9 +93,7 @@ class DashboardService:
             dash_id = created.id
         return await self.get_dashboard(dash_id, organization_id)
 
-    async def get_dashboard(
-        self, dashboard_id: uuid.UUID, organization_id: uuid.UUID
-    ) -> Dashboard:
+    async def get_dashboard(self, dashboard_id: uuid.UUID, organization_id: uuid.UUID) -> Dashboard:
         dashboard = await self.dashboard_repo.get_by_id(dashboard_id, organization_id)
         if not dashboard:
             raise EntityNotFoundError("Dashboard", str(dashboard_id))
@@ -166,9 +164,7 @@ class DashboardService:
             await self.dashboard_repo.update(dashboard)
         return await self.get_dashboard(dashboard_id, organization_id)
 
-    async def delete_dashboard(
-        self, dashboard_id: uuid.UUID, organization_id: uuid.UUID
-    ) -> None:
+    async def delete_dashboard(self, dashboard_id: uuid.UUID, organization_id: uuid.UUID) -> None:
         async with transaction(self.session):
             deleted = await self.dashboard_repo.delete(dashboard_id, organization_id)
             if not deleted:
@@ -186,7 +182,9 @@ class DashboardService:
 
         source_dash = await self.get_dashboard(dashboard_id, organization_id)
         source_widgets = await self.widget_repo.list_by_dashboard(dashboard_id, organization_id)
-        title = new_title.strip() if new_title and new_title.strip() else f"{source_dash.title} (Copy)"
+        title = (
+            new_title.strip() if new_title and new_title.strip() else f"{source_dash.title} (Copy)"
+        )
 
         async with transaction(self.session):
             cloned_layout = copy.deepcopy(source_dash.layout_config or {})
@@ -244,7 +242,9 @@ class DashboardService:
             if not sheet:
                 raise EntityNotFoundError("Sheet", str(input_data.source_id))
         elif input_data.source_type == "analytics_result":
-            result = await self.analytics_repo.get_by_id_scoped(input_data.source_id, organization_id)
+            result = await self.analytics_repo.get_by_id_scoped(
+                input_data.source_id, organization_id
+            )
             if not result:
                 raise EntityNotFoundError("AnalyticsResult", str(input_data.source_id))
         else:
@@ -268,9 +268,7 @@ class DashboardService:
             created = await self.widget_repo.create(widget)
         return created
 
-    async def get_widget(
-        self, widget_id: uuid.UUID, organization_id: uuid.UUID
-    ) -> DashboardWidget:
+    async def get_widget(self, widget_id: uuid.UUID, organization_id: uuid.UUID) -> DashboardWidget:
         widget = await self.widget_repo.get_by_id(widget_id, organization_id)
         if not widget:
             raise EntityNotFoundError("DashboardWidget", str(widget_id))
@@ -296,21 +294,19 @@ class DashboardService:
         # DEF-03: Validate resulting source configuration belongs to organization
         if input_data.source_type is not None or input_data.source_id is not None:
             target_source_type = (
-                input_data.source_type
-                if input_data.source_type is not None
-                else widget.source_type
+                input_data.source_type if input_data.source_type is not None else widget.source_type
             )
             target_source_id = (
-                input_data.source_id
-                if input_data.source_id is not None
-                else widget.source_id
+                input_data.source_id if input_data.source_id is not None else widget.source_id
             )
             if target_source_type == "sheet":
                 sheet = await self.sheet_repo.get_by_id(target_source_id, organization_id)
                 if not sheet:
                     raise EntityNotFoundError("Sheet", str(target_source_id))
             elif target_source_type == "analytics_result":
-                result = await self.analytics_repo.get_by_id_scoped(target_source_id, organization_id)
+                result = await self.analytics_repo.get_by_id_scoped(
+                    target_source_id, organization_id
+                )
                 if not result:
                     raise EntityNotFoundError("AnalyticsResult", str(target_source_id))
             else:
@@ -514,6 +510,7 @@ class DashboardService:
 
             # 1. Type-aware numeric coercion if column is numeric
             if col_type in (pl.Float64, pl.Float32, pl.Int64, pl.Int32, pl.Int16, pl.Int8):
+
                 def _coerce_num(v: Any) -> Any:
                     if v is None or isinstance(v, bool):
                         return v
@@ -541,7 +538,8 @@ class DashboardService:
                 col_tz = getattr(col_type, "time_zone", None)
 
             if is_temporal:
-                from datetime import date as py_date, datetime as py_datetime
+                from datetime import date as py_date
+                from datetime import datetime as py_datetime
 
                 def _coerce_temporal(v: Any) -> Any:
                     if v is None:
@@ -571,12 +569,10 @@ class DashboardService:
 
                     if col_tz:
                         if dt.tzinfo is None:
-                            from datetime import timezone
-                            dt = dt.replace(tzinfo=timezone.utc)
+                            dt = dt.replace(tzinfo=UTC)
                     else:
                         if dt.tzinfo is not None:
-                            from datetime import timezone
-                            dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+                            dt = dt.astimezone(UTC).replace(tzinfo=None)
                     return dt
 
                 if isinstance(f_val, (list, tuple)):
@@ -614,7 +610,10 @@ class DashboardService:
                 low, high = f_val[0], f_val[1]
                 # Half-open interval semantics for temporal boundaries: [start, end)
                 if is_temporal or (
-                    isinstance(low, str) and isinstance(high, str) and "-" in low and ("T" in low or ":" in low)
+                    isinstance(low, str)
+                    and isinstance(high, str)
+                    and "-" in low
+                    and ("T" in low or ":" in low)
                 ):
                     df = df.filter((pl.col(f_col) >= low) & (pl.col(f_col) < high))
                 else:
@@ -624,7 +623,11 @@ class DashboardService:
 
         # Specialized Analytical Chart Types (Phase 8 Specification Reconciliation)
         if widget.widget_type == "correlation_matrix":
-            num_cols = [c for c in df.columns if df[c].dtype in (pl.Float64, pl.Float32, pl.Int64, pl.Int32, pl.Int16, pl.Int8)]
+            num_cols = [
+                c
+                for c in df.columns
+                if df[c].dtype in (pl.Float64, pl.Float32, pl.Int64, pl.Int32, pl.Int16, pl.Int8)
+            ]
             if not num_cols:
                 return WidgetDataQueryResponse(columns=["variable"], data=[], total_rows=0)
             corr_records: list[dict[str, Any]] = []
@@ -638,7 +641,11 @@ class DashboardService:
                             s1 = df.get_column(c1).cast(pl.Float64, strict=False)
                             s2 = df.get_column(c2).cast(pl.Float64, strict=False)
                             corr_val = s1.corr(s2)  # type: ignore[attr-defined]
-                            row_item[c2] = round(float(str(corr_val)), 4) if (corr_val is not None and not math.isnan(float(str(corr_val)))) else 0.0
+                            row_item[c2] = (
+                                round(float(str(corr_val)), 4)
+                                if (corr_val is not None and not math.isnan(float(str(corr_val))))
+                                else 0.0
+                            )
                         except Exception:
                             row_item[c2] = 0.0
                 corr_records.append(row_item)
@@ -652,21 +659,38 @@ class DashboardService:
         if widget.widget_type in ("box_plot", "boxplot"):
             target_cols = [m.get("column") for m in metrics if m.get("column") in df.columns]
             if not target_cols:
-                target_cols = [c for c in df.columns if df[c].dtype in (pl.Float64, pl.Float32, pl.Int64, pl.Int32, pl.Int16, pl.Int8)]
+                target_cols = [
+                    c
+                    for c in df.columns
+                    if df[c].dtype
+                    in (pl.Float64, pl.Float32, pl.Int64, pl.Int32, pl.Int16, pl.Int8)
+                ]
             box_records: list[dict[str, Any]] = []
             for c_box in target_cols:
                 if c_box is None:
                     continue
                 s_box = df.get_column(c_box).cast(pl.Float64, strict=False).drop_nulls()
                 if len(s_box) > 0:
-                    box_records.append({
-                        "metric": c_box,
-                        "min": round(float(str(s_box.min())), 4) if s_box.min() is not None else 0.0,
-                        "q1": round(float(str(s_box.quantile(0.25))), 4) if s_box.quantile(0.25) is not None else 0.0,
-                        "median": round(float(str(s_box.median())), 4) if s_box.median() is not None else 0.0,
-                        "q3": round(float(str(s_box.quantile(0.75))), 4) if s_box.quantile(0.75) is not None else 0.0,
-                        "max": round(float(str(s_box.max())), 4) if s_box.max() is not None else 0.0,
-                    })
+                    box_records.append(
+                        {
+                            "metric": c_box,
+                            "min": round(float(str(s_box.min())), 4)
+                            if s_box.min() is not None
+                            else 0.0,
+                            "q1": round(float(str(s_box.quantile(0.25))), 4)
+                            if s_box.quantile(0.25) is not None
+                            else 0.0,
+                            "median": round(float(str(s_box.median())), 4)
+                            if s_box.median() is not None
+                            else 0.0,
+                            "q3": round(float(str(s_box.quantile(0.75))), 4)
+                            if s_box.quantile(0.75) is not None
+                            else 0.0,
+                            "max": round(float(str(s_box.max())), 4)
+                            if s_box.max() is not None
+                            else 0.0,
+                        }
+                    )
             return WidgetDataQueryResponse(
                 columns=["metric", "min", "q1", "median", "q3", "max"],
                 data=box_records,
@@ -675,9 +699,18 @@ class DashboardService:
             )
 
         if widget.widget_type == "histogram":
-            target_col = metrics[0].get("column") if metrics and metrics[0].get("column") in df.columns else None
+            target_col = (
+                metrics[0].get("column")
+                if metrics and metrics[0].get("column") in df.columns
+                else None
+            )
             if not target_col:
-                num_cols = [c for c in df.columns if df[c].dtype in (pl.Float64, pl.Float32, pl.Int64, pl.Int32, pl.Int16, pl.Int8)]
+                num_cols = [
+                    c
+                    for c in df.columns
+                    if df[c].dtype
+                    in (pl.Float64, pl.Float32, pl.Int64, pl.Int32, pl.Int16, pl.Int8)
+                ]
                 target_col = num_cols[0] if num_cols else None
             if not target_col:
                 return WidgetDataQueryResponse(columns=["bin", "count"], data=[], total_rows=0)
@@ -694,7 +727,12 @@ class DashboardService:
                     for i in range(bin_count):
                         b_low = s_min + i * step
                         b_high = b_low + step
-                        cnt = len(s_hist.filter((s_hist >= b_low) & (s_hist < b_high if i < bin_count - 1 else s_hist <= b_high)))
+                        cnt = len(
+                            s_hist.filter(
+                                (s_hist >= b_low)
+                                & (s_hist < b_high if i < bin_count - 1 else s_hist <= b_high)
+                            )
+                        )
                         hist_records.append({"bin": f"{b_low:.1f}-{b_high:.1f}", "count": cnt})
             return WidgetDataQueryResponse(
                 columns=["bin", "count"],
@@ -704,20 +742,34 @@ class DashboardService:
             )
 
         if widget.widget_type in ("summary_stats", "summary_statistics"):
-            num_cols = [c for c in df.columns if df[c].dtype in (pl.Float64, pl.Float32, pl.Int64, pl.Int32, pl.Int16, pl.Int8)]
+            num_cols = [
+                c
+                for c in df.columns
+                if df[c].dtype in (pl.Float64, pl.Float32, pl.Int64, pl.Int32, pl.Int16, pl.Int8)
+            ]
             stat_records: list[dict[str, Any]] = []
             for c_stat in num_cols:
                 s_stat = df.get_column(c_stat).cast(pl.Float64, strict=False)
                 s_clean = s_stat.drop_nulls()
-                stat_records.append({
-                    "column": c_stat,
-                    "count": len(s_stat),
-                    "nulls": s_stat.null_count(),
-                    "mean": round(float(str(s_clean.mean())), 4) if len(s_clean) > 0 and s_clean.mean() is not None else 0.0,
-                    "std": round(float(str(s_clean.std())), 4) if len(s_clean) > 0 and s_clean.std() is not None else 0.0,
-                    "min": round(float(str(s_clean.min())), 4) if len(s_clean) > 0 and s_clean.min() is not None else 0.0,
-                    "max": round(float(str(s_clean.max())), 4) if len(s_clean) > 0 and s_clean.max() is not None else 0.0,
-                })
+                stat_records.append(
+                    {
+                        "column": c_stat,
+                        "count": len(s_stat),
+                        "nulls": s_stat.null_count(),
+                        "mean": round(float(str(s_clean.mean())), 4)
+                        if len(s_clean) > 0 and s_clean.mean() is not None
+                        else 0.0,
+                        "std": round(float(str(s_clean.std())), 4)
+                        if len(s_clean) > 0 and s_clean.std() is not None
+                        else 0.0,
+                        "min": round(float(str(s_clean.min())), 4)
+                        if len(s_clean) > 0 and s_clean.min() is not None
+                        else 0.0,
+                        "max": round(float(str(s_clean.max())), 4)
+                        if len(s_clean) > 0 and s_clean.max() is not None
+                        else 0.0,
+                    }
+                )
             return WidgetDataQueryResponse(
                 columns=["column", "count", "nulls", "mean", "std", "min", "max"],
                 data=stat_records,
@@ -728,7 +780,9 @@ class DashboardService:
         if widget.widget_type in ("data_table", "table"):
             # Server-side pagination, sorting, column selection, filters
             selected_cols = config.get("columns", [])
-            valid_cols = [c for c in selected_cols if c in df.columns] if selected_cols else list(df.columns)
+            valid_cols = (
+                [c for c in selected_cols if c in df.columns] if selected_cols else list(df.columns)
+            )
             offset = max(int(config.get("offset", 0)), 0)
             page_limit = min(max(int(config.get("limit", 25)), 1), 500)
 
@@ -746,7 +800,9 @@ class DashboardService:
                     "limit": page_limit,
                     "total": total_records,
                     "page": (offset // page_limit) + 1,
-                    "total_pages": math.ceil(total_records / page_limit) if total_records > 0 else 1,
+                    "total_pages": math.ceil(total_records / page_limit)
+                    if total_records > 0
+                    else 1,
                 },
             )
 
@@ -823,8 +879,12 @@ class DashboardService:
                 sum_metric = col_series.sum()
                 mean_metric = col_series.mean()
                 summary[col_name] = {
-                    "total": float(str(sum_metric)) if len(col_series) > 0 and sum_metric is not None else 0.0,
-                    "avg": float(str(mean_metric)) if len(col_series) > 0 and mean_metric is not None else 0.0,
+                    "total": float(str(sum_metric))
+                    if len(col_series) > 0 and sum_metric is not None
+                    else 0.0,
+                    "avg": float(str(mean_metric))
+                    if len(col_series) > 0 and mean_metric is not None
+                    else 0.0,
                 }
 
         return WidgetDataQueryResponse(

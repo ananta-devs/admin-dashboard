@@ -6,33 +6,34 @@ and provides multi-tier watermark alarms (High: 80%, Critical: 90%, Emergency: 9
 
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 # Spool Limits (Binary units)
 DEFAULT_SPOOL_CAPACITY_BYTES = 50 * 1024 * 1024 * 1024  # 50 GiB = 53,687,091,200 bytes
-HIGH_WATERMARK_RATIO = 0.80      # 40 GiB
+HIGH_WATERMARK_RATIO = 0.80  # 40 GiB
 CRITICAL_WATERMARK_RATIO = 0.90  # 45 GiB
-EMERGENCY_WATERMARK_RATIO = 0.95 # 47.5 GiB
+EMERGENCY_WATERMARK_RATIO = 0.95  # 47.5 GiB
 
 # Known Workload WAL Generation Rates (MiB / hour)
 WAL_RATES_MIB_HR = {
-    "low": 16.0,       # 1 segment / hr
-    "normal": 160.0,   # 10 segments / hr
-    "high": 512.0,     # 32 segments / hr
-    "burst": 1600.0,   # 100 segments / hr
+    "low": 16.0,  # 1 segment / hr
+    "normal": 160.0,  # 10 segments / hr
+    "high": 512.0,  # 32 segments / hr
+    "burst": 1600.0,  # 100 segments / hr
 }
 
 
 class SpoolManagerService:
     """Monitors and manages WAL spool storage capacity and backpressure."""
 
-    def __init__(self, spool_dir: str | Path, capacity_bytes: int = DEFAULT_SPOOL_CAPACITY_BYTES) -> None:
+    def __init__(
+        self, spool_dir: str | Path, capacity_bytes: int = DEFAULT_SPOOL_CAPACITY_BYTES
+    ) -> None:
         self.spool_dir = Path(spool_dir).resolve()
         self.capacity_bytes = capacity_bytes
 
-    def get_spool_metrics(self) -> Dict[str, Any]:
+    def get_spool_metrics(self) -> dict[str, Any]:
         """Compute current spool utilization, segment counts, and watermark status."""
         total_used_bytes = 0
         segment_count = 0
@@ -62,7 +63,9 @@ class SpoolManagerService:
             watermark_level = "NORMAL"
             action_required = "Normal operational buffering."
 
-        remaining_usable_bytes = max(0, int(self.capacity_bytes * HIGH_WATERMARK_RATIO) - total_used_bytes)
+        remaining_usable_bytes = max(
+            0, int(self.capacity_bytes * HIGH_WATERMARK_RATIO) - total_used_bytes
+        )
         remaining_gross_bytes = max(0, self.capacity_bytes - total_used_bytes)
 
         # Calculate time to exhaustion across workloads (in hours)
@@ -89,4 +92,3 @@ class SpoolManagerService:
             "history_count": history_count,
             "exhaustion_estimates": exhaustion_hours,
         }
-

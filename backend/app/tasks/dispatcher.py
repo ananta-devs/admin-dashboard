@@ -7,12 +7,13 @@ import logging
 import os
 import uuid
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from app.core.config import settings
 from app.db.session import async_session_maker
 from app.db.transaction import transaction
 from app.models.analytics import AnalyticsJobStatus, AnalyticsOutboxEvent
-from app.models.report import ReportOutboxEvent, ReportRun, ReportRunStatus
+from app.models.report import ReportOutboxEvent, ReportRunStatus
 from app.repositories.analytics import AnalyticsJobRepository, AnalyticsOutboxRepository
 from app.repositories.report import ReportOutboxRepository, ReportRunRepository
 from app.tasks.analytics import execute_analytics_job
@@ -85,7 +86,9 @@ class OutboxDispatcher:
                     await report_outbox_repo.mark_published(ev.id)
                     await session.commit()
                     dispatched_count += 1
-                    logger.info("Dispatched report run %s to Celery (outbox event %s)", run_id_str, ev.id)
+                    logger.info(
+                        "Dispatched report run %s to Celery (outbox event %s)", run_id_str, ev.id
+                    )
                 except Exception as e:
                     logger.error("Failed to publish report run %s to Celery: %s", run_id_str, e)
                     await report_outbox_repo.record_publish_error(ev.id, str(e))
@@ -97,7 +100,9 @@ class OutboxDispatcher:
         """Reclaim stale locks on reporting outbox events."""
         async with self.session_maker() as session:
             report_outbox_repo = ReportOutboxRepository(session)
-            recovered = await report_outbox_repo.release_expired_locks(timeout_seconds=timeout_seconds)
+            recovered = await report_outbox_repo.release_expired_locks(
+                timeout_seconds=timeout_seconds
+            )
             await session.commit()
             return recovered
 
@@ -263,12 +268,9 @@ class OutboxDispatcher:
 class ReportingOutboxDispatcher:
     """Dedicated dispatcher for reporting outbox events only."""
 
-    def __init__(
-        self, dispatcher_id: str | None = None, session_maker: Any = None
-    ) -> None:
+    def __init__(self, dispatcher_id: str | None = None, session_maker: Any = None) -> None:
         self.dispatcher_id = (
-            dispatcher_id
-            or f"reporting-dispatcher-{os.getpid()}-{uuid.uuid4().hex[:6]}"
+            dispatcher_id or f"reporting-dispatcher-{os.getpid()}-{uuid.uuid4().hex[:6]}"
         )
         self.is_running = True
         self._inner = OutboxDispatcher(

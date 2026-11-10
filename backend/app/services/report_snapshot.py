@@ -5,17 +5,14 @@ from __future__ import annotations
 import copy
 import hashlib
 import io
-import os
 import json
 import logging
-import math
+import os
 import uuid
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import polars as pl
-from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.analytics.exceptions import DatasetTooLargeError
@@ -50,42 +47,48 @@ def save_snapshot_parquet(snapshot: dict[str, Any], target_path: Path) -> None:
     sections = snapshot.get("sections", [])
     if not sections:
         r = dict(top_meta)
-        r.update({
-            "section_id": None,
-            "section_type": None,
-            "sec_title": None,
-            "sec_desc": None,
-            "sort_order": 0,
-            "page_break_after": False,
-            "custom_content": None,
-            "widget_id": None,
-            "columns_json": "[]",
-            "data_json": "[]",
-            "total_rows": 0,
-            "returned_rows": 0,
-            "is_truncated": False,
-            "summary_json": None,
-        })
+        r.update(
+            {
+                "section_id": None,
+                "section_type": None,
+                "sec_title": None,
+                "sec_desc": None,
+                "sort_order": 0,
+                "page_break_after": False,
+                "custom_content": None,
+                "widget_id": None,
+                "columns_json": "[]",
+                "data_json": "[]",
+                "total_rows": 0,
+                "returned_rows": 0,
+                "is_truncated": False,
+                "summary_json": None,
+            }
+        )
         rows.append(r)
     else:
         for s in sections:
             r = dict(top_meta)
-            r.update({
-                "section_id": str(s.get("id")) if s.get("id") else None,
-                "section_type": s.get("section_type"),
-                "sec_title": s.get("title"),
-                "sec_desc": s.get("description"),
-                "sort_order": s.get("sort_order", 0),
-                "page_break_after": s.get("page_break_after", False),
-                "custom_content": s.get("custom_content"),
-                "widget_id": str(s.get("widget_id")) if s.get("widget_id") else None,
-                "columns_json": json.dumps(s.get("columns", []), default=str),
-                "data_json": json.dumps(s.get("data", []), default=str),
-                "total_rows": s.get("total_rows", 0),
-                "returned_rows": s.get("returned_rows", 0),
-                "is_truncated": s.get("is_truncated", False),
-                "summary_json": json.dumps(s.get("summary"), default=str) if s.get("summary") is not None else None,
-            })
+            r.update(
+                {
+                    "section_id": str(s.get("id")) if s.get("id") else None,
+                    "section_type": s.get("section_type"),
+                    "sec_title": s.get("title"),
+                    "sec_desc": s.get("description"),
+                    "sort_order": s.get("sort_order", 0),
+                    "page_break_after": s.get("page_break_after", False),
+                    "custom_content": s.get("custom_content"),
+                    "widget_id": str(s.get("widget_id")) if s.get("widget_id") else None,
+                    "columns_json": json.dumps(s.get("columns", []), default=str),
+                    "data_json": json.dumps(s.get("data", []), default=str),
+                    "total_rows": s.get("total_rows", 0),
+                    "returned_rows": s.get("returned_rows", 0),
+                    "is_truncated": s.get("is_truncated", False),
+                    "summary_json": json.dumps(s.get("summary"), default=str)
+                    if s.get("summary") is not None
+                    else None,
+                }
+            )
             rows.append(r)
     df = pl.DataFrame(rows)
     df.write_parquet(target_path, compression="snappy")
@@ -98,7 +101,7 @@ def load_snapshot_parquet(
     storage: ReportStorageService | None = None,
 ) -> dict[str, Any]:
     """Load canonical report snapshot dictionary from Parquet artifact using Polars.
-    
+
     Reads file using single open descriptor and passes verified BytesIO buffer to Polars
     to eliminate Time-of-Check to Time-of-Use (TOCTOU) file replacement races.
     """
@@ -143,22 +146,26 @@ def load_snapshot_parquet(
     sections = []
     for r in df.iter_rows(named=True):
         if r["section_id"] is not None:
-            sections.append({
-                "id": r["section_id"],
-                "section_type": r["section_type"],
-                "title": r["sec_title"],
-                "description": r["sec_desc"],
-                "sort_order": r["sort_order"],
-                "page_break_after": r["page_break_after"],
-                "custom_content": r["custom_content"],
-                "widget_id": r["widget_id"],
-                "columns": json.loads(r["columns_json"]),
-                "data": json.loads(r["data_json"]),
-                "total_rows": r["total_rows"],
-                "returned_rows": r["returned_rows"],
-                "is_truncated": r["is_truncated"],
-                "summary": json.loads(r["summary_json"]) if r["summary_json"] is not None else None,
-            })
+            sections.append(
+                {
+                    "id": r["section_id"],
+                    "section_type": r["section_type"],
+                    "title": r["sec_title"],
+                    "description": r["sec_desc"],
+                    "sort_order": r["sort_order"],
+                    "page_break_after": r["page_break_after"],
+                    "custom_content": r["custom_content"],
+                    "widget_id": r["widget_id"],
+                    "columns": json.loads(r["columns_json"]),
+                    "data": json.loads(r["data_json"]),
+                    "total_rows": r["total_rows"],
+                    "returned_rows": r["returned_rows"],
+                    "is_truncated": r["is_truncated"],
+                    "summary": json.loads(r["summary_json"])
+                    if r["summary_json"] is not None
+                    else None,
+                }
+            )
     return {
         "snapshot_schema_version": first["snapshot_schema_version"],
         "snapshot_id": first["snapshot_id"],
@@ -207,9 +214,7 @@ class ReportSnapshotService:
         sections: list[ReportSection] = []
 
         if run.report_definition_id:
-            definition = await self.report_def_repo.get_by_id(
-                run.report_definition_id, org_id
-            )
+            definition = await self.report_def_repo.get_by_id(run.report_definition_id, org_id)
             if not definition:
                 raise EntityNotFoundError("ReportDefinition", str(run.report_definition_id))
             sections = list(
@@ -247,7 +252,8 @@ class ReportSnapshotService:
             "snapshot_id": snapshot_id,
             "report_run_id": str(run.id),
             "report_definition_id": str(definition.id) if definition else None,
-            "report_title": run.report_title or (definition.title if definition else "Untitled Report"),
+            "report_title": run.report_title
+            or (definition.title if definition else "Untitled Report"),
             "description": definition.description if definition else None,
             "page_config": {
                 "format": definition.format if definition else "pdf",
@@ -255,7 +261,9 @@ class ReportSnapshotService:
                 "page_size": definition.page_size if definition else "a4",
                 "header_text": definition.header_text if definition else None,
                 "footer_text": definition.footer_text if definition else None,
-                "include_table_of_contents": definition.include_table_of_contents if definition else True,
+                "include_table_of_contents": definition.include_table_of_contents
+                if definition
+                else True,
                 "include_cover_page": definition.include_cover_page if definition else True,
                 "theme": definition.theme if definition else "default",
             },
@@ -366,7 +374,9 @@ class ReportSnapshotService:
         if run.artifact_path and Path(run.artifact_path).is_file():
             return load_snapshot_parquet(run.artifact_path, expected_checksum=run.checksum_sha256)
         if run.report_snapshot:
-            if run.report_snapshot.get("is_external") and run.report_snapshot.get("external_artifact_path"):
+            if run.report_snapshot.get("is_external") and run.report_snapshot.get(
+                "external_artifact_path"
+            ):
                 p = run.report_snapshot["external_artifact_path"]
                 if Path(p).is_file():
                     chk = run.report_snapshot.get("checksum_sha256") or run.checksum_sha256
@@ -423,7 +433,9 @@ class ReportSnapshotService:
             try:
                 base_storage = Path(settings.FILE_STORAGE_PATH).resolve()
                 if not str(parquet_path).startswith(str(base_storage)):
-                    raise ValidationError("Path traversal attempt detected in analytics artifact path.")
+                    raise ValidationError(
+                        "Path traversal attempt detected in analytics artifact path."
+                    )
             except Exception:
                 pass
 
@@ -509,4 +521,3 @@ class ReportSnapshotService:
             while chunk := f.read(65536):
                 h.update(chunk)
         return h.hexdigest()
-

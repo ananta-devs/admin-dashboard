@@ -289,14 +289,10 @@ class SpreadsheetSyncService:
             raise EntityNotFoundError("SpreadsheetSyncMapping", str(mapping_id))
         return mapping
 
-    async def list_mappings(
-        self, organization_id: uuid.UUID
-    ) -> Sequence[SpreadsheetSyncMapping]:
+    async def list_mappings(self, organization_id: uuid.UUID) -> Sequence[SpreadsheetSyncMapping]:
         return await self.sync_repo.list_mappings_by_org(organization_id)
 
-    async def delete_mapping(
-        self, mapping_id: uuid.UUID, organization_id: uuid.UUID
-    ) -> None:
+    async def delete_mapping(self, mapping_id: uuid.UUID, organization_id: uuid.UUID) -> None:
         async with transaction(self.session):
             deleted = await self.sync_repo.delete_mapping(mapping_id, organization_id)
             if not deleted:
@@ -346,11 +342,17 @@ class SpreadsheetSyncService:
 
         try:
             # 1. Fetch current VIBE state
-            sheet_rows = await self.row_repo.list_rows_paginated(mapping.sheet_id, limit=5000, offset=0)
+            sheet_rows = await self.row_repo.list_rows_paginated(
+                mapping.sheet_id, limit=5000, offset=0
+            )
             vibe_cell_map: dict[tuple[int, str], dict[str, Any]] = {}
             for r in sheet_rows:
                 for col_letter, cell_val in (r.cells or {}).items():
-                    if cell_val.get("v") is not None or cell_val.get("f") is not None or cell_val.get("c") is not None:
+                    if (
+                        cell_val.get("v") is not None
+                        or cell_val.get("f") is not None
+                        or cell_val.get("c") is not None
+                    ):
                         vibe_cell_map[(r.row_index, col_letter)] = cell_val
 
             # 2. Fetch external state
@@ -484,9 +486,7 @@ class SpreadsheetSyncService:
                 if ext_matrix_updates:
                     max_r = max((k[0] for k in ext_matrix_updates.keys()), default=-1)
                     # Re-fetch or overlay on existing values
-                    ext_rows_matrix: list[list[Any]] = [
-                        list(r) for r in ext_values_resp.values
-                    ]
+                    ext_rows_matrix: list[list[Any]] = [list(r) for r in ext_values_resp.values]
                     while len(ext_rows_matrix) <= max_r:
                         ext_rows_matrix.append([])
                     for (r_idx, c_idx), val in ext_matrix_updates.items():
@@ -582,7 +582,11 @@ class SpreadsheetSyncService:
                 # Apply external value to VIBE
                 existing_r = await self.row_repo.get_row(mapping.sheet_id, conflict.row_index)
                 cells = dict(existing_r.cells or {}) if existing_r else {}
-                cells[conflict.column_letter] = conflict.external_value or {"v": None, "c": None, "f": None}
+                cells[conflict.column_letter] = conflict.external_value or {
+                    "v": None,
+                    "c": None,
+                    "f": None,
+                }
                 await self.row_repo.upsert_row(
                     sheet_id=mapping.sheet_id,
                     organization_id=organization_id,

@@ -10,8 +10,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -20,7 +19,7 @@ class DisasterRecoveryProbe:
     emitted_at: datetime
     confirmed_commit_lsn: str
     status: str  # 'COMMITTED', 'RECOVERABLE', 'EXPIRED'
-    remote_verified_at: Optional[datetime] = None
+    remote_verified_at: datetime | None = None
 
 
 class RpoProbeEngine:
@@ -32,7 +31,7 @@ class RpoProbeEngine:
     def emit_probe(self) -> DisasterRecoveryProbe:
         """Execute synchronous probe insert and capture confirmed post-commit LSN."""
         probe_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # In real DB execution:
         # self.cursor.execute("BEGIN; INSERT INTO disaster_recovery_probes ...; COMMIT;")
@@ -70,8 +69,7 @@ class RpoProbeEngine:
 
         if remote_lsn_int >= probe_lsn_int:
             probe.status = "RECOVERABLE"
-            probe.remote_verified_at = datetime.now(timezone.utc)
+            probe.remote_verified_at = datetime.now(UTC)
             return True
 
         return False
-

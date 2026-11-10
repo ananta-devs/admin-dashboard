@@ -18,16 +18,17 @@ def pytest_sessionstart(session):
     """Fail-closed session hook: verifies test database target before any test executes."""
     test_url = get_enforced_test_database_url()
     validate_database_url(test_url)
-    
+
     # Strictly override application settings so any legacy fixture reading settings.DATABASE_URL is isolated
     settings.DATABASE_URL = test_url
     settings.DATABASE_SYNC_URL = test_url.replace("+asyncpg", "+psycopg")
     import os
+
     os.environ["DATABASE_URL"] = test_url
     os.environ["TEST_DATABASE_URL"] = test_url
     os.environ["POSTGRES_DB"] = "vibe_enterprise_test"
     os.environ["E2E_EXPECTED_DATABASE"] = "vibe_enterprise_test"
-    
+
     # Synchronously verify connection identity using asyncio.run
     async def _check():
         engine = create_async_engine(test_url, poolclass=NullPool)
@@ -35,7 +36,7 @@ def pytest_sessionstart(session):
             await assert_test_database_connection(engine)
         finally:
             await engine.dispose()
-            
+
     asyncio.run(_check())
 
 

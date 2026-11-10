@@ -320,6 +320,7 @@ class AnalyticsService:
                 # Stage 12 crash hook: between destination sheet creation and cell write
                 if os.environ.get("VIBE_CRASH_STAGE") == "STAGE_12_DURING_PUBLISH":
                     import sys
+
                     sys.stderr.write(">>> TEST HOOK: CRASH AT STAGE_12_DURING_PUBLISH <<<\n")
                     sys.stderr.flush()
                     os._exit(99)

@@ -32,9 +32,7 @@ class PythonScriptRepository:
         res = await self.session.execute(stmt)
         return res.scalar_one_or_none()
 
-    async def list_by_organization(
-        self, organization_id: uuid.UUID
-    ) -> Sequence[PythonScript]:
+    async def list_by_organization(self, organization_id: uuid.UUID) -> Sequence[PythonScript]:
         stmt = (
             select(PythonScript)
             .where(PythonScript.organization_id == organization_id)
@@ -100,4 +98,3 @@ class PythonScriptRunRepository:
     async def update(self, run: PythonScriptRun) -> PythonScriptRun:
         await self.session.flush()
         return run
-

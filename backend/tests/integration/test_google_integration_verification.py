@@ -167,8 +167,12 @@ class TestClass2MockedProvider:
             organization_id=org_id,
             provider="google",
             account_email=f"refresh_{uuid.uuid4().hex[:6]}@example.com",
-            encrypted_access_token=encrypt_integration_token("mock_access_token_old", associated_data=aad),
-            encrypted_refresh_token=encrypt_integration_token("mock_refresh_token_valid", associated_data=aad),
+            encrypted_access_token=encrypt_integration_token(
+                "mock_access_token_old", associated_data=aad
+            ),
+            encrypted_refresh_token=encrypt_integration_token(
+                "mock_refresh_token_valid", associated_data=aad
+            ),
             token_expires_at=datetime.now(UTC) + timedelta(seconds=10),
             status="active",
         )
@@ -194,7 +198,9 @@ class TestClass2MockedProvider:
             organization_id=org_id,
             provider="google",
             account_email=f"disconnect_{uuid.uuid4().hex[:6]}@example.com",
-            encrypted_access_token=encrypt_integration_token("mock_token_to_disconnect", associated_data=aad),
+            encrypted_access_token=encrypt_integration_token(
+                "mock_token_to_disconnect", associated_data=aad
+            ),
             status="active",
         )
         db_session.add(integration)
@@ -263,6 +269,10 @@ class TestClass4LiveStaging:
         Mocked and contract tests confirm local correctness, but live Google staging
         remains unverified until live credentials are provisioned.
         """
-        is_live_configured = bool(settings.GOOGLE_CLIENT_SECRET and "mock" not in settings.GOOGLE_CLIENT_SECRET)
+        is_live_configured = bool(
+            settings.GOOGLE_CLIENT_SECRET and "mock" not in settings.GOOGLE_CLIENT_SECRET
+        )
         if not is_live_configured:
-            pytest.skip("LIVE_STAGING_UNVERIFIED: Live Google Cloud OAuth client credentials not provisioned in environment.")
+            pytest.skip(
+                "LIVE_STAGING_UNVERIFIED: Live Google Cloud OAuth client credentials not provisioned in environment."
+            )

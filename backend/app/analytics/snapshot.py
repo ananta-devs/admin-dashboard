@@ -126,6 +126,7 @@ async def _read_and_write_snapshot(
 
     if os.environ.get("VIBE_CRASH_STAGE") == "STAGE_1_SNAPSHOT_EXTRACT":
         import sys
+
         sys.stderr.write(">>> TEST HOOK: CRASH AT STAGE_1_SNAPSHOT_EXTRACT <<<\n")
         sys.stderr.flush()
         os._exit(99)
@@ -153,7 +154,9 @@ async def _read_and_write_snapshot(
                     used_col_indices.add(int(clean_k))
                 except (ValueError, TypeError):
                     pass
-                if isinstance(cell_dict, dict) and (cell_dict.get("v") is not None or cell_dict.get("c") is not None):
+                if isinstance(cell_dict, dict) and (
+                    cell_dict.get("v") is not None or cell_dict.get("c") is not None
+                ):
                     total_non_empty_cells += 1
 
     if total_non_empty_cells > settings.ANALYTICS_MAX_NON_EMPTY_CELLS:
@@ -245,7 +248,9 @@ def load_sheet_snapshot(
     if snapshot_path is not None:
         target_path = Path(snapshot_path).resolve()
     elif organization_id is not None and job_id is not None:
-        target_path = storage.get_snapshot_path(organization_id, job_id, claim_generation=claim_generation)
+        target_path = storage.get_snapshot_path(
+            organization_id, job_id, claim_generation=claim_generation
+        )
     else:
         raise AnalyticsError("Must provide either snapshot_path or organization_id and job_id.")
 

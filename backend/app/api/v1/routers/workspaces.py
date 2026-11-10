@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import uuid
-from typing import Sequence
 
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -136,4 +135,3 @@ async def delete_workspace(
         organization_id=membership.organization_id,
     )
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-

@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from typing import Sequence
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.stored_file import StoredFile
@@ -23,9 +22,7 @@ class StoredFileRepository:
         await self.session.flush()
         return file_entity
 
-    async def get_by_id(
-        self, file_id: uuid.UUID, organization_id: uuid.UUID
-    ) -> StoredFile | None:
+    async def get_by_id(self, file_id: uuid.UUID, organization_id: uuid.UUID) -> StoredFile | None:
         """Fetch file metadata by primary key and organization scope."""
         stmt = select(StoredFile).where(
             StoredFile.id == file_id,
@@ -79,4 +76,3 @@ class StoredFileRepository:
         """Delete file entity from database."""
         await self.session.delete(file_entity)
         await self.session.flush()
-

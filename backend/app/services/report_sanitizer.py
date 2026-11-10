@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import html
 import re
-from typing import Any
 import xml.etree.ElementTree as standard_ET
+from typing import Any
 
-import defusedxml.ElementTree as defused_ET
-from defusedxml.common import DefusedXmlException
+import defusedxml.ElementTree as defused_ET  # type: ignore[import-untyped]
+from defusedxml.common import DefusedXmlException  # type: ignore[import-untyped]
 
 from app.core.exceptions import ValidationError
 
@@ -94,7 +94,7 @@ class ReportSanitizerService:
     @classmethod
     def sanitize_svg(cls, raw_svg: str) -> str:
         """Sanitize an SVG string using defusedxml and strict allowlists.
-        
+
         Strips <style> tags and all executable or remote references while preserving
         verified local XML fragment definitions (clip-paths and gradients).
         """
@@ -135,16 +135,23 @@ class ReportSanitizerService:
         for elem in root.iter():
             node_count += 1
             if node_count > cls.MAX_NODE_COUNT:
-                raise ValidationError(f"SVG node count exceeds maximum allowed limit ({cls.MAX_NODE_COUNT}).")
+                raise ValidationError(
+                    f"SVG node count exceeds maximum allowed limit ({cls.MAX_NODE_COUNT})."
+                )
 
             local_tag = get_local_tag(elem)
-            if local_tag in {"clipPath", "linearGradient", "radialGradient"} and "id" in elem.attrib:
+            if (
+                local_tag in {"clipPath", "linearGradient", "radialGradient"}
+                and "id" in elem.attrib
+            ):
                 valid_def_ids.add(elem.attrib["id"])
 
         # 3. Recursive depth check and tree sanitization
         def sanitize_node(node: standard_ET.Element, depth: int) -> None:
             if depth > cls.MAX_XML_DEPTH:
-                raise ValidationError(f"SVG XML nesting depth exceeds maximum allowed limit ({cls.MAX_XML_DEPTH}).")
+                raise ValidationError(
+                    f"SVG XML nesting depth exceeds maximum allowed limit ({cls.MAX_XML_DEPTH})."
+                )
 
             # Remove forbidden children (like <script>, <foreignObject>, <style>, <image>, <use>, <a>)
             children_to_remove = []
@@ -160,7 +167,9 @@ class ReportSanitizerService:
 
             # Filter attributes on current node
             if len(node.attrib) > cls.MAX_ATTRS_PER_NODE:
-                raise ValidationError(f"Node <{get_local_tag(node)}> exceeds maximum attribute limit.")
+                raise ValidationError(
+                    f"Node <{get_local_tag(node)}> exceeds maximum attribute limit."
+                )
 
             cleaned_attrib = {}
             for attr_name, attr_val in list(node.attrib.items()):

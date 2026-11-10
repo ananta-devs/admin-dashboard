@@ -4,13 +4,12 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, utc_now
 
 if TYPE_CHECKING:
-    from app.models.organization import Organization
-    from app.models.user import User
+    pass
 
 
 class UserNotificationState(Base):
@@ -78,4 +77,3 @@ class UserNotificationState(Base):
             name="uq_user_notif_state_user_org_notif",
         ),
     )
-

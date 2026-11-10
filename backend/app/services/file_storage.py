@@ -2,16 +2,13 @@
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import json
-import os
 import re
 import uuid
 from pathlib import Path
-from typing import Any
 
-from sqlalchemy import select, text
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -44,11 +41,34 @@ ALLOWED_EXTENSIONS: dict[str, str] = {
     ".parquet": "application/vnd.apache.parquet",
 }
 
-DISALLOWED_EXTENSIONS = frozenset({
-    ".exe", ".bat", ".cmd", ".sh", ".ps1", ".vbs", ".js", ".mjs",
-    ".py", ".pyc", ".dll", ".so", ".bin", ".html", ".htm", ".xhtml",
-    ".php", ".jsp", ".asp", ".aspx", ".cgi", ".pl", ".svg", ".xml"
-})
+DISALLOWED_EXTENSIONS = frozenset(
+    {
+        ".exe",
+        ".bat",
+        ".cmd",
+        ".sh",
+        ".ps1",
+        ".vbs",
+        ".js",
+        ".mjs",
+        ".py",
+        ".pyc",
+        ".dll",
+        ".so",
+        ".bin",
+        ".html",
+        ".htm",
+        ".xhtml",
+        ".php",
+        ".jsp",
+        ".asp",
+        ".aspx",
+        ".cgi",
+        ".pl",
+        ".svg",
+        ".xml",
+    }
+)
 
 # Binary magic byte signatures
 MAGIC_BYTES = {
@@ -75,7 +95,7 @@ class FileStorageService:
         self.repo = StoredFileRepository(session)
         self.workspace_repo = WorkspaceRepository(session)
         self.base_dir = Path(
-            base_dir or getattr(settings, "USER_FILES_STORAGE_DIR", "./storage/user_files")
+            str(base_dir or getattr(settings, "USER_FILES_STORAGE_DIR", "./storage/user_files"))
         ).resolve()
         self.staging_dir = (self.base_dir / "staging").resolve()
         self._ensure_directories()
@@ -114,7 +134,9 @@ class FileStorageService:
         for s in path_obj.suffixes:
             s_clean = s.lower()
             if s_clean in DISALLOWED_EXTENSIONS:
-                raise ValidationError(f"File extension '{s_clean}' is prohibited for security reasons.")
+                raise ValidationError(
+                    f"File extension '{s_clean}' is prohibited for security reasons."
+                )
 
         ext = path_obj.suffix.lower()
         if ext not in ALLOWED_EXTENSIONS:
@@ -149,11 +171,15 @@ class FileStorageService:
                 # Must be decodable as utf-8 or ascii
                 text_content = content.decode("utf-8")
             except UnicodeDecodeError as e:
-                raise ValidationError(f"File must be valid UTF-8 text for extension '{declared_ext}'.") from e
+                raise ValidationError(
+                    f"File must be valid UTF-8 text for extension '{declared_ext}'."
+                ) from e
 
             # Reject binary executables disguised as text (e.g. PE, ELF)
             if content.startswith(b"MZ") or content.startswith(b"\x7fELF"):
-                raise ValidationError("Binary executable content disguised as text is strictly rejected.")
+                raise ValidationError(
+                    "Binary executable content disguised as text is strictly rejected."
+                )
 
             # Reject active HTML/SVG/Script tags in CSV or TXT to prevent Stored XSS / MIME confusion
             if ACTIVE_MARKUP_REGEX.search(text_content):
@@ -186,7 +212,7 @@ class FileStorageService:
 
         if size_bytes > MAX_FILE_SIZE_BYTES:
             raise ValidationError(
-                f"File size ({size_bytes // (1024*1024)} MB) exceeds maximum permitted limit ({MAX_FILE_SIZE_BYTES // (1024*1024)} MB)."
+                f"File size ({size_bytes // (1024 * 1024)} MB) exceeds maximum permitted limit ({MAX_FILE_SIZE_BYTES // (1024 * 1024)} MB)."
             )
 
         # 2. Server-derived authoritative MIME type (never trust client)
@@ -196,7 +222,9 @@ class FileStorageService:
         if workspace_id:
             ws = await self.workspace_repo.get_by_id(workspace_id, organization_id)
             if not ws:
-                raise ValidationError(f"Workspace '{workspace_id}' does not belong to your organization.")
+                raise ValidationError(
+                    f"Workspace '{workspace_id}' does not belong to your organization."
+                )
 
         # 4. Compute SHA-256
         sha256 = hashlib.sha256(content).hexdigest()
@@ -248,9 +276,13 @@ class FileStorageService:
                     )
 
                 # Check duplicate filename within the same folder
-                existing = await self.repo.get_by_filename(sanitized_filename, normalized_folder, organization_id)
+                existing = await self.repo.get_by_filename(
+                    sanitized_filename, normalized_folder, organization_id
+                )
                 if existing:
-                    raise ConflictError(f"File '{sanitized_filename}' already exists in folder '{normalized_folder}'.")
+                    raise ConflictError(
+                        f"File '{sanitized_filename}' already exists in folder '{normalized_folder}'."
+                    )
 
                 # Atomically publish from staging to final tenant storage path
                 staging_path.replace(target_path)
@@ -277,12 +309,16 @@ class FileStorageService:
                 try:
                     target_path.unlink(missing_ok=True)
                 except OSError as err:
-                    logger.warning(f"Could not remove rolled-back target file '{target_path}': {err}")
+                    logger.warning(
+                        f"Could not remove rolled-back target file '{target_path}': {err}"
+                    )
             elif staging_path.exists():
                 try:
                     staging_path.unlink(missing_ok=True)
                 except OSError as err:
-                    logger.warning(f"Could not remove abandoned staging file '{staging_path}': {err}")
+                    logger.warning(
+                        f"Could not remove abandoned staging file '{staging_path}': {err}"
+                    )
             raise
 
         logger.info(
@@ -330,9 +366,7 @@ class FileStorageService:
 
         return file_path, entity
 
-    async def delete_file(
-        self, file_id: uuid.UUID, organization_id: uuid.UUID
-    ) -> None:
+    async def delete_file(self, file_id: uuid.UUID, organization_id: uuid.UUID) -> None:
         """Safely delete file record and remove physical artifact."""
         entity = await self.repo.get_by_id(file_id, organization_id)
         if not entity:
@@ -352,7 +386,9 @@ class FileStorageService:
             except OSError as e:
                 logger.warning(f"Could not remove physical file '{file_path}': {e}")
 
-        logger.info(f"File '{file_id}' ({entity.filename}) safely deleted from org '{organization_id}'.")
+        logger.info(
+            f"File '{file_id}' ({entity.filename}) safely deleted from org '{organization_id}'."
+        )
 
     async def get_quota_usage(self, organization_id: uuid.UUID) -> StorageQuotaRead:
         """Return authoritative quota usage for the active organization."""

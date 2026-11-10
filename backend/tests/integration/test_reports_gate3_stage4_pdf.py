@@ -16,7 +16,6 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import io
-import os
 import uuid
 from pathlib import Path
 from typing import Any
@@ -24,7 +23,6 @@ from unittest.mock import patch
 
 import pypdf
 import pytest
-from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
@@ -33,27 +31,19 @@ from app.core.config import settings
 from app.core.exceptions import (
     CrossTenantAccessError,
     EntityNotFoundError,
-    ForbiddenError,
     InvalidTokenError,
-    LeaseExpiredError,
     ValidationError,
 )
-from app.models.dashboard import Dashboard, DashboardWidget
+from app.models.dashboard import Dashboard
 from app.models.membership import OrganizationMembership
 from app.models.organization import Organization
 from app.models.report import (
-    ReportDefinition,
-    ReportRun,
     ReportRunStatus,
-    ReportSection,
 )
-from app.models.spreadsheet import Sheet, Workbook
 from app.models.user import User
 from app.models.workspace import Workspace
 from app.repositories.report import (
-    ReportDefinitionRepository,
     ReportRunRepository,
-    ReportSectionRepository,
 )
 from app.repositories.role import RoleRepository
 from app.schemas.report import (
@@ -64,7 +54,6 @@ from app.schemas.report import (
 from app.services.report import ReportService
 from app.services.report_download_token import ReportDownloadTokenService
 from app.services.report_renderer import ReportRendererService
-from app.services.report_sanitizer import ReportSanitizerService
 from app.services.report_storage import ReportStorageService
 from app.services.role import RoleService
 from app.tasks.reporting import _execute_report_run_async
@@ -111,7 +100,11 @@ async def create_test_tenant(session: AsyncSession, suffix: str) -> dict[str, An
             membership.id, [roles["owner"].id], organization_id=org.id
         )
 
-    workspace = Workspace(organization_id=org.id, name=f"Workspace {suffix}", slug=f"ws-{suffix}-{uuid.uuid4().hex[:6]}")
+    workspace = Workspace(
+        organization_id=org.id,
+        name=f"Workspace {suffix}",
+        slug=f"ws-{suffix}-{uuid.uuid4().hex[:6]}",
+    )
     session.add(workspace)
     await session.flush()
 
@@ -137,6 +130,7 @@ async def create_test_tenant(session: AsyncSession, suffix: str) -> dict[str, An
 # =============================================================================
 # 1. ECharts SSR SVG Rendering for all 11 chart types
 # =============================================================================
+
 
 @pytest.mark.asyncio
 async def test_echarts_ssr_all_11_chart_types():
@@ -196,6 +190,7 @@ async def test_echarts_ssr_all_11_chart_types():
 # =============================================================================
 # 2. End-to-End PDF Report Generation
 # =============================================================================
+
 
 @pytest.mark.asyncio
 async def test_end_to_end_report_run_pdf_generation(
@@ -286,6 +281,7 @@ async def test_end_to_end_report_run_pdf_generation(
 # 3. Single-Use Download Tokens & Atomic Burn
 # =============================================================================
 
+
 @pytest.mark.asyncio
 async def test_single_use_download_token_atomic_burn(db_session: AsyncSession):
     """Verify download tokens are single-use and burned atomically on first consumption."""
@@ -314,6 +310,7 @@ async def test_single_use_download_token_atomic_burn(db_session: AsyncSession):
 # =============================================================================
 # 4. Storage Bounds, Single Open Handle & Checksum Verification
 # =============================================================================
+
 
 @pytest.mark.asyncio
 async def test_direct_pdf_download_bounds_and_checksum(tmp_path: Path):
@@ -353,6 +350,7 @@ async def test_direct_pdf_download_bounds_and_checksum(tmp_path: Path):
 # 5. Worker Lease Heartbeat & Cooperative Cancellation on Lease Loss
 # =============================================================================
 
+
 @pytest.mark.asyncio
 async def test_lease_expiry_cancellation_during_render(db_session: AsyncSession, tmp_path: Path):
     """Verify that when worker lease renewal fails, cooperative cancellation triggers and staging is discarded."""
@@ -388,11 +386,14 @@ async def test_lease_expiry_cancellation_during_render(db_session: AsyncSession,
             with patch.object(settings, "ANALYTICS_HEARTBEAT_INTERVAL_SECONDS", 0.05):
                 # Make render delay slightly so heartbeat can detect failure
                 orig_render = ReportRendererService.render_pdf_from_html
+
                 async def slow_render(*args, **kwargs):
                     await asyncio.sleep(0.2)
                     return await orig_render(*args, **kwargs)
 
-                with patch.object(ReportRendererService, "render_pdf_from_html", side_effect=slow_render):
+                with patch.object(
+                    ReportRendererService, "render_pdf_from_html", side_effect=slow_render
+                ):
                     result = await _execute_report_run_async(str(run.id), "celery-stolen-1")
 
     # Worker task reports failure due to LEASEEXPIREDERROR
@@ -403,6 +404,7 @@ async def test_lease_expiry_cancellation_during_render(db_session: AsyncSession,
 # =============================================================================
 # 6. Multi-Tenant Cross-Access Isolation
 # =============================================================================
+
 
 @pytest.mark.asyncio
 async def test_cross_tenant_report_isolation(db_session: AsyncSession):

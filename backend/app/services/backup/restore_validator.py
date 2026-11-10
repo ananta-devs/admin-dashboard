@@ -15,7 +15,7 @@ Executes the comprehensive 16-point integrity validation suite:
 from __future__ import annotations
 
 import hashlib
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 
 class RestoreValidationError(Exception):
@@ -29,7 +29,7 @@ class RestoreValidator:
         """Initialize with an open DB-API / asyncpg / psycopg cursor to restored database."""
         self.cursor = db_cursor
 
-    def validate_recovery_state(self) -> Dict[str, Any]:
+    def validate_recovery_state(self) -> dict[str, Any]:
         """Verify database has completed crash recovery or WAL replay and is accepting queries."""
         self.cursor.execute("SELECT pg_is_in_recovery();")
         row = self.cursor.fetchone()
@@ -37,17 +37,21 @@ class RestoreValidator:
         # In a fully converged point-in-time recovery, the engine completes recovery and promotes
         return {"in_recovery": in_recovery, "status": "VERIFIED"}
 
-    def validate_installed_extensions(self, required_extensions: List[str] | None = None) -> List[str]:
+    def validate_installed_extensions(
+        self, required_extensions: list[str] | None = None
+    ) -> list[str]:
         """Verify presence of core platform extensions."""
         required = required_extensions or ["plpgsql", "uuid-ossp", "pgcrypto"]
         self.cursor.execute("SELECT extname FROM pg_extension;")
         installed = {r[0] for r in self.cursor.fetchall()}
         missing = [ext for ext in required if ext not in installed]
         if missing:
-            raise RestoreValidationError(f"Missing required extensions in restored database: {missing}")
+            raise RestoreValidationError(
+                f"Missing required extensions in restored database: {missing}"
+            )
         return list(installed)
 
-    def validate_catalog_inventory(self, expected_relations: List[str] | None = None) -> int:
+    def validate_catalog_inventory(self, expected_relations: list[str] | None = None) -> int:
         """Verify all expected user relations exist in public schema."""
         self.cursor.execute(
             """
@@ -62,10 +66,12 @@ class RestoreValidator:
         if expected_relations:
             missing = [r for r in expected_relations if r not in found_relations]
             if missing:
-                raise RestoreValidationError(f"Restored catalog missing expected relations: {missing}")
+                raise RestoreValidationError(
+                    f"Restored catalog missing expected relations: {missing}"
+                )
         return len(found_relations)
 
-    def validate_foreign_keys(self) -> Dict[str, Any]:
+    def validate_foreign_keys(self) -> dict[str, Any]:
         """Validate all foreign key constraints for orphan records using relational null-safe joins."""
         # Query PostgreSQL catalog for all foreign key constraints with column mappings
         query_constraints = """
@@ -90,7 +96,7 @@ class RestoreValidator:
         constraints = self.cursor.fetchall()
 
         # Group by constraint name to support multi-column composite foreign keys
-        fk_map: Dict[str, Dict[str, Any]] = {}
+        fk_map: dict[str, dict[str, Any]] = {}
         for r in constraints:
             c_name, s_tbl, s_col, t_tbl, t_col = r
             if c_name not in fk_map:
@@ -109,9 +115,9 @@ class RestoreValidator:
 
             # Construct null-safe relational join
             # Only rows where ALL foreign key columns are non-null are evaluated
-            non_null_clause = " AND ".join(f"s.\"{s_col}\" IS NOT NULL" for s_col, _ in pairs)
-            join_clause = " AND ".join(f"s.\"{s_col}\" = t.\"{t_col}\"" for s_col, t_col in pairs)
-            null_target_clause = f"t.\"{pairs[0][1]}\" IS NULL"
+            non_null_clause = " AND ".join(f's."{s_col}" IS NOT NULL' for s_col, _ in pairs)
+            join_clause = " AND ".join(f's."{s_col}" = t."{t_col}"' for s_col, t_col in pairs)
+            null_target_clause = f't."{pairs[0][1]}" IS NULL'
 
             check_sql = f"""
                 SELECT count(*) 
@@ -129,7 +135,7 @@ class RestoreValidator:
 
         return {"constraints_checked": len(fk_map), "violations": 0}
 
-    def validate_btree_indexes(self) -> Dict[str, Any]:
+    def validate_btree_indexes(self) -> dict[str, Any]:
         """Validate structural health of all B-Tree indexes via amcheck bt_index_check."""
         # First verify if amcheck extension is installed; if not, create extension
         self.cursor.execute("CREATE EXTENSION IF NOT EXISTS amcheck;")
@@ -171,7 +177,9 @@ class RestoreValidator:
         self.cursor.execute("SELECT version_num FROM alembic_version;")
         row = self.cursor.fetchone()
         if not row:
-            raise RestoreValidationError("Missing alembic_version table or revision in restored database.")
+            raise RestoreValidationError(
+                "Missing alembic_version table or revision in restored database."
+            )
         version = row[0]
         if version != expected_head:
             raise RestoreValidationError(
@@ -189,4 +197,3 @@ class RestoreValidator:
             for r in rows:
                 hasher.update(str(r[0]).encode("utf-8"))
         return hasher.hexdigest()
-

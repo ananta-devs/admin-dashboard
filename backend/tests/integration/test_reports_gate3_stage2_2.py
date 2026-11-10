@@ -9,55 +9,34 @@ Covers:
 
 from __future__ import annotations
 
-import copy
-import hashlib
-import json
 import secrets
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
 import polars as pl
 import pytest
-from sqlalchemy import select, text
-from sqlalchemy.exc import DBAPIError, IntegrityError
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from app.analytics.exceptions import DatasetTooLargeError
 from app.core.config import settings
-from app.core.exceptions import (
-    CrossTenantAccessError,
-    EntityNotFoundError,
-    ForbiddenError,
-    ValidationError,
-)
 from app.db.base import utc_now
-from app.models.analytics import AnalyticsJob, AnalyticsResult
-from app.models.dashboard import Dashboard, DashboardWidget
+from app.models.dashboard import Dashboard
 from app.models.membership import OrganizationMembership
 from app.models.organization import Organization
-from app.models.permission import Permission
 from app.models.report import (
-    ReportDefinition,
     ReportOutboxEvent,
     ReportRun,
     ReportRunStatus,
-    ReportSection,
 )
-from app.models.role import MembershipRole, OrganizationRole
-from app.models.spreadsheet import Sheet, SheetRow, Workbook
 from app.models.user import User
 from app.models.workspace import Workspace
-from app.repositories.analytics import AnalyticsResultRepository
-from app.repositories.membership import MembershipRepository
 from app.repositories.report import (
-    ReportDefinitionRepository,
-    ReportOutboxRepository,
     ReportRunRepository,
-    ReportSectionRepository,
 )
 from app.repositories.role import RoleRepository
 from app.schemas.report import (
@@ -65,7 +44,6 @@ from app.schemas.report import (
     ReportRunTriggerInput,
     ReportSectionCreateInput,
 )
-from app.services.permission import PermissionService
 from app.services.report import ReportService
 from app.services.report_snapshot import (
     ReportSnapshotService,
@@ -74,8 +52,7 @@ from app.services.report_snapshot import (
 )
 from app.services.report_storage import ReportStorageService
 from app.services.role import RoleService
-from app.tasks.dispatcher import OutboxDispatcher, ReportingOutboxDispatcher
-from app.tasks.reporting import _execute_report_run_async
+from app.tasks.dispatcher import ReportingOutboxDispatcher
 
 
 @pytest.fixture
@@ -399,10 +376,15 @@ async def test_check_c_precise_boundary_size_enforcement_and_bounded_loader(
     await report_service.add_section(
         def_sub.id,
         t["org"].id,
-        ReportSectionCreateInput(section_type="markdown", title="Sub Section", custom_content=sub_2mb_text),
+        ReportSectionCreateInput(
+            section_type="markdown", title="Sub Section", custom_content=sub_2mb_text
+        ),
     )
     run_sub = await report_service.trigger_report_run(
-        def_sub.id, t["org"].id, t["user"].id, ReportRunTriggerInput(idempotency_key=f"sub-2m-{uid}")
+        def_sub.id,
+        t["org"].id,
+        t["user"].id,
+        ReportRunTriggerInput(idempotency_key=f"sub-2m-{uid}"),
     )
     snap_sub, ext_sub, size_sub, _, _ = await snapshot_svc.materialize_snapshot(run_sub)
     assert ext_sub is None  # Must fit inline
@@ -419,12 +401,19 @@ async def test_check_c_precise_boundary_size_enforcement_and_bounded_loader(
     await report_service.add_section(
         def_above.id,
         t["org"].id,
-        ReportSectionCreateInput(section_type="markdown", title="Above Section", custom_content=above_2mb_text),
+        ReportSectionCreateInput(
+            section_type="markdown", title="Above Section", custom_content=above_2mb_text
+        ),
     )
     run_above = await report_service.trigger_report_run(
-        def_above.id, t["org"].id, t["user"].id, ReportRunTriggerInput(idempotency_key=f"above-2m-{uid}")
+        def_above.id,
+        t["org"].id,
+        t["user"].id,
+        ReportRunTriggerInput(idempotency_key=f"above-2m-{uid}"),
     )
-    snap_above, ext_above, size_above, csum_above, _ = await snapshot_svc.materialize_snapshot(run_above)
+    snap_above, ext_above, size_above, csum_above, _ = await snapshot_svc.materialize_snapshot(
+        run_above
+    )
     assert ext_above is not None
     assert ext_above.endswith(".parquet")
     assert Path(ext_above).is_file()
@@ -437,7 +426,9 @@ async def test_check_c_precise_boundary_size_enforcement_and_bounded_loader(
     def_comp = await report_service.create_report_definition(
         t["org"].id,
         t["user"].id,
-        ReportDefinitionCreateInput(workspace_id=t["workspace"].id, title="Compressible Oversized Report"),
+        ReportDefinitionCreateInput(
+            workspace_id=t["workspace"].id, title="Compressible Oversized Report"
+        ),
     )
     await report_service.add_section(
         def_comp.id,
@@ -447,7 +438,10 @@ async def test_check_c_precise_boundary_size_enforcement_and_bounded_loader(
         ),
     )
     run_comp = await report_service.trigger_report_run(
-        def_comp.id, t["org"].id, t["user"].id, ReportRunTriggerInput(idempotency_key=f"comp-over-{uid}")
+        def_comp.id,
+        t["org"].id,
+        t["user"].id,
+        ReportRunTriggerInput(idempotency_key=f"comp-over-{uid}"),
     )
 
     # Must be rejected upfront despite being highly compressible!
@@ -464,7 +458,9 @@ async def test_check_c_precise_boundary_size_enforcement_and_bounded_loader(
     def_incomp = await report_service.create_report_definition(
         t["org"].id,
         t["user"].id,
-        ReportDefinitionCreateInput(workspace_id=t["workspace"].id, title="Incompressible Oversized Report"),
+        ReportDefinitionCreateInput(
+            workspace_id=t["workspace"].id, title="Incompressible Oversized Report"
+        ),
     )
     await report_service.add_section(
         def_incomp.id,
@@ -474,7 +470,10 @@ async def test_check_c_precise_boundary_size_enforcement_and_bounded_loader(
         ),
     )
     run_incomp = await report_service.trigger_report_run(
-        def_incomp.id, t["org"].id, t["user"].id, ReportRunTriggerInput(idempotency_key=f"incomp-over-{uid}")
+        def_incomp.id,
+        t["org"].id,
+        t["user"].id,
+        ReportRunTriggerInput(idempotency_key=f"incomp-over-{uid}"),
     )
 
     with pytest.raises(DatasetTooLargeError, match="exceeds maximum cap"):
@@ -616,4 +615,3 @@ async def test_check_d_worker_retry_state_machine_and_concurrency_fencing(
     await dispatcher.recover_stale_leases()
     await db_session.refresh(run_success)
     assert run_success.status == ReportRunStatus.SUCCEEDED
-

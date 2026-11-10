@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import uuid
-from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -29,4 +27,3 @@ class NotificationOperationResponse(BaseModel):
     notification_id: str | None = None
     is_read: bool | None = None
     is_dismissed: bool | None = None
-

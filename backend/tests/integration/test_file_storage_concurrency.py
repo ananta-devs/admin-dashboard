@@ -11,11 +11,11 @@ from __future__ import annotations
 
 import asyncio
 import uuid
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
-from app.core.config import settings
 from app.core.exceptions import ValidationError
 from app.models.organization import Organization
 from app.models.user import User
@@ -89,7 +89,7 @@ async def test_concurrent_uploads_prevent_quota_overrun(test_org, session_factor
     monkeypatch.setattr("app.services.file_storage.DEFAULT_ORG_QUOTA_BYTES", quota_limit)
 
     file_content_1 = b"id,val\n" + (b"1,row_data_alpha_payload\n" * 20)  # ~500 bytes
-    file_content_2 = b"id,val\n" + (b"2,row_data_beta_payload\n" * 20)   # ~500 bytes
+    file_content_2 = b"id,val\n" + (b"2,row_data_beta_payload\n" * 20)  # ~500 bytes
 
     async def upload_task(fname: str, content: bytes):
         async with session_factory() as session:

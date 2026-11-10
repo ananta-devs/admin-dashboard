@@ -12,8 +12,9 @@ from collections.abc import Sequence
 from typing import Union
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "481909849343"
@@ -29,14 +30,18 @@ def upgrade() -> None:
         sa.Column(
             "organization_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="CASCADE", name="fk_stored_files_organization_id"),
+            sa.ForeignKey(
+                "organizations.id", ondelete="CASCADE", name="fk_stored_files_organization_id"
+            ),
             nullable=False,
         ),
         sa.Column("workspace_id", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column(
             "uploaded_by_user_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="SET NULL", name="fk_stored_files_uploaded_by_user_id"),
+            sa.ForeignKey(
+                "users.id", ondelete="SET NULL", name="fk_stored_files_uploaded_by_user_id"
+            ),
             nullable=True,
         ),
         sa.Column("filename", sa.String(length=255), nullable=False),
@@ -81,4 +86,3 @@ def downgrade() -> None:
     op.drop_index("ix_stored_files_workspace_id", table_name="stored_files")
     op.drop_index("ix_stored_files_organization_id", table_name="stored_files")
     op.drop_table("stored_files")
-

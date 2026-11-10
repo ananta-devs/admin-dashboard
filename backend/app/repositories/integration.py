@@ -93,4 +93,3 @@ class IntegrationRepository:
             await self.session.delete(oauth_state)
             await self.session.flush()
         return oauth_state
-

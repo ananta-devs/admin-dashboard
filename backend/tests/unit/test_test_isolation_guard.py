@@ -12,8 +12,14 @@ from tests.isolation_guard import (
 
 
 def test_extract_database_name():
-    assert extract_database_name("postgresql+asyncpg://usr:pwd@localhost:5432/vibe_enterprise_test") == "vibe_enterprise_test"
-    assert extract_database_name("postgresql://usr:pwd@127.0.0.1:5432/vibe_enterprise") == "vibe_enterprise"
+    assert (
+        extract_database_name("postgresql+asyncpg://usr:pwd@localhost:5432/vibe_enterprise_test")
+        == "vibe_enterprise_test"
+    )
+    assert (
+        extract_database_name("postgresql://usr:pwd@127.0.0.1:5432/vibe_enterprise")
+        == "vibe_enterprise"
+    )
     assert extract_database_name("") == ""
 
 
@@ -45,4 +51,3 @@ def test_get_enforced_test_database_url_defaults_to_approved():
     url = get_enforced_test_database_url()
     assert "vibe_enterprise_test" in url
     assert "vibe_enterprise/" not in url
-

@@ -117,7 +117,12 @@ class SpreadsheetSyncMapping(Base):
     )
 
     __table_args__ = (
-        UniqueConstraint("sheet_id", "external_spreadsheet_id", "external_sheet_id", name="uq_sync_mapping_vibe_ext"),
+        UniqueConstraint(
+            "sheet_id",
+            "external_spreadsheet_id",
+            "external_sheet_id",
+            name="uq_sync_mapping_vibe_ext",
+        ),
         Index("ix_sync_mappings_org_status", "organization_id", "status"),
     )
 

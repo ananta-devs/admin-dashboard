@@ -52,6 +52,7 @@ async def db_session():
 async def cleanup_global_engine():
     yield
     from app.db.session import engine
+
     await engine.dispose()
 
 
@@ -210,7 +211,11 @@ async def test_report_runs_and_download_flow_api(
     # Add section
     await api_client.post(
         f"/api/v1/reports/definitions/{def_id}/sections",
-        json={"section_type": "text", "title": "Intro", "custom_content": "Content for PDF testing."},
+        json={
+            "section_type": "text",
+            "title": "Intro",
+            "custom_content": "Content for PDF testing.",
+        },
         headers=headers,
     )
 
@@ -291,8 +296,10 @@ async def test_report_runs_and_download_flow_api(
         # 9. Test production fail-closed semantics for token consumption
         from app.core.exceptions import InvalidTokenError
         from app.services.report_download_token import ReportDownloadTokenService
-        with patch.object(settings, "ENVIRONMENT", "production"), patch.object(
-            ReportDownloadTokenService, "get_redis_client", return_value=None
+
+        with (
+            patch.object(settings, "ENVIRONMENT", "production"),
+            patch.object(ReportDownloadTokenService, "get_redis_client", return_value=None),
         ):
             with pytest.raises(InvalidTokenError, match="storage unavailable"):
                 await ReportDownloadTokenService.consume_download_token("some_token")

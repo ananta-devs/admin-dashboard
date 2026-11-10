@@ -9,11 +9,8 @@ Fulfills Phase 10 Stage 2 requirements:
 
 from __future__ import annotations
 
-import os
 import re
-import subprocess
 from pathlib import Path
-from typing import Any, Dict, List
 
 
 class LogicalBackupError(Exception):
@@ -37,16 +34,21 @@ class LogicalBackupRunner:
         self.pg_password = pg_password
         self.pg_database = pg_database
 
-    def build_dump_command(self, output_file: str | Path | None = None) -> List[str]:
+    def build_dump_command(self, output_file: str | Path | None = None) -> list[str]:
         """Construct safe pg_dump command argument list."""
         cmd = [
             "pg_dump",
-            "-h", self.pg_host,
-            "-p", str(self.pg_port),
-            "-U", self.pg_user,
-            "-d", self.pg_database,
+            "-h",
+            self.pg_host,
+            "-p",
+            str(self.pg_port),
+            "-U",
+            self.pg_user,
+            "-d",
+            self.pg_database,
             "-Fc",  # Custom format
-            "-Z", "0",  # Disable internal compression; streaming encryptor compresses
+            "-Z",
+            "0",  # Disable internal compression; streaming encryptor compresses
             "--lock-wait-timeout=10000",
             "--no-owner",
             "--no-privileges",
@@ -56,13 +58,16 @@ class LogicalBackupRunner:
             cmd.extend(["-f", str(output_file)])
         return cmd
 
-    def build_globals_command(self, output_file: str | Path | None = None) -> List[str]:
+    def build_globals_command(self, output_file: str | Path | None = None) -> list[str]:
         """Construct safe pg_dumpall --globals-only command argument list."""
         cmd = [
             "pg_dumpall",
-            "-h", self.pg_host,
-            "-p", str(self.pg_port),
-            "-U", self.pg_user,
+            "-h",
+            self.pg_host,
+            "-p",
+            str(self.pg_port),
+            "-U",
+            self.pg_user,
             "--globals-only",
             "--no-role-passwords",  # Never dump password hashes
             "-w",
@@ -106,14 +111,19 @@ class LogicalBackupRunner:
 
             # Drop library preload modifications
             clean_lower = clean.lower()
-            if any(k in clean_lower for k in ("preload_libraries", "archive_command", "restore_command")):
+            if any(
+                k in clean_lower
+                for k in ("preload_libraries", "archive_command", "restore_command")
+            ):
                 continue
 
             # Drop grants of dangerous predefined PostgreSQL roles
-            if any(f'to "{r}"' in clean_lower or f"to {r}" in clean_lower or f'"{r}"' in clean_lower for r in dangerous_roles):
+            if any(
+                f'to "{r}"' in clean_lower or f"to {r}" in clean_lower or f'"{r}"' in clean_lower
+                for r in dangerous_roles
+            ):
                 continue
 
             sanitized_lines.append(line)
 
         return "\n".join(sanitized_lines)
-

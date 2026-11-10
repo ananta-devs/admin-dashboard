@@ -97,7 +97,9 @@ async def list_leases() -> list[SandboxLease]:
 
 
 @app.post("/api/v1/sandbox/reap")
-async def reap_orphaned_containers(max_age_seconds: int = Query(default=60, ge=1)) -> dict[str, Any]:
+async def reap_orphaned_containers(
+    max_age_seconds: int = Query(default=60, ge=1),
+) -> dict[str, Any]:
     """Sweep and remove orphaned containers and volumes whose lease expired."""
     count = manager.reap_orphans(max_age_seconds=max_age_seconds)
     return {"reaped_count": count}
@@ -127,4 +129,3 @@ async def revoke_token(nonce: str | None = None, execution_id: str | None = None
     if execution_id:
         revocation_registry.revoke_execution(execution_id)
     return {"status": "revoked", "nonce": nonce, "execution_id": execution_id}
-

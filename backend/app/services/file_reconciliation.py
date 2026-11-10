@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import os
 import time
-import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -60,7 +59,7 @@ class FileReconciliationService:
     def __init__(self, session: AsyncSession, base_dir: str | None = None) -> None:
         self.session = session
         self.base_dir = Path(
-            base_dir or getattr(settings, "USER_FILES_STORAGE_DIR", "./storage/user_files")
+            str(base_dir or getattr(settings, "USER_FILES_STORAGE_DIR", "./storage/user_files"))
         ).resolve()
 
     async def audit_storage(self, max_staging_age_seconds: int = 3600) -> ReconciliationReport:
@@ -74,7 +73,12 @@ class FileReconciliationService:
             return report
 
         # 1. Fetch all committed storage paths from DB
-        stmt = select(StoredFile.id, StoredFile.organization_id, StoredFile.storage_path, StoredFile.size_bytes)
+        stmt = select(
+            StoredFile.id,
+            StoredFile.organization_id,
+            StoredFile.storage_path,
+            StoredFile.size_bytes,
+        )
         res = await self.session.execute(stmt)
         db_records = res.all()
         report.total_db_records = len(db_records)
@@ -91,7 +95,7 @@ class FileReconciliationService:
             }
 
         # 2. Check for missing physical files for DB records
-        for p_str, meta in db_path_map.items():
+        for p_str, _meta in db_path_map.items():
             if not os.path.exists(p_str):
                 report.missing_physical_files.append(p_str)
 
@@ -99,7 +103,7 @@ class FileReconciliationService:
         staging_dir = (self.base_dir / "staging").resolve()
         now = time.time()
 
-        for root, dirs, files in os.walk(self.base_dir):
+        for root, _dirs, files in os.walk(self.base_dir):
             root_path = Path(root).resolve()
             # Do not follow symlinks outside base
             if not root_path.is_relative_to(self.base_dir):
@@ -165,4 +169,3 @@ class FileReconciliationService:
                     logger.warning(f"Could not prune orphaned file '{c_path}': {e}")
 
         return report
-

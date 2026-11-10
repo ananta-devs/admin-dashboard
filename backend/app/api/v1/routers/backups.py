@@ -8,16 +8,15 @@ Provides administrative visibility and controls for Phase 10:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any, Dict, List
+from datetime import UTC, datetime
+from typing import Any
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query
 
 from app.api.dependencies.auth import (
     get_current_membership,
     get_current_user,
     require_backup_read,
-    require_permission,
 )
 from app.core.config import settings
 from app.models.membership import OrganizationMembership
@@ -31,16 +30,18 @@ router = APIRouter(
 )
 
 
-@router.get("/status", response_model=Dict[str, Any])
+@router.get("/status", response_model=dict[str, Any])
 async def get_backup_recovery_status(
     user: User = Depends(get_current_user),
     membership: OrganizationMembership = Depends(get_current_membership),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Retrieve operational disaster recovery status, RPO/RTO metrics, and spool health."""
-    spool_mgr = SpoolManagerService(spool_dir=getattr(settings, "WAL_SPOOL_DIR", "./uploads/wal_spool"))
+    spool_mgr = SpoolManagerService(
+        spool_dir=getattr(settings, "WAL_SPOOL_DIR", "./uploads/wal_spool")
+    )
     spool_metrics = spool_mgr.get_spool_metrics()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return {
         "status": "HEALTHY",
         "rpo": {
@@ -65,44 +66,51 @@ async def get_backup_recovery_status(
             "object_lock_mode": "COMPLIANCE",
             "immutability_active": True,
         },
-        "alerts": [] if spool_metrics["watermark_level"] == "NORMAL" else [spool_metrics["action_required"]],
+        "alerts": []
+        if spool_metrics["watermark_level"] == "NORMAL"
+        else [spool_metrics["action_required"]],
     }
 
 
-@router.get("/history", response_model=List[Dict[str, Any]])
+@router.get("/history", response_model=list[dict[str, Any]])
 async def list_backup_history(
     limit: int = Query(default=20, ge=1, le=100),
     user: User = Depends(get_current_user),
     membership: OrganizationMembership = Depends(get_current_membership),
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Retrieve historical backup execution records from durable metadata or storage."""
     from app.services.backup.orchestrator import BackupOrchestrationService
 
-    persisted = (
-        BackupOrchestrationService.list_persisted_jobs(settings.BACKUP_STORAGE_DIR)
-        or BackupOrchestrationService.list_persisted_jobs(settings.BACKUP_RESTORE_SCRATCH_DIR)
-    )
+    persisted = BackupOrchestrationService.list_persisted_jobs(
+        settings.BACKUP_STORAGE_DIR
+    ) or BackupOrchestrationService.list_persisted_jobs(settings.BACKUP_RESTORE_SCRATCH_DIR)
 
     if persisted:
         history = []
         for p in persisted[:limit]:
-            size = p.get("signed_manifest", {}).get("artifact_crypto", {}).get("size_bytes", 4294967296)
-            history.append({
-                "backup_id": p.get("backup_id", "b-unknown"),
-                "backup_type": p.get("backup_type", "PHYSICAL_BASE"),
-                "status": p.get("status", "COMPLETED"),
-                "size_bytes": size,
-                "size_pretty": f"{size / (1024**3):.2f} GiB",
-                "start_lsn": p.get("start_lsn", "0/16000028"),
-                "stop_lsn": p.get("stop_lsn", "0/16000160"),
-                "timeline_id": p.get("timeline_id", 1),
-                "promoted_tiers": ["DAILY"],
-                "verified": p.get("status") in ("COMPLETED", "REMOTELY_VERIFIED"),
-                "created_at": p.get("created_at") or datetime.now(timezone.utc).isoformat(),
-            })
+            size = (
+                p.get("signed_manifest", {})
+                .get("artifact_crypto", {})
+                .get("size_bytes", 4294967296)
+            )
+            history.append(
+                {
+                    "backup_id": p.get("backup_id", "b-unknown"),
+                    "backup_type": p.get("backup_type", "PHYSICAL_BASE"),
+                    "status": p.get("status", "COMPLETED"),
+                    "size_bytes": size,
+                    "size_pretty": f"{size / (1024**3):.2f} GiB",
+                    "start_lsn": p.get("start_lsn", "0/16000028"),
+                    "stop_lsn": p.get("stop_lsn", "0/16000160"),
+                    "timeline_id": p.get("timeline_id", 1),
+                    "promoted_tiers": ["DAILY"],
+                    "verified": p.get("status") in ("COMPLETED", "REMOTELY_VERIFIED"),
+                    "created_at": p.get("created_at") or datetime.now(UTC).isoformat(),
+                }
+            )
         return history
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return [
         {
             "backup_id": "b-20261104-020000",
@@ -133,11 +141,11 @@ async def list_backup_history(
     ]
 
 
-@router.get("/verifications", response_model=List[Dict[str, Any]])
+@router.get("/verifications", response_model=list[dict[str, Any]])
 async def list_restore_verifications(
     user: User = Depends(get_current_user),
     membership: OrganizationMembership = Depends(get_current_membership),
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Retrieve isolated restore verification reports and 16-point matrix outcomes."""
     return [
         {
@@ -153,4 +161,3 @@ async def list_restore_verifications(
             "completed_at": "2026-11-04T03:00:21Z",
         }
     ]
-

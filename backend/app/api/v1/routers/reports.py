@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import io
 import uuid
-from typing import Sequence
 
 from fastapi import APIRouter, Depends, Query, Response, status
 from fastapi.responses import StreamingResponse
@@ -16,7 +15,7 @@ from app.api.dependencies.auth import (
     verify_csrf_token,
 )
 from app.core.config import settings
-from app.core.exceptions import EntityNotFoundError, ValidationError
+from app.core.exceptions import ValidationError
 from app.db.session import get_db_session
 from app.models.membership import OrganizationMembership
 from app.models.report import ReportRunStatus
@@ -42,6 +41,7 @@ router = APIRouter(prefix="/reports", tags=["reports"])
 # =============================================================================
 # Report Definitions
 # =============================================================================
+
 
 @router.post(
     "/definitions",
@@ -154,6 +154,7 @@ async def delete_report_definition(
 # Report Sections
 # =============================================================================
 
+
 @router.post(
     "/definitions/{definition_id}/sections",
     response_model=ReportSectionRead,
@@ -220,9 +221,7 @@ async def delete_report_section(
     membership: OrganizationMembership = Depends(get_current_membership),
 ) -> Response:
     service = ReportService(session)
-    await service.delete_section(
-        section_id=section_id, organization_id=membership.organization_id
-    )
+    await service.delete_section(section_id=section_id, organization_id=membership.organization_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -253,6 +252,7 @@ async def reorder_report_sections(
 # =============================================================================
 # Report Execution Runs
 # =============================================================================
+
 
 @router.post(
     "/definitions/{definition_id}/runs",
@@ -323,6 +323,7 @@ async def get_report_run(
 # =============================================================================
 # PDF Artifact Downloads
 # =============================================================================
+
 
 @router.post(
     "/runs/{run_id}/download-token",

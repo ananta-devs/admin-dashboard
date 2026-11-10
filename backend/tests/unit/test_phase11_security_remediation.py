@@ -9,6 +9,7 @@ Verifies:
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from fastapi import FastAPI, Response, status
 from fastapi.testclient import TestClient
@@ -16,7 +17,7 @@ from httpx import ASGITransport, AsyncClient
 
 from app.api.v1.routers.auth import _clear_auth_cookies, _set_auth_cookies
 from app.core.config import Settings, settings
-from app.main import SecurityHeadersMiddleware, app
+from app.main import app
 
 
 # =====================================================================
@@ -28,9 +29,11 @@ class TestSessionCookieSecurity:
     def test_auth_cookie_attributes_in_secure_mode(self):
         """When SESSION_COOKIE_SECURE=True, emitted cookie must have Secure=True and HttpOnly=True."""
         response = Response()
-        with patch.object(settings, "SESSION_COOKIE_SECURE", True), patch.object(
-            settings, "SESSION_COOKIE_NAME", "__Host-vibe_session"
-        ), patch.object(settings, "SESSION_COOKIE_SAMESITE", "lax"):
+        with (
+            patch.object(settings, "SESSION_COOKIE_SECURE", True),
+            patch.object(settings, "SESSION_COOKIE_NAME", "__Host-vibe_session"),
+            patch.object(settings, "SESSION_COOKIE_SAMESITE", "lax"),
+        ):
             _set_auth_cookies(response, "test_opaque_token_value_32_bytes_len")
 
         # Response headers must contain single Set-Cookie header for __Host-vibe_session
@@ -48,9 +51,11 @@ class TestSessionCookieSecurity:
     def test_auth_cookie_attributes_in_dev_mode(self):
         """In development mode with default cookie name, emits single cookie with configured flags."""
         response = Response()
-        with patch.object(settings, "SESSION_COOKIE_SECURE", False), patch.object(
-            settings, "SESSION_COOKIE_NAME", "vibe_session"
-        ), patch.object(settings, "SESSION_COOKIE_SAMESITE", "lax"):
+        with (
+            patch.object(settings, "SESSION_COOKIE_SECURE", False),
+            patch.object(settings, "SESSION_COOKIE_NAME", "vibe_session"),
+            patch.object(settings, "SESSION_COOKIE_SAMESITE", "lax"),
+        ):
             _set_auth_cookies(response, "test_token_123")
 
         cookie_headers = response.headers.getlist("set-cookie")
@@ -90,7 +95,9 @@ class TestSecurityHeaders:
         assert response.headers.get("X-Content-Type-Options") == "nosniff"
         assert response.headers.get("X-Frame-Options") == "DENY"
         assert response.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
-        assert response.headers.get("Permissions-Policy") == "camera=(), microphone=(), geolocation=()"
+        assert (
+            response.headers.get("Permissions-Policy") == "camera=(), microphone=(), geolocation=()"
+        )
 
     def test_security_headers_present_on_error_response(self, client):
         """Error responses (e.g. 404, 422) must also receive full security headers."""
@@ -99,13 +106,18 @@ class TestSecurityHeaders:
         assert response.headers.get("X-Content-Type-Options") == "nosniff"
         assert response.headers.get("X-Frame-Options") == "DENY"
         assert response.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
-        assert response.headers.get("Permissions-Policy") == "camera=(), microphone=(), geolocation=()"
+        assert (
+            response.headers.get("Permissions-Policy") == "camera=(), microphone=(), geolocation=()"
+        )
 
     def test_hsts_header_emitted_over_https_forwarded(self, client):
         """When request indicates HTTPS via X-Forwarded-Proto, HSTS header must be added."""
         response = client.get("/api/v1/health", headers={"X-Forwarded-Proto": "https"})
         assert response.status_code == status.HTTP_200_OK
-        assert response.headers.get("Strict-Transport-Security") == "max-age=31536000; includeSubDomains"
+        assert (
+            response.headers.get("Strict-Transport-Security")
+            == "max-age=31536000; includeSubDomains"
+        )
 
     def test_hsts_header_omitted_over_plain_http(self, client):
         """Plain HTTP requests must NOT receive HSTS header to avoid breaking non-TLS environments."""
@@ -147,7 +159,13 @@ class TestOpenAPISuppression:
             SESSION_COOKIE_SECURE=True,
             ALLOWED_ORIGINS=["https://app.vibe.enterprise"],
         )
-        is_dev = prod_settings.ENVIRONMENT.lower() in ("development", "dev", "test", "testing", "local")
+        is_dev = prod_settings.ENVIRONMENT.lower() in (
+            "development",
+            "dev",
+            "test",
+            "testing",
+            "local",
+        )
         assert not is_dev
 
         test_app = FastAPI(
@@ -163,7 +181,13 @@ class TestOpenAPISuppression:
     def test_openapi_enabled_in_development(self):
         """In development mode, /docs, /redoc, and /openapi.json remain active."""
         dev_settings = Settings(ENVIRONMENT="development")
-        is_dev = dev_settings.ENVIRONMENT.lower() in ("development", "dev", "test", "testing", "local")
+        is_dev = dev_settings.ENVIRONMENT.lower() in (
+            "development",
+            "dev",
+            "test",
+            "testing",
+            "local",
+        )
         assert is_dev
 
         test_app = FastAPI(
@@ -184,7 +208,9 @@ class TestProductionSecretValidation:
 
     def test_production_rejects_dev_postgres_password(self):
         """Production environment must reject default postgres password placeholder."""
-        with pytest.raises(ValueError, match="Insecure default password detected for POSTGRES_PASSWORD"):
+        with pytest.raises(
+            ValueError, match="Insecure default password detected for POSTGRES_PASSWORD"
+        ):
             Settings(
                 ENVIRONMENT="production",
                 POSTGRES_PASSWORD="dev_secret_postgres_pass_change_in_prod",
@@ -199,7 +225,9 @@ class TestProductionSecretValidation:
 
     def test_production_rejects_dev_redis_password(self):
         """Production environment must reject default redis password placeholder."""
-        with pytest.raises(ValueError, match="Insecure default password detected for REDIS_PASSWORD"):
+        with pytest.raises(
+            ValueError, match="Insecure default password detected for REDIS_PASSWORD"
+        ):
             Settings(
                 ENVIRONMENT="production",
                 POSTGRES_PASSWORD="secure_prod_password_not_default_123!",
@@ -251,12 +279,8 @@ class TestBackupEndpointAuthorization:
         )
 
         dummy_user = MagicMock(id="user-123", email="viewer@vibe.enterprise")
-        dummy_membership = MagicMock(
-            id="mem-123", organization_id="org-123", user_id="user-123"
-        )
-        dummy_session = MagicMock(
-            id="sess-123", user=dummy_user, active_organization_id="org-123"
-        )
+        dummy_membership = MagicMock(id="mem-123", organization_id="org-123", user_id="user-123")
+        dummy_session = MagicMock(id="sess-123", user=dummy_user, active_organization_id="org-123")
 
         mock_db = AsyncMock()
 
@@ -273,9 +297,7 @@ class TestBackupEndpointAuthorization:
             app.dependency_overrides[get_current_session] = lambda: dummy_session
             app.dependency_overrides[get_db_session] = lambda: mock_db
 
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as ac:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
                 res = await ac.get("/api/v1/backups/status")
                 assert res.status_code == status.HTTP_403_FORBIDDEN
                 body = res.json()
@@ -316,9 +338,7 @@ class TestBackupEndpointAuthorization:
             app.dependency_overrides[get_current_session] = lambda: dummy_session
             app.dependency_overrides[get_db_session] = lambda: mock_db
 
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as ac:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
                 res = await ac.get("/api/v1/backups/status")
                 assert res.status_code == status.HTTP_200_OK
                 data = res.json()

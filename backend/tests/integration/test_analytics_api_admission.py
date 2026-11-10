@@ -122,7 +122,9 @@ def _bulk_insert_cells_copy(
                 "COPY sheet_rows (id, sheet_id, organization_id, row_index, cells, version, created_at, updated_at) FROM STDIN"
             ) as copy:
                 for r in range(num_rows):
-                    copy.write_row((str(uuid.uuid4()), str(sheet_id), str(org_id), r, cells_json, 1, now, now))
+                    copy.write_row(
+                        (str(uuid.uuid4()), str(sheet_id), str(org_id), r, cells_json, 1, now, now)
+                    )
             conn.commit()
 
 
@@ -176,7 +178,9 @@ async def test_oversized_dataset_admission_rejection_no_side_effects(
     err_body = res.json()
     assert err_body.get("success") is False
     assert err_body.get("error", {}).get("code") == "DATASET_TOO_LARGE"
-    assert "Sheet exceeds maximum allowable non-empty cells" in err_body.get("error", {}).get("message", "")
+    assert "Sheet exceeds maximum allowable non-empty cells" in err_body.get("error", {}).get(
+        "message", ""
+    )
 
     # 2. Verify NO AnalyticsJob row created
     dsn = settings.DATABASE_URL.replace("+asyncpg", "")

@@ -98,7 +98,9 @@ async def create_test_context(api_client: AsyncClient, db_session: AsyncSession,
 
 
 @pytest.mark.asyncio
-async def test_worker_fencing_token_rejects_stale_worker(api_client: AsyncClient, db_session: AsyncSession):
+async def test_worker_fencing_token_rejects_stale_worker(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """Proves that a stale worker whose lease expired cannot overwrite progress or complete a job."""
     org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
         api_client, db_session, "fence"
@@ -122,7 +124,9 @@ async def test_worker_fencing_token_rejects_stale_worker(api_client: AsyncClient
     await db_session.commit()
 
     # Worker 1 claims job
-    claimed_1, token_1 = await repo.claim_job_atomically(job_id, "worker-1", lease_duration_seconds=1)
+    claimed_1, token_1 = await repo.claim_job_atomically(
+        job_id, "worker-1", lease_duration_seconds=1
+    )
     await db_session.commit()
     assert claimed_1 is True
     assert token_1 is not None
@@ -133,11 +137,15 @@ async def test_worker_fencing_token_rejects_stale_worker(api_client: AsyncClient
     assert up_1 is True
 
     # Transition to RETRYING to simulate recovery
-    await repo.mark_failed(job_id, "LEASE_EXPIRED", "expired", next_status=AnalyticsJobStatus.RETRYING)
+    await repo.mark_failed(
+        job_id, "LEASE_EXPIRED", "expired", next_status=AnalyticsJobStatus.RETRYING
+    )
     await db_session.commit()
 
     # Worker 2 claims the job
-    claimed_2, token_2 = await repo.claim_job_atomically(job_id, "worker-2", lease_duration_seconds=60)
+    claimed_2, token_2 = await repo.claim_job_atomically(
+        job_id, "worker-2", lease_duration_seconds=60
+    )
     await db_session.commit()
     assert claimed_2 is True
     assert token_2 is not None
@@ -169,7 +177,9 @@ async def test_worker_fencing_token_rejects_stale_worker(api_client: AsyncClient
 
 
 @pytest.mark.asyncio
-async def test_worker_background_heartbeat_renews_lease(api_client: AsyncClient, db_session: AsyncSession):
+async def test_worker_background_heartbeat_renews_lease(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """Proves background worker heartbeat extends the lease with fencing token."""
     org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
         api_client, db_session, "hb"
@@ -229,7 +239,9 @@ async def test_worker_background_heartbeat_renews_lease(api_client: AsyncClient,
 
 
 @pytest.mark.asyncio
-async def test_snapshot_consistency_repeatable_read(api_client: AsyncClient, db_session: AsyncSession):
+async def test_snapshot_consistency_repeatable_read(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """Verifies snapshot extraction under REPEATABLE READ with snapshot metadata audit trail."""
     org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
         api_client, db_session, "snap"
@@ -237,10 +249,7 @@ async def test_snapshot_consistency_repeatable_read(api_client: AsyncClient, db_
 
     spreadsheet_svc = SpreadsheetService(db_session)
     # Populate initial 10 rows
-    initial_edits = [
-        CellEditInput(cell_ref=f"A{i+1}", value=f"Val_{i}")
-        for i in range(10)
-    ]
+    initial_edits = [CellEditInput(cell_ref=f"A{i + 1}", value=f"Val_{i}") for i in range(10)]
     await spreadsheet_svc.update_cells_batch(
         sheet_id=sheet_id,
         organization_id=org_id,
@@ -269,7 +278,9 @@ async def test_snapshot_consistency_repeatable_read(api_client: AsyncClient, db_
 
 
 @pytest.mark.asyncio
-async def test_outbox_watchdog_recovers_stranded_queued_jobs(api_client: AsyncClient, db_session: AsyncSession):
+async def test_outbox_watchdog_recovers_stranded_queued_jobs(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """Dispatcher watchdog detects stranded queued jobs and generates a fresh outbox event."""
     org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
         api_client, db_session, "watchdog"
@@ -320,7 +331,9 @@ async def test_outbox_watchdog_recovers_stranded_queued_jobs(api_client: AsyncCl
 
 
 @pytest.mark.asyncio
-async def test_outbox_stale_lease_recovery_generates_retry_event(api_client: AsyncClient, db_session: AsyncSession):
+async def test_outbox_stale_lease_recovery_generates_retry_event(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """Dispatcher recovers running jobs with expired leases into retrying with an outbox event."""
     org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
         api_client, db_session, "stale"
@@ -365,7 +378,9 @@ async def test_outbox_stale_lease_recovery_generates_retry_event(api_client: Asy
 
 
 @pytest.mark.asyncio
-async def test_idempotent_result_persistence_and_reexecution(api_client: AsyncClient, db_session: AsyncSession):
+async def test_idempotent_result_persistence_and_reexecution(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """Calling execute_analytics_job on an already succeeded job is an idempotent no-op."""
     org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
         api_client, db_session, "idemp_exec"
@@ -410,7 +425,9 @@ async def test_idempotent_result_persistence_and_reexecution(api_client: AsyncCl
 
 
 @pytest.mark.asyncio
-async def test_atomic_spreadsheet_publishing_and_idempotency(api_client: AsyncClient, db_session: AsyncSession):
+async def test_atomic_spreadsheet_publishing_and_idempotency(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """Publishing to spreadsheet is atomic, validates target workbook, and is idempotent."""
     org_id, ws_id, wb_id, sheet_id, user_id, csrf_token = await create_test_context(
         api_client, db_session, "publish_hard"

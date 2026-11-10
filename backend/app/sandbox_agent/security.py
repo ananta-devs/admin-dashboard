@@ -85,7 +85,9 @@ def verify_scoped_execution_token(
     for key in active_keys:
         if not key:
             continue
-        expected_sig = hmac.new(key.encode("utf-8"), payload_b64.encode("utf-8"), hashlib.sha256).digest()
+        expected_sig = hmac.new(
+            key.encode("utf-8"), payload_b64.encode("utf-8"), hashlib.sha256
+        ).digest()
         calc_sig_b64 = base64.urlsafe_b64encode(expected_sig).decode("utf-8").rstrip("=")
         if hmac.compare_digest(sig_b64, calc_sig_b64):
             valid_sig = True
@@ -121,4 +123,3 @@ def verify_scoped_execution_token(
         raise SandboxTokenError("Authorization token or execution has been revoked")
 
     return payload
-

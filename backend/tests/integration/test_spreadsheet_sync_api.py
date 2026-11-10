@@ -139,7 +139,9 @@ async def test_google_sheets_import(
     ws_id = ws_list[0].id
 
     # Create target workbook
-    wb = Workbook(organization_id=org_id, workspace_id=ws_id, name="Test WB", created_by_user_id=user_id)
+    wb = Workbook(
+        organization_id=org_id, workspace_id=ws_id, name="Test WB", created_by_user_id=user_id
+    )
     db_session.add(wb)
     await db_session.commit()
     await db_session.refresh(wb)
@@ -205,7 +207,9 @@ async def test_google_sheets_export(
     ws_id = ws_list[0].id
 
     # Create workbook, sheet, and rows in VIBE
-    wb = Workbook(organization_id=org_id, workspace_id=ws_id, name="Export WB", created_by_user_id=user_id)
+    wb = Workbook(
+        organization_id=org_id, workspace_id=ws_id, name="Export WB", created_by_user_id=user_id
+    )
     db_session.add(wb)
     await db_session.flush()
 
@@ -235,18 +239,21 @@ async def test_google_sheets_export(
     await db_session.commit()
 
     # Mock Google Drive/Sheets create & update calls
-    with patch(
-        "app.services.google_oauth.GoogleOAuthService.create_spreadsheet",
-        new_callable=AsyncMock,
-        return_value=GoogleSpreadsheetDetail(
-            spreadsheet_id="new-google-sheet-999",
-            title="VIBE Export - SourceSheet",
+    with (
+        patch(
+            "app.services.google_oauth.GoogleOAuthService.create_spreadsheet",
+            new_callable=AsyncMock,
+            return_value=GoogleSpreadsheetDetail(
+                spreadsheet_id="new-google-sheet-999",
+                title="VIBE Export - SourceSheet",
+            ),
         ),
-    ), patch(
-        "app.services.google_oauth.GoogleOAuthService.update_sheet_values",
-        new_callable=AsyncMock,
-        return_value={"updatedRows": 2},
-    ) as mock_update:
+        patch(
+            "app.services.google_oauth.GoogleOAuthService.update_sheet_values",
+            new_callable=AsyncMock,
+            return_value={"updatedRows": 2},
+        ) as mock_update,
+    ):
         export_payload = {
             "integration_id": str(integration.id),
             "source_sheet_id": str(sheet.id),
@@ -285,7 +292,9 @@ async def test_spreadsheet_synchronization_bidirectional_and_conflicts(
     ws_id = ws_list[0].id
 
     # 1. Create workbook & sheet
-    wb = Workbook(organization_id=org_id, workspace_id=ws_id, name="Sync WB", created_by_user_id=user_id)
+    wb = Workbook(
+        organization_id=org_id, workspace_id=ws_id, name="Sync WB", created_by_user_id=user_id
+    )
     db_session.add(wb)
     await db_session.flush()
 
@@ -491,6 +500,7 @@ async def test_sync_tenant_isolation_and_rbac(
     await db_session.commit()
 
     from app.services.session import SessionService
+
     sess_service = SessionService(db_session)
     _, viewer_token, viewer_csrf = await sess_service.create_session(
         user_id=viewer_user.id,
@@ -507,4 +517,3 @@ async def test_sync_tenant_isolation_and_rbac(
         headers={"X-CSRF-Token": viewer_csrf, "Origin": "http://localhost:3000"},
     )
     assert del_res.status_code == 403
-

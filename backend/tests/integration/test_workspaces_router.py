@@ -3,28 +3,21 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
-from app.api.dependencies.auth import get_current_membership, get_current_session, verify_csrf_token
-from app.core.config import settings
+from app.api.dependencies.auth import get_current_membership, verify_csrf_token
 from app.db.session import get_db_session
 from app.main import app
-from app.models.membership import OrganizationMembership
 from app.models.organization import Organization
-from app.models.session import AuthenticationSession
 from app.models.spreadsheet import Workbook
 from app.models.user import User
 from app.models.workspace import Workspace
 from app.schemas.organization import ProvisionOrganizationInput
 from app.services.organization import OrganizationService
-from app.services.role import RoleService
-
-
 from tests.isolation_guard import assert_test_database_connection, get_enforced_test_database_url
 
 
@@ -66,6 +59,7 @@ async def test_org(db_session: AsyncSession):
     user = await db_session.get(User, user_read.id)
     ws = await db_session.get(Workspace, ws_read.id)
     from app.repositories.membership import MembershipRepository
+
     m_repo = MembershipRepository(db_session)
     membership = await m_repo.get(organization_id=org.id, user_id=user.id)
 
@@ -90,6 +84,7 @@ async def second_org(db_session: AsyncSession):
     user = await db_session.get(User, user_read.id)
     ws = await db_session.get(Workspace, ws_read.id)
     from app.repositories.membership import MembershipRepository
+
     m_repo = MembershipRepository(db_session)
     membership = await m_repo.get(organization_id=org.id, user_id=user.id)
     return {"org": org, "user": user, "workspace": ws, "membership": membership}

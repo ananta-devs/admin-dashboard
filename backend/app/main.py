@@ -9,18 +9,18 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from app.api.health import router as health_router
 from app.api.v1.routers.analytics import router as analytics_router
 from app.api.v1.routers.auth import router as auth_router
+from app.api.v1.routers.backups import router as backups_router
 from app.api.v1.routers.dashboards import router as dashboards_router
+from app.api.v1.routers.files import router as files_router
 from app.api.v1.routers.integrations import router as integrations_router
+from app.api.v1.routers.notifications import router as notifications_router
 from app.api.v1.routers.organization import router as organization_router
 from app.api.v1.routers.reports import router as reports_router
 from app.api.v1.routers.scripts import router as scripts_router
 from app.api.v1.routers.spreadsheets import router as spreadsheets_router
 from app.api.v1.routers.sync import router as sync_router
-from app.api.v1.routers.backups import router as backups_router
-from app.api.v1.routers.workspaces import router as workspaces_router
-from app.api.v1.routers.files import router as files_router
 from app.api.v1.routers.system import router as system_router
-from app.api.v1.routers.notifications import router as notifications_router
+from app.api.v1.routers.workspaces import router as workspaces_router
 from app.core.config import settings
 from app.core.exceptions import (
     AppException,
@@ -62,7 +62,9 @@ async def lifespan(app: FastAPI):
     expected_db = settings.E2E_EXPECTED_DATABASE
     if expected_db:
         from sqlalchemy import text
+
         from app.db.session import async_session_maker
+
         async with async_session_maker() as session:
             result = await session.execute(text("SELECT current_database();"))
             actual_db = result.scalar()
@@ -76,7 +78,9 @@ async def lifespan(app: FastAPI):
                     f"FATAL: Attempting to run E2E test backend against protected database '{actual_db}'! "
                     "Startup aborted."
                 )
-            logger.info("Database identity verified: %s matches expected %s", actual_db, expected_db)
+            logger.info(
+                "Database identity verified: %s matches expected %s", actual_db, expected_db
+            )
 
     yield
     logger.info("Shutting down Enterprise Admin Backend Core...")

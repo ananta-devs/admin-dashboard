@@ -19,10 +19,12 @@ os.environ["DATABASE_SYNC_URL"] = TEST_SYNC_URL
 os.environ["E2E_EXPECTED_DATABASE"] = TEST_DB_NAME
 
 import asyncio
-from alembic import command
+
 from alembic.config import Config
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
+
+from alembic import command
 
 
 async def verify_and_migrate():
@@ -35,7 +37,9 @@ async def verify_and_migrate():
         actual_db = res.scalar()
         print(f"Authoritative current_database(): '{actual_db}'")
         if actual_db != TEST_DB_NAME:
-            print(f"FATAL: Database identity mismatch! Expected '{TEST_DB_NAME}', got '{actual_db}'. Aborting!")
+            print(
+                f"FATAL: Database identity mismatch! Expected '{TEST_DB_NAME}', got '{actual_db}'. Aborting!"
+            )
             sys.exit(1)
 
         # 2. Predecessor Check
@@ -43,11 +47,15 @@ async def verify_and_migrate():
         actual_ver = res_ver.scalar()
         print(f"Authoritative alembic_version: '{actual_ver}'")
         if actual_ver != EXPECTED_PREDECESSOR:
-            print(f"FATAL: Predecessor mismatch! Expected '{EXPECTED_PREDECESSOR}', got '{actual_ver}'. Aborting!")
+            print(
+                f"FATAL: Predecessor mismatch! Expected '{EXPECTED_PREDECESSOR}', got '{actual_ver}'. Aborting!"
+            )
             sys.exit(1)
 
     await engine.dispose()
-    print("--> All fail-closed identity checks PASSED. Executing Alembic upgrade on vibe_enterprise_test...")
+    print(
+        "--> All fail-closed identity checks PASSED. Executing Alembic upgrade on vibe_enterprise_test..."
+    )
 
     alembic_cfg = Config("backend/alembic.ini")
     alembic_cfg.set_main_option("script_location", "backend/alembic")
@@ -64,12 +72,16 @@ async def verify_and_migrate():
         post_ver = res_post.scalar()
         print(f"--> Verified post-migration alembic_version on {TEST_DB_NAME}: '{post_ver}'")
         if post_ver != TARGET_REVISION:
-            print(f"FATAL: Post-migration version mismatch! Expected '{TARGET_REVISION}', got '{post_ver}'.")
+            print(
+                f"FATAL: Post-migration version mismatch! Expected '{TARGET_REVISION}', got '{post_ver}'."
+            )
             sys.exit(1)
 
         # Verify table existence
         res_table = await conn.execute(
-            text("SELECT count(*) FROM information_schema.tables WHERE table_name = 'stored_files';")
+            text(
+                "SELECT count(*) FROM information_schema.tables WHERE table_name = 'stored_files';"
+            )
         )
         if res_table.scalar() != 1:
             print("FATAL: Table 'stored_files' was not found in information_schema!")

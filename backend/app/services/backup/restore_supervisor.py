@@ -15,14 +15,12 @@ Fulfills Phase 10 Stage 5 requirements:
 from __future__ import annotations
 
 import io
-import os
 import shutil
 import tempfile
 import time
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 from app.services.backup.orchestrator import BackupJobState
 from app.services.backup.remote_storage import S3StorageAdapter
@@ -44,7 +42,7 @@ class RestoreExecutionResult:
     measured_rto_seconds: float
     scratch_cleaned: bool
     completed_at: datetime
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class RestoreSupervisor:
@@ -55,7 +53,7 @@ class RestoreSupervisor:
         storage_adapter: S3StorageAdapter,
         cipher_service: BackupCipherService,
         manifest_signer: ManifestSigner,
-        scratch_root: Optional[str | Path] = None,
+        scratch_root: str | Path | None = None,
     ) -> None:
         self.storage = storage_adapter
         self.cipher = cipher_service
@@ -69,7 +67,7 @@ class RestoreSupervisor:
     ) -> RestoreExecutionResult:
         """Run the complete disaster recovery verification pipeline."""
         start_time = time.monotonic()
-        restore_id = f"res-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+        restore_id = f"res-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}"
         scratch_dir = self.scratch_root / f"restore_scratch_{restore_id}"
 
         manifest_ok = False
@@ -91,12 +89,18 @@ class RestoreSupervisor:
 
             # 2. Download from remote storage using exact object VersionId bound in signed manifest
             manifest_remote = backup_job.signed_manifest.get("remote_storage", {})
-            remote_key = manifest_remote.get("key") or backup_job.remote_key or f"{backup_job.backup_type.lower()}/{backup_job.backup_id}.enc"
+            remote_key = (
+                manifest_remote.get("key")
+                or backup_job.remote_key
+                or f"{backup_job.backup_type.lower()}/{backup_job.backup_id}.enc"
+            )
             version_id = manifest_remote.get("version_id") or backup_job.remote_version_id
 
             if manifest_remote.get("version_id") and backup_job.remote_version_id:
                 if manifest_remote["version_id"] != backup_job.remote_version_id:
-                    raise RuntimeError("Signed manifest VersionId contradicts job remote_version_id.")
+                    raise RuntimeError(
+                        "Signed manifest VersionId contradicts job remote_version_id."
+                    )
 
             enc_download_stream = io.BytesIO()
             _, dl_sha256 = self.storage.download_stream(
@@ -107,7 +111,9 @@ class RestoreSupervisor:
 
             # 3. Artifact Checksum Verification against signed manifest
             if dl_sha256.lower() != expected_enc_sha256.lower():
-                raise RuntimeError("Downloaded artifact SHA-256 does not match signed manifest checksum.")
+                raise RuntimeError(
+                    "Downloaded artifact SHA-256 does not match signed manifest checksum."
+                )
             checksum_ok = True
 
             # 4. Stream Decryption into isolated scratch
@@ -147,7 +153,7 @@ class RestoreSupervisor:
                 duration_seconds=elapsed_seconds,
                 measured_rto_seconds=elapsed_seconds,
                 scratch_cleaned=scratch_cleaned,
-                completed_at=datetime.now(timezone.utc),
+                completed_at=datetime.now(UTC),
             )
 
         except Exception as e:
@@ -165,7 +171,7 @@ class RestoreSupervisor:
                 duration_seconds=elapsed_seconds,
                 measured_rto_seconds=elapsed_seconds,
                 scratch_cleaned=not scratch_dir.exists(),
-                completed_at=datetime.now(timezone.utc),
+                completed_at=datetime.now(UTC),
                 error_message=str(e),
             )
 
@@ -184,4 +190,3 @@ class RestoreSupervisor:
                 except Exception:
                     pass
         shutil.rmtree(scratch_dir, ignore_errors=True)
-

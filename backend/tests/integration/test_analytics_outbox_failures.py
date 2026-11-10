@@ -90,7 +90,9 @@ async def create_test_context(api_client: AsyncClient, db_session: AsyncSession,
 @pytest.mark.asyncio
 async def test_scenario_1_outbox_publish_failure(api_client: AsyncClient, db_session: AsyncSession):
     """1. Outbox publishing fails after job creation transaction commits (broker unreachable)."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "sc1")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "sc1"
+    )
     service = AnalyticsService(db_session)
     job_read = await service.submit_job(
         organization_id=org_id,
@@ -111,7 +113,10 @@ async def test_scenario_1_outbox_publish_failure(api_client: AsyncClient, db_ses
 
     # Simulate broker failure during dispatch
     dispatcher = OutboxDispatcher("test-disp-1")
-    with patch("app.tasks.dispatcher.execute_analytics_job.delay", side_effect=Exception("Redis connection refused")):
+    with patch(
+        "app.tasks.dispatcher.execute_analytics_job.delay",
+        side_effect=Exception("Redis connection refused"),
+    ):
         dispatched = await dispatcher.dispatch_pending(batch_size=10)
         assert dispatched == 0
 
@@ -124,9 +129,13 @@ async def test_scenario_1_outbox_publish_failure(api_client: AsyncClient, db_ses
 
 
 @pytest.mark.asyncio
-async def test_scenario_2_outbox_crashes_mid_batch(api_client: AsyncClient, db_session: AsyncSession):
+async def test_scenario_2_outbox_crashes_mid_batch(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """2. Outbox publisher crashes mid-batch after sending to broker but before marking event published."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "sc2")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "sc2"
+    )
     service = AnalyticsService(db_session)
     job_read = await service.submit_job(
         organization_id=org_id,
@@ -143,7 +152,9 @@ async def test_scenario_2_outbox_crashes_mid_batch(api_client: AsyncClient, db_s
     dispatcher = OutboxDispatcher("test-disp-2")
     # Simulate DB crash on mark_published
     with patch("app.tasks.dispatcher.execute_analytics_job.delay") as mock_delay:
-        with patch.object(AnalyticsOutboxRepository, "mark_published", side_effect=Exception("DB crash")):
+        with patch.object(
+            AnalyticsOutboxRepository, "mark_published", side_effect=Exception("DB crash")
+        ):
             try:
                 await dispatcher.dispatch_pending(batch_size=10)
             except Exception:
@@ -158,9 +169,13 @@ async def test_scenario_2_outbox_crashes_mid_batch(api_client: AsyncClient, db_s
 
 
 @pytest.mark.asyncio
-async def test_scenario_3_outbox_duplicate_publish_idempotent_consumer(api_client: AsyncClient, db_session: AsyncSession):
+async def test_scenario_3_outbox_duplicate_publish_idempotent_consumer(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """3. Outbox publisher attempts duplicate publish of already-sent event (consumer idempotency)."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "sc3")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "sc3"
+    )
     service = AnalyticsService(db_session)
     job_read = await service.submit_job(
         organization_id=org_id,
@@ -189,9 +204,13 @@ async def test_scenario_3_outbox_duplicate_publish_idempotent_consumer(api_clien
 
 
 @pytest.mark.asyncio
-async def test_scenario_4_worker_crashes_after_claiming(api_client: AsyncClient, db_session: AsyncSession):
+async def test_scenario_4_worker_crashes_after_claiming(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """4. Worker crashes after claiming job in DB but before execution completes."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "sc4")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "sc4"
+    )
     service = AnalyticsService(db_session)
     job_read = await service.submit_job(
         organization_id=org_id,
@@ -235,7 +254,9 @@ async def test_scenario_4_worker_crashes_after_claiming(api_client: AsyncClient,
 
 
 @pytest.mark.asyncio
-async def test_scenario_5_worker_loses_db_connectivity_in_heartbeat(api_client: AsyncClient, db_session: AsyncSession):
+async def test_scenario_5_worker_loses_db_connectivity_in_heartbeat(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """5. Worker claims job, begins execution, and loses network connectivity to DB during heartbeat."""
     abort_event = threading.Event()
     hb = WorkerHeartbeatThread(
@@ -249,9 +270,13 @@ async def test_scenario_5_worker_loses_db_connectivity_in_heartbeat(api_client: 
 
 
 @pytest.mark.asyncio
-async def test_scenario_6_worker_completes_job_independently(api_client: AsyncClient, db_session: AsyncSession):
+async def test_scenario_6_worker_completes_job_independently(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """6. Worker executes job and commits DB result independently of Celery/Redis status."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "sc6")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "sc6"
+    )
     service = AnalyticsService(db_session)
     job_read = await service.submit_job(
         organization_id=org_id,
@@ -276,9 +301,13 @@ async def test_scenario_6_worker_completes_job_independently(api_client: AsyncCl
 
 
 @pytest.mark.asyncio
-async def test_scenario_7_worker_cpu_computation_heartbeat_renews(api_client: AsyncClient, db_session: AsyncSession):
+async def test_scenario_7_worker_cpu_computation_heartbeat_renews(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """7. Worker executes CPU computation; heartbeat thread continues renewing lease."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "sc7")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "sc7"
+    )
     repo = AnalyticsJobRepository(db_session)
     job_id = uuid.uuid4()
     job = AnalyticsJob(
@@ -299,6 +328,7 @@ async def test_scenario_7_worker_cpu_computation_heartbeat_renews(api_client: As
     await db_session.commit()
 
     import threading
+
     abort_event = threading.Event()
     hb = WorkerHeartbeatThread(
         job_id=job_id,
@@ -317,9 +347,13 @@ async def test_scenario_7_worker_cpu_computation_heartbeat_renews(api_client: As
 
 
 @pytest.mark.asyncio
-async def test_scenario_8_lease_expires_watchdog_recovers(api_client: AsyncClient, db_session: AsyncSession):
+async def test_scenario_8_lease_expires_watchdog_recovers(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """8. Worker executes computation; lease expires without heartbeat; watchdog detects and recovers."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "sc8")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "sc8"
+    )
     service = AnalyticsService(db_session)
     job_read = await service.submit_job(
         organization_id=org_id,
@@ -359,9 +393,13 @@ async def test_scenario_8_lease_expires_watchdog_recovers(api_client: AsyncClien
 
 
 @pytest.mark.asyncio
-async def test_scenario_9_celery_duplicate_task_message_running_job(api_client: AsyncClient, db_session: AsyncSession):
+async def test_scenario_9_celery_duplicate_task_message_running_job(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """9. Celery delivers duplicate task message while previous execution is still running."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "sc9")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "sc9"
+    )
     service = AnalyticsService(db_session)
     job_read = await service.submit_job(
         organization_id=org_id,
@@ -390,9 +428,13 @@ async def test_scenario_9_celery_duplicate_task_message_running_job(api_client: 
 
 
 @pytest.mark.asyncio
-async def test_scenario_10_celery_delayed_message_completed_job(api_client: AsyncClient, db_session: AsyncSession):
+async def test_scenario_10_celery_delayed_message_completed_job(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """10. Celery delivers delayed message for job that has already completed successfully."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "sc10")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "sc10"
+    )
     service = AnalyticsService(db_session)
     job_read = await service.submit_job(
         organization_id=org_id,
@@ -417,9 +459,13 @@ async def test_scenario_10_celery_delayed_message_completed_job(api_client: Asyn
 
 
 @pytest.mark.asyncio
-async def test_scenario_11_max_retries_exhaustion(api_client: AsyncClient, db_session: AsyncSession):
+async def test_scenario_11_max_retries_exhaustion(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """11. Job fails repeatedly up to max_retries; verifies final status failed, error preserved, no further retries."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "sc11")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "sc11"
+    )
     service = AnalyticsService(db_session)
     job_read = await service.submit_job(
         organization_id=org_id,
@@ -459,9 +505,13 @@ async def test_scenario_11_max_retries_exhaustion(api_client: AsyncClient, db_se
 
 
 @pytest.mark.asyncio
-async def test_scenario_12_watchdog_cooldown_prevents_runaway(api_client: AsyncClient, db_session: AsyncSession):
+async def test_scenario_12_watchdog_cooldown_prevents_runaway(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """12. Watchdog cooldown prevents runaway redispatch under persistent failure conditions."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "sc12")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "sc12"
+    )
     service = AnalyticsService(db_session)
     job_read = await service.submit_job(
         organization_id=org_id,

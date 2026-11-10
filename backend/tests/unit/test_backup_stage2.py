@@ -1,6 +1,5 @@
 """Unit tests for Phase 10 Stage 2: PostgreSQL Backup and WAL Archival Engine."""
 
-import os
 import tempfile
 from pathlib import Path
 
@@ -179,8 +178,8 @@ def test_globals_sanitization_comprehensive_matrix():
         "ALTER ROLE dev_service WITH BYPASSRLS;\n"
         "ALTER ROLE repl_service WITH REPLICATION;\n"
         "ALTER ROLE rogue_worker SET shared_preload_libraries = 'pwn_ext';\n"
-        "GRANT \"pg_execute_server_program\" TO \"analyst\";\n"
-        "GRANT \"pg_read_server_files\" TO \"analyst\";\n"
+        'GRANT "pg_execute_server_program" TO "analyst";\n'
+        'GRANT "pg_read_server_files" TO "analyst";\n'
         "ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT ON TABLES TO data_reader;\n"
     )
 
@@ -203,5 +202,7 @@ def test_globals_sanitization_comprehensive_matrix():
     assert "CREATE ROLE analyst LOGIN INHERIT;" in clean_sql
     assert "CREATE ROLE data_reader NOINHERIT;" in clean_sql
     assert "GRANT data_reader TO analyst;" in clean_sql
-    assert "ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT ON TABLES TO data_reader;" in clean_sql
-
+    assert (
+        "ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT ON TABLES TO data_reader;"
+        in clean_sql
+    )

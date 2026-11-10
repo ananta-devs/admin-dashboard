@@ -127,9 +127,7 @@ async def test_concurrent_dashboard_updates_row_lock_race(
         async def get_by_id_for_update(
             self, dashboard_id: uuid.UUID, organization_id: uuid.UUID
         ) -> Dashboard | None:
-            locked_dashboard = await super().get_by_id_for_update(
-                dashboard_id, organization_id
-            )
+            locked_dashboard = await super().get_by_id_for_update(dashboard_id, organization_id)
             # The row lock is now actively held in PostgreSQL by Session A
             lock_acquired_by_a.set()
             # Wait until inspector confirms that Session B is blocked waiting on this lock

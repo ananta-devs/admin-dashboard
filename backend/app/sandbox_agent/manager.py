@@ -47,7 +47,9 @@ class SandboxRuntimeManager:
     def check_docker_available(self) -> bool:
         """Verify Docker engine responsiveness."""
         try:
-            res = subprocess.run(["docker", "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=3)
+            res = subprocess.run(
+                ["docker", "info"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=3
+            )
             return res.returncode == 0
         except Exception:
             return False
@@ -81,7 +83,15 @@ class SandboxRuntimeManager:
         """Controller restart recovery: purge orphaned or crashed containers and ephemeral volumes."""
         try:
             res = subprocess.run(
-                ["docker", "ps", "-a", "--filter", "label=vibe.managed=true", "--format", "{{.ID}}|{{.Names}}|{{.Status}}"],
+                [
+                    "docker",
+                    "ps",
+                    "-a",
+                    "--filter",
+                    "label=vibe.managed=true",
+                    "--format",
+                    "{{.ID}}|{{.Names}}|{{.Status}}",
+                ],
                 capture_output=True,
                 text=True,
                 timeout=5,
@@ -91,7 +101,9 @@ class SandboxRuntimeManager:
             lines = [line.strip() for line in res.stdout.splitlines() if line.strip()]
             reaped = 0
             with self._lock:
-                active_container_names = {lease.container_name for lease in self.active_leases.values()}
+                active_container_names = {
+                    lease.container_name for lease in self.active_leases.values()
+                }
 
             for line in lines:
                 parts = line.split("|")
@@ -107,7 +119,11 @@ class SandboxRuntimeManager:
                         reaped += 1
                         # Attempt to clean corresponding volume
                         vol_guess = c_name.replace("vibe-sandbox-", "vibe-out-")
-                        subprocess.run(["docker", "volume", "rm", "-f", vol_guess], capture_output=True, timeout=5)
+                        subprocess.run(
+                            ["docker", "volume", "rm", "-f", vol_guess],
+                            capture_output=True,
+                            timeout=5,
+                        )
             return reaped
         except Exception as e:
             logger.warning(f"Error during controller restart recovery: {e}")
@@ -201,27 +217,47 @@ class SandboxRuntimeManager:
             # 2. Build Docker execution command with bounded tmpfs and zero writable host mounts or volumes
             cid_file = input_path / "container.cid"
             docker_cmd = [
-                "docker", "run",
-                "--cidfile", str(cid_file),
-                "--name", container_name,
-                "--label", "vibe.managed=true",
-                "--label", f"vibe.execution_id={req.execution_id}",
-                "--label", f"vibe.org_id={str(req.organization_id)}",
-                "--label", f"vibe.job_id={str(req.job_id)}",
-                "--network", "none",
+                "docker",
+                "run",
+                "--cidfile",
+                str(cid_file),
+                "--name",
+                container_name,
+                "--label",
+                "vibe.managed=true",
+                "--label",
+                f"vibe.execution_id={req.execution_id}",
+                "--label",
+                f"vibe.org_id={str(req.organization_id)}",
+                "--label",
+                f"vibe.job_id={str(req.job_id)}",
+                "--network",
+                "none",
                 "--read-only",
-                "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m",
-                "--tmpfs", "/workspace:rw,nosuid,nodev,noexec,size=64m,nr_inodes=1024,uid=10001,gid=10001,mode=0700",
-                "--tmpfs", "/output:rw,nosuid,nodev,noexec,size=8m,nr_inodes=16,uid=10001,gid=10001,mode=0700",
-                "--memory", "256m",
-                "--memory-swap", "256m",
-                "--cpus", "1.0",
-                "--pids-limit", "32",
-                "--cap-drop", "ALL",
-                "--security-opt", "no-new-privileges:true",
-                "--entrypoint", "python",
-                "-v", f"{str(input_path)}:/input:ro",
-                "-w", "/workspace",
+                "--tmpfs",
+                "/tmp:rw,noexec,nosuid,size=64m",
+                "--tmpfs",
+                "/workspace:rw,nosuid,nodev,noexec,size=64m,nr_inodes=1024,uid=10001,gid=10001,mode=0700",
+                "--tmpfs",
+                "/output:rw,nosuid,nodev,noexec,size=8m,nr_inodes=16,uid=10001,gid=10001,mode=0700",
+                "--memory",
+                "256m",
+                "--memory-swap",
+                "256m",
+                "--cpus",
+                "1.0",
+                "--pids-limit",
+                "32",
+                "--cap-drop",
+                "ALL",
+                "--security-opt",
+                "no-new-privileges:true",
+                "--entrypoint",
+                "python",
+                "-v",
+                f"{str(input_path)}:/input:ro",
+                "-w",
+                "/workspace",
                 effective_image,
                 "/input/runner.py",
             ]
@@ -301,7 +337,11 @@ class SandboxRuntimeManager:
                     lease.status = "failed"
                 stop_and_remove_container(container_name, container_id=container_full_id)
                 shutil.rmtree(tmp_dir, ignore_errors=True)
-                err_category = "entrypoint_mismatch" if "entrypoint_mismatch" in (prov_err or "") else "image_provenance_mismatch"
+                err_category = (
+                    "entrypoint_mismatch"
+                    if "entrypoint_mismatch" in (prov_err or "")
+                    else "image_provenance_mismatch"
+                )
                 return SandboxExecutionResponse(
                     execution_id=req.execution_id,
                     status="failed",
@@ -348,11 +388,17 @@ class SandboxRuntimeManager:
             cleanup_error: str | None = None
 
             MAX_OUTPUT_BYTES = 5 * 1024 * 1024  # 5MB
-            MAX_STDERR_BYTES = 65536           # 64KB
+            MAX_STDERR_BYTES = 65536  # 64KB
             MAX_FLOOD_BYTES = 10 * 1024 * 1024  # 10MB
 
             def elect_and_trigger_overflow(reason: str) -> bool:
-                nonlocal overflow_claimed, flood_killed, stdout_overflow, stderr_overflow, cleanup_confirmed, cleanup_error
+                nonlocal \
+                    overflow_claimed, \
+                    flood_killed, \
+                    stdout_overflow, \
+                    stderr_overflow, \
+                    cleanup_confirmed, \
+                    cleanup_error
                 with election_lock:
                     if overflow_claimed:
                         return False
@@ -369,7 +415,9 @@ class SandboxRuntimeManager:
                     proc.kill()
                 except Exception as e:
                     cleanup_error = f"kill_proc_err: {e}"
-                confirmed, err = stop_and_remove_container(container_name, grace_seconds=1, container_id=container_full_id)
+                confirmed, err = stop_and_remove_container(
+                    container_name, grace_seconds=1, container_id=container_full_id
+                )
                 cleanup_confirmed = confirmed
                 if err:
                     cleanup_error = f"{cleanup_error}; {err}" if cleanup_error else err
@@ -435,7 +483,9 @@ class SandboxRuntimeManager:
                     proc.kill()
                 except Exception as e:
                     cleanup_error = f"kill_proc_err: {e}"
-                confirmed, err = stop_and_remove_container(container_name, container_id=container_full_id)
+                confirmed, err = stop_and_remove_container(
+                    container_name, container_id=container_full_id
+                )
                 cleanup_confirmed = confirmed
                 if err:
                     cleanup_error = f"{cleanup_error}; {err}" if cleanup_error else err
@@ -466,7 +516,9 @@ class SandboxRuntimeManager:
 
             # Container has reached stopped state. Guarantee cleanup if not already confirmed.
             if not cleanup_confirmed:
-                confirmed, err = stop_and_remove_container(container_name, container_id=container_full_id)
+                confirmed, err = stop_and_remove_container(
+                    container_name, container_id=container_full_id
+                )
                 cleanup_confirmed = confirmed
                 if err:
                     cleanup_error = f"{cleanup_error}; {err}" if cleanup_error else err
@@ -474,7 +526,9 @@ class SandboxRuntimeManager:
             duration_ms = int((time.perf_counter() - start_time) * 1000)
             stdout_raw = b"".join(stdout_chunks)
             stdout_text = stdout_raw.decode("utf-8", errors="replace")
-            stderr_text = b"".join(stderr_chunks)[:MAX_STDERR_BYTES].decode("utf-8", errors="replace")
+            stderr_text = b"".join(stderr_chunks)[:MAX_STDERR_BYTES].decode(
+                "utf-8", errors="replace"
+            )
 
             # FAIL-CLOSED CHECK: If container removal cannot be confirmed, execution MUST fail!
             if not cleanup_confirmed:
@@ -558,9 +612,15 @@ class SandboxRuntimeManager:
 
             if proc.returncode != 0:
                 err_code = 137 if proc.returncode in (137, -9) else proc.returncode
-                err_msg = stderr_text.strip().splitlines()[-1] if stderr_text.strip() else f"Container exited with code {err_code}"
+                err_msg = (
+                    stderr_text.strip().splitlines()[-1]
+                    if stderr_text.strip()
+                    else f"Container exited with code {err_code}"
+                )
                 if err_code == 137:
-                    err_msg = "Container terminated (OOM or resource limit exceeded, exit code 137)."
+                    err_msg = (
+                        "Container terminated (OOM or resource limit exceeded, exit code 137)."
+                    )
                 with self._lock:
                     lease.status = "failed"
                 return SandboxExecutionResponse(
@@ -610,6 +670,7 @@ class SandboxRuntimeManager:
             if raw_bytes and req.organization_id:
                 try:
                     from app.analytics.storage import AnalyticsStorageService
+
                     storage = AnalyticsStorageService()
                     try:
                         with storage.reserve_quota(
@@ -618,7 +679,10 @@ class SandboxRuntimeManager:
                             job_id=req.job_id,
                         ):
                             target_path = storage._resolve_safe_path(
-                                "sandbox_results", req.organization_id, req.job_id, f"{req.execution_id}.json"
+                                "sandbox_results",
+                                req.organization_id,
+                                req.job_id,
+                                f"{req.execution_id}.json",
                             )
                             target_path.parent.mkdir(parents=True, exist_ok=True)
                             tmp_target = target_path.with_suffix(".tmp")
@@ -627,14 +691,20 @@ class SandboxRuntimeManager:
                             storage.atomic_promote(tmp_target, target_path)
                             artifact_path = str(target_path.resolve())
                     except Exception as first_err:
-                        if "foreign key" in str(first_err).lower() or "fk_analytics_quota" in str(first_err).lower():
+                        if (
+                            "foreign key" in str(first_err).lower()
+                            or "fk_analytics_quota" in str(first_err).lower()
+                        ):
                             with storage.reserve_quota(
                                 organization_id=req.organization_id,
                                 reservation_bytes=len(raw_bytes),
                                 job_id=None,
                             ):
                                 target_path = storage._resolve_safe_path(
-                                    "sandbox_results", req.organization_id, req.job_id, f"{req.execution_id}.json"
+                                    "sandbox_results",
+                                    req.organization_id,
+                                    req.job_id,
+                                    f"{req.execution_id}.json",
                                 )
                                 target_path.parent.mkdir(parents=True, exist_ok=True)
                                 tmp_target = target_path.with_suffix(".tmp")
@@ -645,7 +715,9 @@ class SandboxRuntimeManager:
                         else:
                             raise first_err
                 except Exception as store_err:
-                    logger.warning(f"Failed to persist sandbox artifact with quota reservation: {store_err}")
+                    logger.warning(
+                        f"Failed to persist sandbox artifact with quota reservation: {store_err}"
+                    )
 
             with self._lock:
                 lease.status = "completed"
@@ -694,7 +766,9 @@ class SandboxRuntimeManager:
 
         except Exception as exc:
             duration_ms = int((time.perf_counter() - start_time) * 1000)
-            confirmed, err = stop_and_remove_container(container_name, container_id=container_full_id)
+            confirmed, err = stop_and_remove_container(
+                container_name, container_id=container_full_id
+            )
             with self._lock:
                 lease.status = "failed"
             return SandboxExecutionResponse(
@@ -716,4 +790,3 @@ class SandboxRuntimeManager:
             # Clean up container and transient host input directory
             stop_and_remove_container(container_name, container_id=container_full_id)
             shutil.rmtree(tmp_dir, ignore_errors=True)
-

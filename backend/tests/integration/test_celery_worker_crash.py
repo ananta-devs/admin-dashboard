@@ -96,8 +96,9 @@ async def test_real_celery_worker_crash_and_redelivery(
 
     # Populate spreadsheet with 600 rows to ensure full pipeline execution
     from app.schemas.spreadsheet import BatchCellUpdateInput
-    edits1 = [CellEditInput(cell_ref=f"A{i+1}", value=float(i + 1)) for i in range(300)]
-    edits2 = [CellEditInput(cell_ref=f"A{i+301}", value=float(i + 301)) for i in range(300)]
+
+    edits1 = [CellEditInput(cell_ref=f"A{i + 1}", value=float(i + 1)) for i in range(300)]
+    edits2 = [CellEditInput(cell_ref=f"A{i + 301}", value=float(i + 301)) for i in range(300)]
     await spreadsheet_svc.update_cells_batch(
         sheet_id=sheet_id,
         organization_id=org_id,
@@ -120,7 +121,9 @@ async def test_real_celery_worker_crash_and_redelivery(
         source_sheet_id=sheet_id,
         requested_by_user_id=user_id,
         operation_id="filter_dataset",
-        parameters={"filters": [{"column": "A", "operator": "greater_than_or_equal", "value": 0.0}]},
+        parameters={
+            "filters": [{"column": "A", "operator": "greater_than_or_equal", "value": 0.0}]
+        },
         status=AnalyticsJobStatus.QUEUED,
         attempt_count=0,
         max_attempts=3,

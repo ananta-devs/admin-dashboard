@@ -166,7 +166,9 @@ class WorkerHeartbeatThread(threading.Thread):
 
         thread_engine = create_async_engine(settings.DATABASE_URL, poolclass=NullPool)
         self.thread_engine = thread_engine
-        thread_session_maker = async_sessionmaker(thread_engine, class_=AsyncSession, expire_on_commit=False)
+        thread_session_maker = async_sessionmaker(
+            thread_engine, class_=AsyncSession, expire_on_commit=False
+        )
 
         try:
             while not self.stop_requested.is_set():
@@ -209,7 +211,10 @@ class WorkerHeartbeatThread(threading.Thread):
                         e,
                     )
                     if consecutive_failures >= self.max_consecutive_failures:
-                        logger.error("Max consecutive heartbeat failures reached for job %s. Aborting.", self.job_id)
+                        logger.error(
+                            "Max consecutive heartbeat failures reached for job %s. Aborting.",
+                            self.job_id,
+                        )
                         self._signal_abort()
                         break
         finally:
@@ -265,7 +270,9 @@ async def reconcile_commit_outcome(
     from app.core.config import settings
 
     recon_engine = create_async_engine(settings.DATABASE_URL, poolclass=NullPool)
-    recon_session_maker = async_sessionmaker(recon_engine, class_=AsyncSession, expire_on_commit=False)
+    recon_session_maker = async_sessionmaker(
+        recon_engine, class_=AsyncSession, expire_on_commit=False
+    )
     try:
         async with recon_session_maker() as recon_session:
             async with recon_session.begin():
@@ -279,21 +286,36 @@ async def reconcile_commit_outcome(
                 # Check if result record was committed
                 existing_result = await r_repo.get_by_id_scoped(result_id, org_id)
                 if existing_result and existing_result.job_id == job_id:
-                    logger.info("Reconciliation confirmed: result %s was committed successfully.", result_id)
+                    logger.info(
+                        "Reconciliation confirmed: result %s was committed successfully.", result_id
+                    )
                     return ("succeeded", existing_result)
 
-                if job and job.status == AnalyticsJobStatus.SUCCEEDED and job.result_id == result_id:
+                if (
+                    job
+                    and job.status == AnalyticsJobStatus.SUCCEEDED
+                    and job.result_id == result_id
+                ):
                     res = await r_repo.get_by_id_scoped(job.result_id, org_id)
-                    logger.info("Reconciliation confirmed: job %s marked succeeded with result %s.", job_id, result_id)
+                    logger.info(
+                        "Reconciliation confirmed: job %s marked succeeded with result %s.",
+                        job_id,
+                        result_id,
+                    )
                     return ("succeeded", res)
 
                 # The row lock was acquired (original transaction definitively ended) and result was NOT committed -> rolled back
-                logger.info("Reconciliation confirmed: original transaction ended without committing result %s. Rolled back.", result_id)
+                logger.info(
+                    "Reconciliation confirmed: original transaction ended without committing result %s. Rolled back.",
+                    result_id,
+                )
                 if final_art_path and final_art_path.is_file():
                     storage.quarantine_artifact(final_art_path)
                 return ("rolled_back", None)
     except Exception as recon_err:
-        logger.error("Database unreachable during commit reconciliation for job %s: %s", job_id, recon_err)
+        logger.error(
+            "Database unreachable during commit reconciliation for job %s: %s", job_id, recon_err
+        )
         return ("unreachable", None)
     finally:
         await recon_engine.dispose()
@@ -321,7 +343,9 @@ async def _execute_analytics_job_async(job_id_str: str, celery_task_id: str) -> 
         res_repo_chk = AnalyticsResultRepository(check_session)
         existing_job = await job_repo_chk.get_by_id(job_id)
         if existing_job and existing_job.status == AnalyticsJobStatus.SUCCEEDED:
-            existing_res = await res_repo_chk.get_by_job_id_scoped(job_id, existing_job.organization_id)
+            existing_res = await res_repo_chk.get_by_job_id_scoped(
+                job_id, existing_job.organization_id
+            )
             if existing_res:
                 logger.info("Job %s already succeeded; idempotent no-op return.", job_id)
                 return {
@@ -430,7 +454,11 @@ async def _execute_analytics_job_async(job_id_str: str, celery_task_id: str) -> 
                         code="SNAPSHOT_INTEGRITY_VIOLATION",
                     )
                 reused_snapshot = True
-                logger.info("Job %s reusing immutable snapshot %s from attempt 1 (hash verified)", job_id, cand)
+                logger.info(
+                    "Job %s reusing immutable snapshot %s from attempt 1 (hash verified)",
+                    job_id,
+                    cand,
+                )
 
             if not reused_snapshot:
                 # Capture immutable snapshot fenced by claim generation
@@ -577,8 +605,12 @@ async def _execute_analytics_job_async(job_id_str: str, celery_task_id: str) -> 
 
             # Step 4: Validate JSON payload size bounds
             import json
+
             serialized_payload = json.dumps(result_data)
-            if len(serialized_payload.encode("utf-8")) > settings.ANALYTICS_MAX_RESULT_PAYLOAD_BYTES:
+            if (
+                len(serialized_payload.encode("utf-8"))
+                > settings.ANALYTICS_MAX_RESULT_PAYLOAD_BYTES
+            ):
                 if final_art_path and final_art_path.is_file():
                     final_art_path.unlink(missing_ok=True)
                 raise DatasetTooLargeError(
@@ -615,7 +647,9 @@ async def _execute_analytics_job_async(job_id_str: str, celery_task_id: str) -> 
                         column_count=result_col_count,
                     )
                     await result_repo.create(analytics_result)
-                    marked = await job_repo.mark_succeeded(job_id, result_id, claim_token=claim_token)
+                    marked = await job_repo.mark_succeeded(
+                        job_id, result_id, claim_token=claim_token
+                    )
                     if not marked:
                         raise WorkerFencingViolationError(
                             "Fencing check failed during mark_succeeded. Worker was superseded."
@@ -634,7 +668,11 @@ async def _execute_analytics_job_async(job_id_str: str, celery_task_id: str) -> 
                     storage=storage,
                 )
                 if recon_status == "succeeded":
-                    logger.info("Ambiguous commit reconciled successfully for job %s: result %s exists.", job_id, result_id)
+                    logger.info(
+                        "Ambiguous commit reconciled successfully for job %s: result %s exists.",
+                        job_id,
+                        result_id,
+                    )
                 elif recon_status == "rolled_back":
                     if final_art_path and final_art_path.is_file():
                         storage.quarantine_artifact(final_art_path)
@@ -653,7 +691,9 @@ async def _execute_analytics_job_async(job_id_str: str, celery_task_id: str) -> 
             return {"status": "succeeded", "job_id": str(job_id), "result_id": str(result_id)}
 
         except WorkerFencingViolationError as fe:
-            logger.warning("Analytics job %s aborted due to worker fencing violation: %s", job_id, fe)
+            logger.warning(
+                "Analytics job %s aborted due to worker fencing violation: %s", job_id, fe
+            )
             if tmp_art_path and tmp_art_path.is_file():
                 tmp_art_path.unlink(missing_ok=True)
             if final_art_path and final_art_path.is_file():

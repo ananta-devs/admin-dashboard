@@ -434,7 +434,9 @@ class ReportRun(Base):
 
     __table_args__ = (
         UniqueConstraint("id", "organization_id", name="uq_report_runs_id_org"),
-        UniqueConstraint("organization_id", "idempotency_key", name="uq_report_runs_org_idempotency"),
+        UniqueConstraint(
+            "organization_id", "idempotency_key", name="uq_report_runs_org_idempotency"
+        ),
         ForeignKeyConstraint(
             ["report_definition_id", "organization_id"],
             ["report_definitions.id", "report_definitions.organization_id"],

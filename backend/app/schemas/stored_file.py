@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 
 class StoredFileRead(BaseModel):
@@ -36,4 +36,3 @@ class StorageQuotaRead(BaseModel):
     available_bytes: int
     file_count: int
     utilization_percent: float
-

@@ -1,8 +1,10 @@
 """Unit tests for PDF structural integrity verification and metric measurement."""
 
 import io
-import pytest
+
 import pypdf
+import pytest
+
 from app.core.exceptions import ValidationError
 from app.services.report_renderer import ReportRendererService
 
@@ -37,4 +39,3 @@ def test_pdf_validation_valid_pdf():
     assert pages == 2
     assert len(checksum) == 64
     assert size == len(valid_pdf_bytes)
-

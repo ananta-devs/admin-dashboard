@@ -75,7 +75,10 @@ def _multiprocess_mixed_redis_worker(
     patcher = None
     if disable_redis:
         import redis
-        patcher = patch.object(redis.Redis, "from_url", side_effect=ConnectionError("Redis simulated outage"))
+
+        patcher = patch.object(
+            redis.Redis, "from_url", side_effect=ConnectionError("Redis simulated outage")
+        )
         patcher.start()
 
     with patch.object(settings, "ANALYTICS_MAX_ORG_STORAGE_BYTES", limit):
@@ -218,7 +221,9 @@ def test_multiprocess_redis_outage_fallback() -> None:
     """Scenario 3 & 4: Multiple OS processes reserving quota under Redis outage using PostgreSQL fallback."""
     org_id = uuid.uuid4()
     limit = 60_000  # 60 KB
-    res_bytes = 25_000  # 25 KB (allows at most 2 concurrent: 25k + 25k = 50k <= 60k; 3rd is 75k > 60k)
+    res_bytes = (
+        25_000  # 25 KB (allows at most 2 concurrent: 25k + 25k = 50k <= 60k; 3rd is 75k > 60k)
+    )
 
     start_event = mp.Event()
     release_event = mp.Event()
@@ -245,8 +250,12 @@ def test_multiprocess_redis_outage_fallback() -> None:
     successes = [o for o in outcomes if o[0] == "SUCCESS"]
     rejections = [o for o in outcomes if o[0] == "REJECTED"]
 
-    assert len(successes) == 2, f"Expected 2 successes under PG fallback, got {len(successes)}: {outcomes}"
-    assert len(rejections) == 2, f"Expected 2 rejections under PG fallback, got {len(rejections)}: {outcomes}"
+    assert len(successes) == 2, (
+        f"Expected 2 successes under PG fallback, got {len(successes)}: {outcomes}"
+    )
+    assert len(rejections) == 2, (
+        f"Expected 2 rejections under PG fallback, got {len(rejections)}: {outcomes}"
+    )
 
     # Verify both successes have valid reservation records in PostgreSQL
     dsn = settings.DATABASE_URL.replace("+asyncpg", "")
@@ -504,7 +513,9 @@ def test_quota_reservation_fail_closed_on_postgres_unavailability() -> None:
     org_id = uuid.uuid4()
 
     # Point to unreachable port/host with short connect_timeout
-    unreachable_dsn = "postgresql://invalid_user:invalid_pass@127.0.0.1:59999/invalid_db?connect_timeout=1"
+    unreachable_dsn = (
+        "postgresql://invalid_user:invalid_pass@127.0.0.1:59999/invalid_db?connect_timeout=1"
+    )
     with patch.object(settings, "DATABASE_URL", unreachable_dsn):
         with pytest.raises(StorageQuotaUnavailableError) as exc_info:
             with storage.reserve_quota(org_id, 10_000):

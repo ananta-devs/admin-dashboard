@@ -16,9 +16,7 @@ from __future__ import annotations
 import hashlib
 import os
 import shutil
-import stat
 from pathlib import Path
-from typing import Tuple
 
 WAL_SEGMENT_SIZE = 16 * 1024 * 1024  # 16 MiB
 
@@ -72,7 +70,7 @@ class WalArchiverService:
             # Directory fsync is a no-op on platforms or filesystems that do not support directory fds
             pass
 
-    def archive_segment(self, source_wal_path: str | Path, segment_name: str) -> Tuple[bool, str]:
+    def archive_segment(self, source_wal_path: str | Path, segment_name: str) -> tuple[bool, str]:
         """Atomically archive a WAL segment into the spool directory without replacement.
 
         Returns (is_newly_archived: bool, sha256_digest: str).
@@ -83,7 +81,9 @@ class WalArchiverService:
 
         # Check for invalid segment names to prevent path traversal
         if ".." in segment_name or "/" in segment_name or "\\" in segment_name:
-            raise WalArchivalError(f"Invalid WAL segment name (traversal attempt): {segment_name!r}")
+            raise WalArchivalError(
+                f"Invalid WAL segment name (traversal attempt): {segment_name!r}"
+            )
 
         raw_dest = self.spool_dir / segment_name
         if raw_dest.is_symlink() or os.path.islink(str(raw_dest)):
@@ -146,12 +146,12 @@ class WalArchiverService:
             try:
                 open_flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
                 if hasattr(os, "O_NOFOLLOW"):
-                    open_flags |= os.O_NOFOLLOW
+                    open_flags |= getattr(os, "O_NOFOLLOW", 0)
 
                 if os.open in os.supports_dir_fd and hasattr(os, "O_DIRECTORY"):
-                    dir_flags = os.O_RDONLY | os.O_DIRECTORY
+                    dir_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
                     if hasattr(os, "O_NOFOLLOW"):
-                        dir_flags |= os.O_NOFOLLOW
+                        dir_flags |= getattr(os, "O_NOFOLLOW", 0)
                     spool_dfd = os.open(str(self.spool_dir), dir_flags)
                     try:
                         dest_fd = os.open(segment_name, open_flags, 0o400, dir_fd=spool_dfd)
@@ -212,7 +212,9 @@ class WalArchiverService:
                     os.unlink(str(dest))
                 except OSError:
                     pass
-                raise WalArchivalError("Published artifact has unexpected retained hard links (mutation risk).")
+                raise WalArchivalError(
+                    "Published artifact has unexpected retained hard links (mutation risk)."
+                )
 
             if dest_stat.st_size != src_size:
                 raise WalArchivalError("Published artifact size corrupted.")

@@ -80,7 +80,9 @@ async def create_test_context(api_client: AsyncClient, db_session: AsyncSession,
 
 
 @pytest.mark.asyncio
-async def test_concurrent_mutation_during_repeatable_read_snapshot(api_client: AsyncClient, db_session: AsyncSession):
+async def test_concurrent_mutation_during_repeatable_read_snapshot(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """Proves REPEATABLE READ snapshot is unaffected by concurrent row/cell commits during extraction."""
     org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
         api_client, db_session, "mvcc_snap"
@@ -90,8 +92,7 @@ async def test_concurrent_mutation_during_repeatable_read_snapshot(api_client: A
 
     # Initial state: 5 rows with values 10, 20, 30, 40, 50
     initial_edits = [
-        CellEditInput(cell_ref=f"A{i+1}", value=float((i + 1) * 10))
-        for i in range(5)
+        CellEditInput(cell_ref=f"A{i + 1}", value=float((i + 1) * 10)) for i in range(5)
     ]
     await spreadsheet_svc.update_cells_batch(
         sheet_id=sheet_id,
@@ -108,7 +109,9 @@ async def test_concurrent_mutation_during_repeatable_read_snapshot(api_client: A
     async def mutate_concurrently():
         # Create an independent database session for Session B
         engine_b = create_async_engine(settings.DATABASE_URL, poolclass=NullPool)
-        session_factory_b = async_sessionmaker(engine_b, class_=AsyncSession, expire_on_commit=False)
+        session_factory_b = async_sessionmaker(
+            engine_b, class_=AsyncSession, expire_on_commit=False
+        )
         async with session_factory_b() as session_b:
             svc_b = SpreadsheetService(session_b)
             # Mutate row 1 and row 2 to 999.0 and 888.0 and COMMIT
@@ -199,7 +202,11 @@ async def test_retry_determinism_reuses_original_snapshot_across_mutations(
 
     # Attempt 1: Captures snapshot, but fails in computation stage
     from unittest.mock import patch
-    with patch("app.tasks.analytics.registry.execute", side_effect=ValueError("Simulated worker error in attempt 1")):
+
+    with patch(
+        "app.tasks.analytics.registry.execute",
+        side_effect=ValueError("Simulated worker error in attempt 1"),
+    ):
         res1 = await _execute_analytics_job_async(str(job_id), "task-attempt-1")
     assert res1["status"] == AnalyticsJobStatus.RETRYING
 
@@ -229,6 +236,7 @@ async def test_retry_determinism_reuses_original_snapshot_across_mutations(
 
     # Verify attempt 2 reused the ORIGINAL snapshot and produced mean based on [100.0, 200.0] -> 150.0
     from app.repositories.analytics import AnalyticsResultRepository
+
     res_repo = AnalyticsResultRepository(db_session)
     result_record = await res_repo.get_by_id_scoped(uuid.UUID(res2["result_id"]), org_id)
     assert result_record is not None
@@ -288,5 +296,7 @@ async def test_retry_corrupted_snapshot_fails_deterministically(
     job_repo = AnalyticsJobRepository(db_session)
     job_after = await job_repo.get_by_id(job_id)
     assert job_after is not None
-    assert "integrity" in str(job_after.safe_error_message).lower() or "violation" in str(job_after.safe_error_message).lower()
-
+    assert (
+        "integrity" in str(job_after.safe_error_message).lower()
+        or "violation" in str(job_after.safe_error_message).lower()
+    )

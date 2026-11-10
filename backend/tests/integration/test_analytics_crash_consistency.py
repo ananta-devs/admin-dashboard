@@ -85,7 +85,9 @@ async def create_test_context(api_client: AsyncClient, db_session: AsyncSession,
 
 
 @pytest.mark.asyncio
-async def test_atomic_filesystem_promotion_before_db_commit(api_client: AsyncClient, db_session: AsyncSession):
+async def test_atomic_filesystem_promotion_before_db_commit(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """Proves that atomic file promotion occurs and DB rollback deletes promoted file."""
     org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
         api_client, db_session, "crash_promo"
@@ -93,10 +95,7 @@ async def test_atomic_filesystem_promotion_before_db_commit(api_client: AsyncCli
 
     spreadsheet_svc = SpreadsheetService(db_session)
     # Populate data with > 500 rows to trigger Parquet artifact generation
-    edits = [
-        CellEditInput(cell_ref=f"A{i+1}", value=float(i * 10))
-        for i in range(550)
-    ]
+    edits = [CellEditInput(cell_ref=f"A{i + 1}", value=float(i * 10)) for i in range(550)]
     # Chunk updates
     for i in range(0, len(edits), 250):
         await spreadsheet_svc.update_cells_batch(
@@ -146,17 +145,23 @@ async def test_orphan_artifact_recovery(db_session: AsyncSession):
 
     # 1. Create committed artifact
     res_id = uuid.uuid4()
-    committed_path = storage.get_result_artifact_path(org_id, job_committed, res_id, claim_generation=1)
+    committed_path = storage.get_result_artifact_path(
+        org_id, job_committed, res_id, claim_generation=1
+    )
     committed_path.parent.mkdir(parents=True, exist_ok=True)
     committed_path.write_text("COMMITTED_DATA")
 
     # 2. Create active job artifact
-    active_path = storage.get_result_artifact_path(org_id, job_active, uuid.uuid4(), claim_generation=1)
+    active_path = storage.get_result_artifact_path(
+        org_id, job_active, uuid.uuid4(), claim_generation=1
+    )
     active_path.parent.mkdir(parents=True, exist_ok=True)
     active_path.write_text("ACTIVE_DATA")
 
     # 3. Create abandoned orphan artifact
-    orphan_path = storage.get_result_artifact_path(org_id, job_abandoned, uuid.uuid4(), claim_generation=1)
+    orphan_path = storage.get_result_artifact_path(
+        org_id, job_abandoned, uuid.uuid4(), claim_generation=1
+    )
     orphan_path.parent.mkdir(parents=True, exist_ok=True)
     orphan_path.write_text("ORPHAN_DATA")
 
@@ -166,6 +171,7 @@ async def test_orphan_artifact_recovery(db_session: AsyncSession):
 
     # Backdate modification time of orphan files by 2 hours so they pass grace period
     import os
+
     two_hours_ago = os.path.getmtime(orphan_path) - 7200
     os.utime(orphan_path, (two_hours_ago, two_hours_ago))
     os.utime(tmp_path, (two_hours_ago, two_hours_ago))
@@ -184,7 +190,7 @@ async def test_orphan_artifact_recovery(db_session: AsyncSession):
     assert not orphan_path.exists()
     assert not tmp_path.exists()
     assert committed_path.exists()  # Preserved!
-    assert active_path.exists()     # Preserved!
+    assert active_path.exists()  # Preserved!
 
     # Cleanup test files
     storage.delete_artifact(committed_path)
@@ -192,7 +198,9 @@ async def test_orphan_artifact_recovery(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_result_download_missing_artifact_returns_404(api_client: AsyncClient, db_session: AsyncSession):
+async def test_result_download_missing_artifact_returns_404(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """When a succeeded result references an artifact missing on disk, return 404."""
     org_id, ws_id, wb_id, sheet_id, user_id, csrf_token = await create_test_context(
         api_client, db_session, "missing_art"
@@ -217,7 +225,9 @@ async def test_result_download_missing_artifact_returns_404(api_client: AsyncCli
     )
     await job_repo.create(job)
 
-    non_existent_path = f"D:/admin-dashboard/uploads/analytics/results/{org_id}/{job_id}/gen_1_nonexistent.parquet"
+    non_existent_path = (
+        f"D:/admin-dashboard/uploads/analytics/results/{org_id}/{job_id}/gen_1_nonexistent.parquet"
+    )
     res = AnalyticsResult(
         id=result_id,
         job_id=job_id,

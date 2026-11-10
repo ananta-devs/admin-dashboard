@@ -125,9 +125,7 @@ class AnalyticsJob(Base):
     snapshot_created_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    snapshot_sheet_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), nullable=True
-    )
+    snapshot_sheet_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     snapshot_sheet_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
     snapshot_row_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
     snapshot_col_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -304,7 +302,9 @@ class AnalyticsQuotaReservation(Base):
     )
     reserved_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, nullable=False
     )
@@ -318,4 +318,3 @@ class AnalyticsQuotaReservation(Base):
             "expires_at",
         ),
     )
-

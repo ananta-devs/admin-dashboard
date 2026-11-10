@@ -1,5 +1,6 @@
 import time
 from datetime import UTC, datetime
+from typing import Any
 
 import redis.asyncio as aioredis
 from fastapi import APIRouter, Depends, status
@@ -49,7 +50,7 @@ async def readiness_check(db: AsyncSession = Depends(get_db_session)):
     all_ready = "connected" in db_status and "connected" in redis_status
     status_code = status.HTTP_200_OK if all_ready else status.HTTP_503_SERVICE_UNAVAILABLE
 
-    content = {
+    content: dict[str, Any] = {
         "status": "ready" if all_ready else "degraded",
         "database": db_status,
         "redis": redis_status,

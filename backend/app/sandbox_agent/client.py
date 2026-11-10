@@ -69,6 +69,7 @@ class SandboxAgentClient:
         try:
             if self.app is not None:
                 from starlette.testclient import TestClient
+
                 with TestClient(self.app, base_url=self.base_url) as client:
                     resp = client.post(
                         "/api/v1/sandbox/execute",
@@ -111,4 +112,3 @@ class SandboxAgentClient:
                 error_message="Sandbox Agent unavailable.",
                 isolation_backend="sandbox_agent_client",
             )
-

@@ -15,7 +15,7 @@ import io
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import BinaryIO, Dict, Optional, Tuple
+from typing import BinaryIO
 
 
 class RemoteStorageError(Exception):
@@ -30,8 +30,8 @@ class UploadResult:
     size_bytes: int
     sha256_digest: str
     etag: str
-    object_lock_mode: Optional[str] = None
-    object_lock_retain_until: Optional[str] = None
+    object_lock_mode: str | None = None
+    object_lock_retain_until: str | None = None
 
 
 class S3StorageAdapter:
@@ -40,11 +40,11 @@ class S3StorageAdapter:
     def __init__(
         self,
         bucket_name: str = "vibe-backups",
-        endpoint_url: Optional[str] = None,
-        aws_access_key_id: Optional[str] = None,
-        aws_secret_access_key: Optional[str] = None,
+        endpoint_url: str | None = None,
+        aws_access_key_id: str | None = None,
+        aws_secret_access_key: str | None = None,
         region_name: str = "us-east-1",
-        storage_root: Optional[str | Path] = None,
+        storage_root: str | Path | None = None,
     ) -> None:
         self.bucket_name = bucket_name
         self.endpoint_url = endpoint_url
@@ -62,11 +62,11 @@ class S3StorageAdapter:
         self,
         key: str,
         in_stream: BinaryIO,
-        content_length: Optional[int] = None,
+        content_length: int | None = None,
         content_type: str = "application/octet-stream",
-        metadata: Optional[Dict[str, str]] = None,
-        object_lock_mode: Optional[str] = None,
-        object_lock_retain_until: Optional[str] = None,
+        metadata: dict[str, str] | None = None,
+        object_lock_mode: str | None = None,
+        object_lock_retain_until: str | None = None,
     ) -> UploadResult:
         """Upload stream to remote object storage with VersionId and SHA-256 verification."""
         hasher = hashlib.sha256()
@@ -118,7 +118,9 @@ class S3StorageAdapter:
             object_lock_retain_until=object_lock_retain_until,
         )
 
-    def download_stream(self, key: str, out_stream: BinaryIO, version_id: Optional[str] = None) -> Tuple[int, str]:
+    def download_stream(
+        self, key: str, out_stream: BinaryIO, version_id: str | None = None
+    ) -> tuple[int, str]:
         """Download object stream by exact key and VersionId, returning (size_bytes, sha256_digest)."""
         if self.storage_root:
             dest_dir = self.storage_root / self.bucket_name / key
@@ -145,9 +147,10 @@ class S3StorageAdapter:
 
         raise RemoteStorageError("Live AWS client not configured in test environment.")
 
-    def verify_remote_checksum(self, key: str, expected_sha256: str, version_id: Optional[str] = None) -> bool:
+    def verify_remote_checksum(
+        self, key: str, expected_sha256: str, version_id: str | None = None
+    ) -> bool:
         """Independently stream remote object and confirm bitwise SHA-256 match."""
         buffer = io.BytesIO()
         _, downloaded_sha256 = self.download_stream(key, buffer, version_id=version_id)
         return downloaded_sha256.lower() == expected_sha256.lower()
-

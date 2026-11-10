@@ -29,7 +29,9 @@ class ReportStorageService:
         self.runs_dir.mkdir(parents=True, exist_ok=True)
         self.staging_dir.mkdir(parents=True, exist_ok=True)
 
-    def resolve_safe_path(self, parent_dir: Path, organization_id: uuid.UUID, run_id: uuid.UUID, filename: str) -> Path:
+    def resolve_safe_path(
+        self, parent_dir: Path, organization_id: uuid.UUID, run_id: uuid.UUID, filename: str
+    ) -> Path:
         """Resolve path strictly preventing directory traversal and symlink escapes."""
         safe_filename = Path(filename).name
         if safe_filename != filename or ".." in filename or "/" in filename or "\\" in filename:
@@ -208,7 +210,9 @@ class ReportStorageService:
                 os.rename(src_str, dst_str)
                 return
             except FileExistsError as e:
-                raise FileExistsError(f"Cannot overwrite existing immutable reporting artifact: {dst_str}") from e
+                raise FileExistsError(
+                    f"Cannot overwrite existing immutable reporting artifact: {dst_str}"
+                ) from e
 
         # 2. Linux: renameat2(src_dfd, src_name, dst_dfd, dst_name, RENAME_NOREPLACE)
         if sys.platform.startswith("linux"):
@@ -227,7 +231,9 @@ class ReportStorageService:
                         return
                     errno = ctypes.get_errno()
                     if errno in (17, 39):  # EEXIST, ENOTEMPTY
-                        raise FileExistsError(f"Cannot overwrite existing immutable reporting artifact: {dst_str}")
+                        raise FileExistsError(
+                            f"Cannot overwrite existing immutable reporting artifact: {dst_str}"
+                        )
                     if errno not in (22, 38):  # Not EINVAL, ENOSYS -> fail with actual errno
                         raise OSError(errno, os.strerror(errno), dst_str)
                     # If EINVAL (22) or ENOSYS (38), fall through to descriptor-relative fallback below
@@ -245,9 +251,13 @@ class ReportStorageService:
             try:
                 os.link(src.name, dst.name, src_dir_fd=src_dir_fd, dst_dir_fd=dst_dir_fd)
             except FileExistsError as e:
-                raise FileExistsError(f"Cannot overwrite existing immutable reporting artifact: {dst_str}") from e
+                raise FileExistsError(
+                    f"Cannot overwrite existing immutable reporting artifact: {dst_str}"
+                ) from e
             except OSError as e:
-                raise OSError(f"Descriptor-relative hard link promotion failed from {src_str} to {dst_str}: {e}") from e
+                raise OSError(
+                    f"Descriptor-relative hard link promotion failed from {src_str} to {dst_str}: {e}"
+                ) from e
 
             try:
                 os.unlink(src.name, dir_fd=src_dir_fd)
@@ -262,7 +272,9 @@ class ReportStorageService:
     def atomic_promote(self, tmp_path: Path, final_path: Path, overwrite: bool = False) -> None:
         """Atomically promote temporary artifact to immutable final path without check-then-act races."""
         if overwrite:
-            raise ValidationError("Overwriting finalized reporting artifacts is strictly prohibited.")
+            raise ValidationError(
+                "Overwriting finalized reporting artifacts is strictly prohibited."
+            )
 
         # Reject symlinks directly on un-resolved paths
         if Path(tmp_path).is_symlink() or os.path.islink(str(tmp_path)):
@@ -315,20 +327,26 @@ class ReportStorageService:
                 raise ValidationError(f"Failed to open secure directory descriptor: {e}") from e
 
             try:
-                self._atomic_no_replace(tmp_res, final_res, src_dir_fd=src_dir_fd, dst_dir_fd=dst_dir_fd)
+                self._atomic_no_replace(
+                    tmp_res, final_res, src_dir_fd=src_dir_fd, dst_dir_fd=dst_dir_fd
+                )
             except FileExistsError as e:
                 # Clean up temporary staging file on failed promotion
                 try:
                     tmp_res.unlink(missing_ok=True)
                 except OSError:
                     pass
-                raise ValidationError(f"Cannot overwrite existing immutable reporting artifact: {final_path}") from e
+                raise ValidationError(
+                    f"Cannot overwrite existing immutable reporting artifact: {final_path}"
+                ) from e
             except OSError as e:
                 try:
                     tmp_res.unlink(missing_ok=True)
                 except OSError:
                     pass
-                raise ValidationError(f"Atomic publication failed from {tmp_path} to {final_path}: {e}") from e
+                raise ValidationError(
+                    f"Atomic publication failed from {tmp_path} to {final_path}: {e}"
+                ) from e
 
             # Crash Durability: fsync destination parent directory
             if dst_dir_fd is not None:

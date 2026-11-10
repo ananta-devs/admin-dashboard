@@ -96,7 +96,9 @@ def blocking_synchronous_computation(duration_seconds: float) -> int:
 
 
 @pytest.mark.asyncio
-async def test_heartbeat_independent_during_blocking_computation(api_client: AsyncClient, db_session: AsyncSession):
+async def test_heartbeat_independent_during_blocking_computation(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """Proves dedicated heartbeat thread renews lease in PostgreSQL during synchronous CPU computation."""
     org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
         api_client, db_session, "hb_indep"
@@ -119,7 +121,9 @@ async def test_heartbeat_independent_during_blocking_computation(api_client: Asy
     await db_session.commit()
 
     # 1. Claim job with a short test lease of 2 seconds
-    claimed, token = await repo.claim_job_atomically(job_id, "worker-primary", lease_duration_seconds=2)
+    claimed, token = await repo.claim_job_atomically(
+        job_id, "worker-primary", lease_duration_seconds=2
+    )
     await db_session.commit()
     assert claimed is True
     assert token is not None
@@ -159,10 +163,14 @@ async def test_heartbeat_independent_during_blocking_computation(api_client: Asy
 
         # 5. Verify competing worker CANNOT reclaim the job because heartbeat kept lease active
         test_engine2 = create_async_engine(settings.DATABASE_URL, poolclass=NullPool)
-        session_factory2 = async_sessionmaker(test_engine2, class_=AsyncSession, expire_on_commit=False)
+        session_factory2 = async_sessionmaker(
+            test_engine2, class_=AsyncSession, expire_on_commit=False
+        )
         async with session_factory2() as session2:
             repo2 = AnalyticsJobRepository(session2)
-            claimed2, token2 = await repo2.claim_job_atomically(job_id, "worker-competitor", lease_duration_seconds=5)
+            claimed2, token2 = await repo2.claim_job_atomically(
+                job_id, "worker-competitor", lease_duration_seconds=5
+            )
             await session2.commit()
             assert claimed2 is False
             assert token2 is None
@@ -174,7 +182,9 @@ async def test_heartbeat_independent_during_blocking_computation(api_client: Asy
 
 
 @pytest.mark.asyncio
-async def test_heartbeat_stops_and_aborts_on_superseded_claim(api_client: AsyncClient, db_session: AsyncSession):
+async def test_heartbeat_stops_and_aborts_on_superseded_claim(
+    api_client: AsyncClient, db_session: AsyncSession
+):
     """Proves heartbeat detects lost lease and aborts immediately, stopping stale writes."""
     org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
         api_client, db_session, "hb_stale"
@@ -196,7 +206,9 @@ async def test_heartbeat_stops_and_aborts_on_superseded_claim(api_client: AsyncC
     await repo.create(job)
     await db_session.commit()
 
-    claimed_1, token_1 = await repo.claim_job_atomically(job_id, "worker-1", lease_duration_seconds=10)
+    claimed_1, token_1 = await repo.claim_job_atomically(
+        job_id, "worker-1", lease_duration_seconds=10
+    )
     await db_session.commit()
     assert claimed_1 is True
 
@@ -212,10 +224,14 @@ async def test_heartbeat_stops_and_aborts_on_superseded_claim(api_client: AsyncC
 
     try:
         # Simulate worker 1 losing lease: state is reset to RETRYING and Worker 2 claims it
-        await repo.mark_failed(job_id, "LEASE_EXPIRED", "expired", next_status=AnalyticsJobStatus.RETRYING)
+        await repo.mark_failed(
+            job_id, "LEASE_EXPIRED", "expired", next_status=AnalyticsJobStatus.RETRYING
+        )
         await db_session.commit()
 
-        claimed_2, token_2 = await repo.claim_job_atomically(job_id, "worker-2", lease_duration_seconds=10)
+        claimed_2, token_2 = await repo.claim_job_atomically(
+            job_id, "worker-2", lease_duration_seconds=10
+        )
         await db_session.commit()
         assert claimed_2 is True
 

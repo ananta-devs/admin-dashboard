@@ -135,4 +135,3 @@ class SyncConflictResolveInput(BaseModel):
 
     resolution_choice: str  # 'keep_vibe', 'keep_external', 'manual'
     custom_value: Any | None = None
-

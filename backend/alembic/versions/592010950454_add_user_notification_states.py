@@ -12,8 +12,9 @@ from collections.abc import Sequence
 from typing import Union
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "592010950454"
@@ -29,13 +30,17 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("users.id", ondelete="CASCADE", name="fk_user_notification_states_user_id"),
+            sa.ForeignKey(
+                "users.id", ondelete="CASCADE", name="fk_user_notification_states_user_id"
+            ),
             nullable=False,
         ),
         sa.Column(
             "organization_id",
             postgresql.UUID(as_uuid=True),
-            sa.ForeignKey("organizations.id", ondelete="CASCADE", name="fk_user_notification_states_org_id"),
+            sa.ForeignKey(
+                "organizations.id", ondelete="CASCADE", name="fk_user_notification_states_org_id"
+            ),
             nullable=False,
         ),
         sa.Column("notification_id", sa.String(length=255), nullable=False),
@@ -76,7 +81,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("ix_user_notification_states_notification_id", table_name="user_notification_states")
+    op.drop_index(
+        "ix_user_notification_states_notification_id", table_name="user_notification_states"
+    )
     op.drop_index("ix_user_notification_states_user_org", table_name="user_notification_states")
     op.drop_table("user_notification_states")
-

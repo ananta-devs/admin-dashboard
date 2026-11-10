@@ -110,9 +110,30 @@ async def run_benchmark() -> None:
             cells = {
                 "0": {"v": r, "c": r, "f": None, "t": "number", "err": None, "ver": 1},
                 "1": {"v": r * 2.5, "c": r * 2.5, "f": None, "t": "number", "err": None, "ver": 1},
-                "2": {"v": f"Label {r}", "c": f"Label {r}", "f": None, "t": "string", "err": None, "ver": 1},
-                "3": {"v": r % 2 == 0, "c": r % 2 == 0, "f": None, "t": "boolean", "err": None, "ver": 1},
-                "4": {"v": None, "c": r * 3.5, "f": f"=A{r+1}+B{r+1}", "t": "number", "err": None, "ver": 1},
+                "2": {
+                    "v": f"Label {r}",
+                    "c": f"Label {r}",
+                    "f": None,
+                    "t": "string",
+                    "err": None,
+                    "ver": 1,
+                },
+                "3": {
+                    "v": r % 2 == 0,
+                    "c": r % 2 == 0,
+                    "f": None,
+                    "t": "boolean",
+                    "err": None,
+                    "ver": 1,
+                },
+                "4": {
+                    "v": None,
+                    "c": r * 3.5,
+                    "f": f"=A{r + 1}+B{r + 1}",
+                    "t": "number",
+                    "err": None,
+                    "ver": 1,
+                },
             }
             rows_data.append((row_id, sheet_id, org_id, r, json.dumps(cells), 1))
 
@@ -144,7 +165,9 @@ async def run_benchmark() -> None:
         print(f"Table Heap Size : {row_storage['table_size']}")
         print(f"Indexes Size    : {row_storage['indexes_size']}")
         print(f"TOAST Size      : {row_storage['toast_size']}")
-        print(f"Total Size      : {row_storage['total_size']} ({row_storage['total_bytes']:,} bytes)")
+        print(
+            f"Total Size      : {row_storage['total_size']} ({row_storage['total_bytes']:,} bytes)"
+        )
 
         # 4. Viewport Query Benchmark: 100 contiguous rows (row_index BETWEEN 25000 AND 25099)
         query = """
@@ -198,7 +221,9 @@ async def run_benchmark() -> None:
         await conn.execute("DELETE FROM sheets WHERE id = $1", sheet_id)
         await conn.execute("DELETE FROM workbooks WHERE id = $1", wb_id)
         await conn.execute("DELETE FROM workspaces WHERE id = $1", ws_id)
-        await conn.execute("DELETE FROM organization_memberships WHERE organization_id = $1", org_id)
+        await conn.execute(
+            "DELETE FROM organization_memberships WHERE organization_id = $1", org_id
+        )
         await conn.execute("DELETE FROM users WHERE id = $1", user_id)
         await conn.execute("DELETE FROM organizations WHERE id = $1", org_id)
         print("Cleanup complete.")

@@ -146,7 +146,9 @@ def test_destination_exists_with_different_content_preservation(tmp_path: Path):
     staging_2.parent.mkdir(parents=True, exist_ok=True)
     staging_2.write_bytes(b"%PDF-1.4 malicious competitor content")
 
-    with pytest.raises(ValidationError, match="Cannot overwrite existing immutable reporting artifact"):
+    with pytest.raises(
+        ValidationError, match="Cannot overwrite existing immutable reporting artifact"
+    ):
         storage.atomic_promote(staging_2, final)
 
     # Assert destination bytes and checksum are preserved 100%
@@ -198,8 +200,13 @@ def test_renameat2_eexist_raises_fileexist_error(tmp_path: Path):
         # Test direct call to _atomic_no_replace with mocked renameat2 returning EEXIST
         mock_libc = MagicMock()
         mock_libc.renameat2.return_value = -1
-        with patch("ctypes.CDLL", return_value=mock_libc), patch("ctypes.get_errno", return_value=17):
-            with pytest.raises(FileExistsError, match="Cannot overwrite existing immutable reporting artifact"):
+        with (
+            patch("ctypes.CDLL", return_value=mock_libc),
+            patch("ctypes.get_errno", return_value=17),
+        ):
+            with pytest.raises(
+                FileExistsError, match="Cannot overwrite existing immutable reporting artifact"
+            ):
                 storage._atomic_no_replace(staging, final, src_dir_fd=1, dst_dir_fd=2)
 
     # Content unchanged
@@ -222,7 +229,10 @@ def test_renameat2_fallback_to_descriptor_link_on_enosys(tmp_path: Path):
         mock_libc = MagicMock()
         mock_libc.renameat2.return_value = -1
         # Errno 38 is ENOSYS (Function not implemented)
-        with patch("ctypes.CDLL", return_value=mock_libc), patch("ctypes.get_errno", return_value=38):
+        with (
+            patch("ctypes.CDLL", return_value=mock_libc),
+            patch("ctypes.get_errno", return_value=38),
+        ):
             src_dfd = storage._open_trusted_dir(staging.parent)
             dst_dfd = storage._open_trusted_dir(final.parent)
             try:
@@ -257,7 +267,10 @@ def test_renameat2_fallback_to_descriptor_link_on_einval(tmp_path: Path):
         mock_libc = MagicMock()
         mock_libc.renameat2.return_value = -1
         # Errno 22 is EINVAL (Invalid argument / flags not supported by filesystem)
-        with patch("ctypes.CDLL", return_value=mock_libc), patch("ctypes.get_errno", return_value=22):
+        with (
+            patch("ctypes.CDLL", return_value=mock_libc),
+            patch("ctypes.get_errno", return_value=22),
+        ):
             src_dfd = storage._open_trusted_dir(staging.parent)
             dst_dfd = storage._open_trusted_dir(final.parent)
             try:
@@ -284,10 +297,17 @@ def test_fail_closed_when_security_guarantees_unavailable(tmp_path: Path):
     dst.parent.mkdir(parents=True, exist_ok=True)
     src.write_bytes(b"%PDF-test")
 
-    with patch.object(storage, "_open_trusted_dir", return_value=None), \
-         patch.object(ReportStorageService, "_atomic_no_replace") as mock_atomic:
-        mock_atomic.side_effect = ValidationError("Platform cannot guarantee atomic descriptor-relative publication.")
-        with pytest.raises(ValidationError, match="Platform cannot guarantee atomic descriptor-relative publication"):
+    with (
+        patch.object(storage, "_open_trusted_dir", return_value=None),
+        patch.object(ReportStorageService, "_atomic_no_replace") as mock_atomic,
+    ):
+        mock_atomic.side_effect = ValidationError(
+            "Platform cannot guarantee atomic descriptor-relative publication."
+        )
+        with pytest.raises(
+            ValidationError,
+            match="Platform cannot guarantee atomic descriptor-relative publication",
+        ):
             storage.atomic_promote(src, dst)
 
 

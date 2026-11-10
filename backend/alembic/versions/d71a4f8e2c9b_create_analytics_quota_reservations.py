@@ -30,11 +30,19 @@ def upgrade() -> None:
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column("organization_id", postgresql.UUID(as_uuid=True), nullable=False, index=True),
         sa.Column("worker_id", sa.String(length=100), nullable=True),
-        sa.Column("job_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("analytics_jobs.id", ondelete="CASCADE"), nullable=True, index=True),
+        sa.Column(
+            "job_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("analytics_jobs.id", ondelete="CASCADE"),
+            nullable=True,
+            index=True,
+        ),
         sa.Column("reserved_bytes", sa.BigInteger(), nullable=False),
         sa.Column("status", sa.String(length=20), nullable=False, server_default="active"),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False, index=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.Column("released_at", sa.DateTime(timezone=True), nullable=True),
     )
     op.create_index(
@@ -46,6 +54,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("ix_analytics_quota_res_org_status_expires", table_name="analytics_quota_reservations")
+    op.drop_index(
+        "ix_analytics_quota_res_org_status_expires", table_name="analytics_quota_reservations"
+    )
     op.drop_table("analytics_quota_reservations")
-

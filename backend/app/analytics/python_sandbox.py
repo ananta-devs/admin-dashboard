@@ -119,6 +119,7 @@ def verify_image_digest(image_ref: str | None = None) -> bool:
     """Verify that the container image matches the cryptographic SHA-256 digest."""
     return PythonSandboxRunner().verify_image_digest()
 
+
 FORBIDDEN_IMPORTS = {
     "subprocess",
     "socket",
@@ -255,7 +256,9 @@ def validate_python_ast(code_str: str) -> str | None:
                 return f"Security violation: direct call to '{node.func.id}()' is prohibited."
             if isinstance(node.func, ast.Attribute):
                 if node.func.attr in ("system", "popen", "spawn", "fork", "kill"):
-                    return f"Security violation: process control '{node.func.attr}()' is prohibited."
+                    return (
+                        f"Security violation: process control '{node.func.attr}()' is prohibited."
+                    )
 
     return None
 
@@ -269,7 +272,9 @@ FRAME_SUPERVISOR_ARTIFACT = 4
 class StreamDemultiplexer:
     """Demultiplexes binary length-prefixed stream into user stdout, user stderr, and supervisor control frames."""
 
-    def __init__(self, max_retained_bytes: int = 65536, max_flood_bytes: int = 10 * 1024 * 1024) -> None:
+    def __init__(
+        self, max_retained_bytes: int = 65536, max_flood_bytes: int = 10 * 1024 * 1024
+    ) -> None:
         self.stdout_chunks: list[bytes] = []
         self.stderr_chunks: list[bytes] = []
         self.stdout_bytes = 0
@@ -300,7 +305,12 @@ class StreamDemultiplexer:
 
                     while len(buf) >= 5:
                         frame_type = buf[0]
-                        if frame_type not in (FRAME_USER_STDOUT, FRAME_USER_STDERR, FRAME_SUPERVISOR_CONTROL, FRAME_SUPERVISOR_ARTIFACT):
+                        if frame_type not in (
+                            FRAME_USER_STDOUT,
+                            FRAME_USER_STDERR,
+                            FRAME_SUPERVISOR_CONTROL,
+                            FRAME_SUPERVISOR_ARTIFACT,
+                        ):
                             b = bytes([buf[0]])
                             buf = buf[1:]
                             prev_bytes = self.stdout_bytes
@@ -313,8 +323,8 @@ class StreamDemultiplexer:
                         if len(buf) < 5 + payload_len:
                             break
 
-                        payload = bytes(buf[5:5 + payload_len])
-                        del buf[:5 + payload_len]
+                        payload = bytes(buf[5 : 5 + payload_len])
+                        del buf[: 5 + payload_len]
 
                         if frame_type == FRAME_USER_STDOUT:
                             prev_bytes = self.stdout_bytes
@@ -363,11 +373,15 @@ class StreamDemultiplexer:
 
     def get_stdout_text(self) -> str:
         with self.lock:
-            return b"".join(self.stdout_chunks)[: self.max_retained].decode("utf-8", errors="replace")
+            return b"".join(self.stdout_chunks)[: self.max_retained].decode(
+                "utf-8", errors="replace"
+            )
 
     def get_stderr_text(self) -> str:
         with self.lock:
-            return b"".join(self.stderr_chunks)[: self.max_retained].decode("utf-8", errors="replace")
+            return b"".join(self.stderr_chunks)[: self.max_retained].decode(
+                "utf-8", errors="replace"
+            )
 
 
 USER_CONTAINER_EXECUTOR = """# Governed User Code Executor (runs as untrusted child process)
@@ -573,6 +587,7 @@ if __name__ == "__main__":
 
 class SandboxResultProtocolError(ValueError):
     """Raised when sandbox stdout violates the strict Gate 10 result protocol."""
+
     pass
 
 
@@ -594,7 +609,9 @@ class DockerNotFoundError(DockerClientError):
 class DockerServerError(DockerClientError):
     """Structured Docker Engine HTTP 500 Internal Server Error (unconfirmed cleanup)."""
 
-    def __init__(self, message: str = "Docker daemon internal server error", status_code: int = 500) -> None:
+    def __init__(
+        self, message: str = "Docker daemon internal server error", status_code: int = 500
+    ) -> None:
         super().__init__(message, status_code=status_code)
 
 
@@ -608,7 +625,11 @@ class DockerConnectionError(DockerClientError):
 class DockerPermissionError(DockerClientError):
     """Docker API authentication / permission failure (HTTP 401/403)."""
 
-    def __init__(self, message: str = "Permission denied accessing Docker daemon", status_code: int | None = 403) -> None:
+    def __init__(
+        self,
+        message: str = "Permission denied accessing Docker daemon",
+        status_code: int | None = 403,
+    ) -> None:
         super().__init__(message, status_code=status_code)
 
 
@@ -619,9 +640,9 @@ class DockerTimeoutError(DockerClientError):
         super().__init__(message)
 
 
-MIN_SAFE_INT = -(2**63)         # -9,223,372,036,854,775,808 (64-bit signed int min)
-MAX_SAFE_INT = 2**63 - 1        #  9,223,372,036,854,775,807 (64-bit signed int max)
-MAX_FLOAT_MAGNITUDE = 1e308     # IEEE 754 64-bit double maximum finite magnitude
+MIN_SAFE_INT = -(2**63)  # -9,223,372,036,854,775,808 (64-bit signed int min)
+MAX_SAFE_INT = 2**63 - 1  #  9,223,372,036,854,775,807 (64-bit signed int max)
+MAX_FLOAT_MAGNITUDE = 1e308  # IEEE 754 64-bit double maximum finite magnitude
 
 MAX_STDOUT_BYTES = 5 * 1024 * 1024  # 5 MB
 MAX_JSON_DEPTH = 16
@@ -671,7 +692,9 @@ def strict_parse_float(s: str) -> float:
     if not math.isfinite(val):
         raise SandboxResultProtocolError(f"Float overflow or non-finite float rejected: {s!r}")
     if abs(val) > MAX_FLOAT_MAGNITUDE:
-        raise SandboxResultProtocolError(f"Float magnitude {val} exceeds maximum permitted limit {MAX_FLOAT_MAGNITUDE}")
+        raise SandboxResultProtocolError(
+            f"Float magnitude {val} exceeds maximum permitted limit {MAX_FLOAT_MAGNITUDE}"
+        )
     return val
 
 
@@ -696,35 +719,55 @@ def strict_parse_int(s: str) -> int:
 
 def validate_json_contract_node(val: Any, depth: int = 1) -> None:
     if depth > MAX_JSON_DEPTH:
-        raise SandboxResultProtocolError(f"JSON nesting depth exceeds maximum permitted limit of {MAX_JSON_DEPTH}")
+        raise SandboxResultProtocolError(
+            f"JSON nesting depth exceeds maximum permitted limit of {MAX_JSON_DEPTH}"
+        )
 
     if isinstance(val, dict):
         if len(val) > MAX_OBJECT_KEYS:
-            raise SandboxResultProtocolError(f"Object key count ({len(val)}) exceeds maximum limit of {MAX_OBJECT_KEYS}")
+            raise SandboxResultProtocolError(
+                f"Object key count ({len(val)}) exceeds maximum limit of {MAX_OBJECT_KEYS}"
+            )
         for k, v in val.items():
             if not isinstance(k, str):
-                raise SandboxResultProtocolError(f"Object key must be a string, got {type(k).__name__}")
+                raise SandboxResultProtocolError(
+                    f"Object key must be a string, got {type(k).__name__}"
+                )
             if len(k) > MAX_KEY_LENGTH:
-                raise SandboxResultProtocolError(f"Object key length ({len(k)}) exceeds maximum limit of {MAX_KEY_LENGTH}")
+                raise SandboxResultProtocolError(
+                    f"Object key length ({len(k)}) exceeds maximum limit of {MAX_KEY_LENGTH}"
+                )
             if any(ord(c) < 32 or ord(c) == 127 for c in k):
-                raise SandboxResultProtocolError(f"Control characters detected in object key: {k!r}")
+                raise SandboxResultProtocolError(
+                    f"Control characters detected in object key: {k!r}"
+                )
             if any(k.startswith(pfx) for pfx in RESERVED_KEY_PREFIXES):
-                raise SandboxResultProtocolError(f"Reserved host metadata key prefix in user result: {k!r}")
+                raise SandboxResultProtocolError(
+                    f"Reserved host metadata key prefix in user result: {k!r}"
+                )
             validate_json_contract_node(v, depth + 1)
     elif isinstance(val, list):
         if len(val) > MAX_ARRAY_ITEMS:
-            raise SandboxResultProtocolError(f"Array length ({len(val)}) exceeds maximum limit of {MAX_ARRAY_ITEMS}")
+            raise SandboxResultProtocolError(
+                f"Array length ({len(val)}) exceeds maximum limit of {MAX_ARRAY_ITEMS}"
+            )
         for item in val:
             validate_json_contract_node(item, depth + 1)
     elif isinstance(val, str):
         if len(val) > MAX_STRING_LENGTH:
-            raise SandboxResultProtocolError(f"String length ({len(val)}) exceeds maximum limit of {MAX_STRING_LENGTH}")
+            raise SandboxResultProtocolError(
+                f"String length ({len(val)}) exceeds maximum limit of {MAX_STRING_LENGTH}"
+            )
         for c in val:
             o = ord(c)
             if 0xD800 <= o <= 0xDFFF:
-                raise SandboxResultProtocolError(f"Lone Unicode surrogate character U+{o:04X} rejected.")
+                raise SandboxResultProtocolError(
+                    f"Lone Unicode surrogate character U+{o:04X} rejected."
+                )
             if (o < 32 and c not in ("\t", "\n", "\r")) or o == 127:
-                raise SandboxResultProtocolError(f"Control character detected in string value: {c!r}")
+                raise SandboxResultProtocolError(
+                    f"Control character detected in string value: {c!r}"
+                )
     elif isinstance(val, bool):
         pass  # Boolean is valid; must check before int
     elif isinstance(val, int):
@@ -736,7 +779,9 @@ def validate_json_contract_node(val: Any, depth: int = 1) -> None:
     elif val is None:
         pass
     else:
-        raise SandboxResultProtocolError(f"Unexpected data type in JSON result: {type(val).__name__}")
+        raise SandboxResultProtocolError(
+            f"Unexpected data type in JSON result: {type(val).__name__}"
+        )
 
 
 def parse_and_validate_sandbox_stdout(raw_bytes: bytes) -> tuple[dict[str, JSONValue], str]:
@@ -748,10 +793,14 @@ def parse_and_validate_sandbox_stdout(raw_bytes: bytes) -> tuple[dict[str, JSONV
         SandboxResultProtocolError if any validation requirement is violated.
     """
     if not raw_bytes:
-        raise SandboxResultProtocolError("Script stdout is completely empty; expected exactly one JSON document.")
+        raise SandboxResultProtocolError(
+            "Script stdout is completely empty; expected exactly one JSON document."
+        )
 
     if len(raw_bytes) > MAX_STDOUT_BYTES:
-        raise SandboxResultProtocolError(f"Script stdout exceeds {MAX_STDOUT_BYTES} bytes limit (got {len(raw_bytes)} bytes).")
+        raise SandboxResultProtocolError(
+            f"Script stdout exceeds {MAX_STDOUT_BYTES} bytes limit (got {len(raw_bytes)} bytes)."
+        )
 
     try:
         decoded_text = raw_bytes.decode("utf-8", errors="strict")
@@ -760,13 +809,20 @@ def parse_and_validate_sandbox_stdout(raw_bytes: bytes) -> tuple[dict[str, JSONV
 
     # Exact RFC 8259 whitespace check: leading
     leading_idx = 0
-    while leading_idx < len(decoded_text) and decoded_text[leading_idx] in PERMITTED_JSON_WHITESPACE:
+    while (
+        leading_idx < len(decoded_text) and decoded_text[leading_idx] in PERMITTED_JSON_WHITESPACE
+    ):
         leading_idx += 1
 
     if leading_idx == len(decoded_text):
-        raise SandboxResultProtocolError("Stdout contains only whitespace; expected exactly one JSON document.")
+        raise SandboxResultProtocolError(
+            "Stdout contains only whitespace; expected exactly one JSON document."
+        )
 
-    if decoded_text[leading_idx].isspace() and decoded_text[leading_idx] not in PERMITTED_JSON_WHITESPACE:
+    if (
+        decoded_text[leading_idx].isspace()
+        and decoded_text[leading_idx] not in PERMITTED_JSON_WHITESPACE
+    ):
         raise SandboxResultProtocolError(
             f"Non-permitted whitespace character U+{ord(decoded_text[leading_idx]):04X} rejected before JSON document."
         )
@@ -781,7 +837,9 @@ def parse_and_validate_sandbox_stdout(raw_bytes: bytes) -> tuple[dict[str, JSONV
     try:
         doc, end_pos = decoder.raw_decode(decoded_text, idx=leading_idx)
     except (json.JSONDecodeError, RecursionError) as je:
-        raise SandboxResultProtocolError(f"Malformed or excessively deep JSON document on stdout: {je}") from je
+        raise SandboxResultProtocolError(
+            f"Malformed or excessively deep JSON document on stdout: {je}"
+        ) from je
     except SandboxResultProtocolError:
         raise
     except Exception as e:
@@ -795,15 +853,21 @@ def parse_and_validate_sandbox_stdout(raw_bytes: bytes) -> tuple[dict[str, JSONV
                 raise SandboxResultProtocolError(
                     f"Non-permitted whitespace character U+{ord(ch):04X} rejected after JSON document."
                 )
-            raise SandboxResultProtocolError("Unexpected trailing text or multiple JSON documents detected on stdout.")
+            raise SandboxResultProtocolError(
+                "Unexpected trailing text or multiple JSON documents detected on stdout."
+            )
 
     if not isinstance(doc, dict):
-        raise SandboxResultProtocolError(f"Top-level JSON value must be an object (dictionary), got {type(doc).__name__}.")
+        raise SandboxResultProtocolError(
+            f"Top-level JSON value must be an object (dictionary), got {type(doc).__name__}."
+        )
 
     try:
         validate_json_contract_node(doc, depth=1)
     except RecursionError as re:
-        raise SandboxResultProtocolError(f"JSON nesting depth exceeded recursion limit: {re}") from re
+        raise SandboxResultProtocolError(
+            f"JSON nesting depth exceeded recursion limit: {re}"
+        ) from re
 
     exact_sha256 = hashlib.sha256(raw_bytes).hexdigest()
     return doc, exact_sha256
@@ -822,7 +886,9 @@ def query_docker_engine_api(
         - parsed_json_dict: Parsed JSON dict on success (or None on non-JSON/error response).
         - exception: Typed DockerClientError subclass on failure (or None on HTTP 200).
     """
-    req_bytes = f"{method} {endpoint} HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n".encode()
+    req_bytes = (
+        f"{method} {endpoint} HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n".encode()
+    )
     raw_response: str | None = None
 
     # 1. Try Windows named pipes if on Windows
@@ -839,7 +905,13 @@ def query_docker_engine_api(
                     start_t = time.perf_counter()
                     while True:
                         if (time.perf_counter() - start_t) > timeout:
-                            return None, None, DockerTimeoutError(f"Docker Engine named pipe {pipe_path} timed out")
+                            return (
+                                None,
+                                None,
+                                DockerTimeoutError(
+                                    f"Docker Engine named pipe {pipe_path} timed out"
+                                ),
+                            )
                         b = f.read(8192)
                         if not b:
                             break
@@ -851,7 +923,11 @@ def query_docker_engine_api(
                 continue
 
     # 2. Try Unix domain socket on POSIX/Linux/WSL2
-    if raw_response is None and hasattr(socket, "AF_UNIX") and os.path.exists("/var/run/docker.sock"):
+    if (
+        raw_response is None
+        and hasattr(socket, "AF_UNIX")
+        and os.path.exists("/var/run/docker.sock")
+    ):
         try:
             s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             s.settimeout(timeout)
@@ -889,16 +965,30 @@ def query_docker_engine_api(
                     elif status_code == 500:
                         return 500, None, DockerServerError(resp.text, status_code=500)
                     elif status_code in (401, 403):
-                        return status_code, None, DockerPermissionError(resp.text, status_code=status_code)
+                        return (
+                            status_code,
+                            None,
+                            DockerPermissionError(resp.text, status_code=status_code),
+                        )
                     else:
-                        return status_code, None, DockerClientError(resp.text, status_code=status_code)
+                        return (
+                            status_code,
+                            None,
+                            DockerClientError(resp.text, status_code=status_code),
+                        )
             except httpx.TimeoutException:
                 return None, None, DockerTimeoutError("Docker TCP inspection timed out")
             except Exception as exc:
                 return None, None, DockerConnectionError(f"Docker TCP connection failed: {exc}")
 
     if raw_response is None:
-        return None, None, DockerConnectionError("Docker Engine API unavailable; structured inspection cannot be performed")
+        return (
+            None,
+            None,
+            DockerConnectionError(
+                "Docker Engine API unavailable; structured inspection cannot be performed"
+            ),
+        )
 
     header_part, _, body_part = raw_response.partition("\r\n\r\n")
     lines = header_part.splitlines()
@@ -947,9 +1037,17 @@ def query_docker_engine_api(
     elif status_code == 500:
         return 500, None, DockerServerError(body_clean or "Internal Server Error", status_code=500)
     elif status_code in (401, 403):
-        return status_code, None, DockerPermissionError(body_clean or "Permission Denied", status_code=status_code)
+        return (
+            status_code,
+            None,
+            DockerPermissionError(body_clean or "Permission Denied", status_code=status_code),
+        )
     else:
-        return status_code, None, DockerClientError(body_clean or f"HTTP {status_code}", status_code=status_code)
+        return (
+            status_code,
+            None,
+            DockerClientError(body_clean or f"HTTP {status_code}", status_code=status_code),
+        )
 
 
 def structured_docker_inspect(
@@ -982,12 +1080,18 @@ def structured_docker_inspect(
                 return 404, None, DockerNotFoundError(str(exc), status_code=404)
             if status_code == 500 or exc_name in ("ServerError", "DockerServerError"):
                 return 500, None, DockerServerError(str(exc), status_code=500)
-            if status_code in (401, 403) or exc_name in ("PermissionError", "DockerPermissionError"):
+            if status_code in (401, 403) or exc_name in (
+                "PermissionError",
+                "DockerPermissionError",
+            ):
                 perm_code = int(status_code) if status_code is not None else 403
                 return perm_code, None, DockerPermissionError(str(exc), status_code=perm_code)
             if "timeout" in str(exc).lower() or exc_name in ("Timeout", "DockerTimeoutError"):
                 return None, None, DockerTimeoutError(str(exc))
-            if "connect" in str(exc).lower() or exc_name in ("ConnectionError", "DockerConnectionError"):
+            if "connect" in str(exc).lower() or exc_name in (
+                "ConnectionError",
+                "DockerConnectionError",
+            ):
                 return None, None, DockerConnectionError(str(exc))
             return status_code, None, exc
 
@@ -1032,7 +1136,9 @@ def classify_docker_inspect_result(
             or isinstance(api_exception, DockerServerError)
             or exc_name in ("DockerServerError", "ServerError")
         ):
-            err_msg = str(api_exception) if api_exception else (stderr.strip() or "internal server error")
+            err_msg = (
+                str(api_exception) if api_exception else (stderr.strip() or "internal server error")
+            )
             return (
                 False,
                 f"server_error: Docker Engine returned HTTP 500: {err_msg}",
@@ -1083,7 +1189,9 @@ def classify_docker_inspect_result(
             )
 
         # Timeout
-        if isinstance(api_exception, (DockerTimeoutError, subprocess.TimeoutExpired)) or exc_name in (
+        if isinstance(
+            api_exception, (DockerTimeoutError, subprocess.TimeoutExpired)
+        ) or exc_name in (
             "DockerTimeoutError",
             "Timeout",
         ):
@@ -1111,13 +1219,25 @@ def classify_docker_inspect_result(
 
     # Distinguish operational errors from unconfirmed output
     combined = f"{stderr} {stdout}".lower()
-    if any(phrase in combined for phrase in ("500 internal server error", "internal server error", "response code 500")):
+    if any(
+        phrase in combined
+        for phrase in ("500 internal server error", "internal server error", "response code 500")
+    ):
         return False, f"server_error: {clean_err}", "server_error"
-    if any(phrase in combined for phrase in ("cannot connect", "connection refused", "is the docker daemon running")):
+    if any(
+        phrase in combined
+        for phrase in ("cannot connect", "connection refused", "is the docker daemon running")
+    ):
         return False, f"daemon_unavailable: {clean_err}", "daemon_unavailable"
-    if any(phrase in combined for phrase in ("permission denied", "access denied", "403 forbidden", "401 unauthorized")):
+    if any(
+        phrase in combined
+        for phrase in ("permission denied", "access denied", "403 forbidden", "401 unauthorized")
+    ):
         return False, f"permission_or_api_failure: {clean_err}", "permission_or_api_failure"
-    if any(phrase in combined for phrase in ("no such file or directory", "no such file", "not a directory")):
+    if any(
+        phrase in combined
+        for phrase in ("no such file or directory", "no such file", "not a directory")
+    ):
         return False, f"ambiguous_failure: {clean_err}", "ambiguous_failure"
 
     # Human-readable CLI stderr phrase (e.g. 'no such container') strictly cannot prove absence:
@@ -1276,7 +1396,9 @@ def verify_image_and_container_provenance(
             container_data = data
         else:
             try:
-                res = subprocess.run(["docker", "inspect", container_id], capture_output=True, text=True, timeout=3)
+                res = subprocess.run(
+                    ["docker", "inspect", container_id], capture_output=True, text=True, timeout=3
+                )
                 if res.returncode == 0:
                     parsed = json.loads(res.stdout)
                     if isinstance(parsed, list) and len(parsed) > 0:
@@ -1285,7 +1407,11 @@ def verify_image_and_container_provenance(
                 return False, f"container_inspect_failed: {exc}", diagnostics
 
     if not container_data:
-        return False, "container_inspect_failed: Container metadata could not be retrieved", diagnostics
+        return (
+            False,
+            "container_inspect_failed: Container metadata could not be retrieved",
+            diagnostics,
+        )
 
     config_info = container_data.get("Config", {}) or {}
     container_config_image = config_info.get("Image", "")
@@ -1300,20 +1426,46 @@ def verify_image_and_container_provenance(
 
     # Check 1 & 2 & 6: Validate container creation reference and rejection of mutable tags
     if not container_config_image or "@" not in container_config_image:
-        return False, f"mutable_tag_rejected: Container config image {container_config_image!r} lacks cryptographic digest or uses mutable tag", diagnostics
+        return (
+            False,
+            f"mutable_tag_rejected: Container config image {container_config_image!r} lacks cryptographic digest or uses mutable tag",
+            diagnostics,
+        )
 
     if ":latest" in container_config_image:
-        return False, f"mutable_tag_rejected: Container config image {container_config_image!r} contains mutable tag :latest", diagnostics
+        return (
+            False,
+            f"mutable_tag_rejected: Container config image {container_config_image!r} contains mutable tag :latest",
+            diagnostics,
+        )
 
-    if not (container_config_image == expected_ref or container_config_image.endswith(f"@{expected_manifest_digest}")):
-        return False, f"image_provenance_mismatch: Container config image {container_config_image!r} does not match expected reference {expected_ref!r}", diagnostics
+    if not (
+        container_config_image == expected_ref
+        or container_config_image.endswith(f"@{expected_manifest_digest}")
+    ):
+        return (
+            False,
+            f"image_provenance_mismatch: Container config image {container_config_image!r} does not match expected reference {expected_ref!r}",
+            diagnostics,
+        )
 
     # Validate PID 1 entrypoint
     if container_path != "python":
-        return False, f"entrypoint_mismatch: Container path {container_path!r} is not 'python'", diagnostics
+        return (
+            False,
+            f"entrypoint_mismatch: Container path {container_path!r} is not 'python'",
+            diagnostics,
+        )
 
-    if not (container_args == ["/input/runner.py"] or container_args[:2] == ["python", "/input/runner.py"]):
-        return False, f"entrypoint_mismatch: Container args {container_args!r} do not execute python /input/runner.py directly as PID 1", diagnostics
+    if not (
+        container_args == ["/input/runner.py"]
+        or container_args[:2] == ["python", "/input/runner.py"]
+    ):
+        return (
+            False,
+            f"entrypoint_mismatch: Container args {container_args!r} do not execute python /input/runner.py directly as PID 1",
+            diagnostics,
+        )
 
     # 2. Inspect image metadata
     image_data: dict[str, Any] | None = None
@@ -1330,7 +1482,12 @@ def verify_image_and_container_provenance(
             image_data = data
         else:
             try:
-                res = subprocess.run(["docker", "image", "inspect", target_img], capture_output=True, text=True, timeout=3)
+                res = subprocess.run(
+                    ["docker", "image", "inspect", target_img],
+                    capture_output=True,
+                    text=True,
+                    timeout=3,
+                )
                 if res.returncode == 0:
                     parsed = json.loads(res.stdout)
                     if isinstance(parsed, list) and len(parsed) > 0:
@@ -1353,19 +1510,35 @@ def verify_image_and_container_provenance(
 
     # Check 3: RepoDigests must contain the configured manifest digest
     if not any(expected_manifest_digest in rd for rd in repo_digests):
-        return False, f"repo_digest_mismatch: Configured manifest digest {expected_manifest_digest} not found in image RepoDigests {repo_digests!r}", diagnostics
+        return (
+            False,
+            f"repo_digest_mismatch: Configured manifest digest {expected_manifest_digest} not found in image RepoDigests {repo_digests!r}",
+            diagnostics,
+        )
 
     # Check 4: Container's .Image must match the inspected image's configuration Id
     if container_image_id and image_config_id and container_image_id != image_config_id:
-        return False, f"image_config_id_mismatch: Container .Image {container_image_id!r} does not match inspected image config Id {image_config_id!r}", diagnostics
+        return (
+            False,
+            f"image_config_id_mismatch: Container .Image {container_image_id!r} does not match inspected image config Id {image_config_id!r}",
+            diagnostics,
+        )
 
     # Check 5: Image architecture and OS must match execution platform
     if image_os != "linux":
         return False, f"platform_os_mismatch: Image OS {image_os!r} is not 'linux'", diagnostics
 
-    valid_archs = (expected_platform_arch, "x86_64") if expected_platform_arch == "amd64" else (expected_platform_arch,)
+    valid_archs = (
+        (expected_platform_arch, "x86_64")
+        if expected_platform_arch == "amd64"
+        else (expected_platform_arch,)
+    )
     if image_arch not in valid_archs:
-        return False, f"platform_architecture_mismatch: Image architecture {image_arch!r} does not match execution platform {expected_platform_arch!r}", diagnostics
+        return (
+            False,
+            f"platform_architecture_mismatch: Image architecture {image_arch!r} does not match execution platform {expected_platform_arch!r}",
+            diagnostics,
+        )
 
     return True, None, diagnostics
 
@@ -1387,12 +1560,8 @@ class PythonSandboxRunner:
         image: str | None = None,
         image_digest: str | None = None,
     ) -> None:
-        self.timeout_seconds = min(
-            timeout_seconds, settings.PYTHON_SANDBOX_TIMEOUT_SECONDS
-        )
-        self.memory_limit_mb = min(
-            memory_limit_mb, settings.PYTHON_SANDBOX_MAX_MEMORY_MB
-        )
+        self.timeout_seconds = min(timeout_seconds, settings.PYTHON_SANDBOX_TIMEOUT_SECONDS)
+        self.memory_limit_mb = min(memory_limit_mb, settings.PYTHON_SANDBOX_MAX_MEMORY_MB)
         self.image_repo = settings.PYTHON_SANDBOX_IMAGE_REPO
         self.image = image or settings.PYTHON_SANDBOX_IMAGE
         self.image_digest = image_digest or settings.PYTHON_SANDBOX_IMAGE_DIGEST
@@ -1406,7 +1575,9 @@ class PythonSandboxRunner:
         if "@" in base_repo:
             base_repo = base_repo.split("@")[0]
         if not self.image_digest or not self.image_digest.startswith("sha256:"):
-            raise ValueError(f"Invalid image digest: {self.image_digest}. Immutable cryptographic digest required.")
+            raise ValueError(
+                f"Invalid image digest: {self.image_digest}. Immutable cryptographic digest required."
+            )
         return f"{base_repo}@{self.image_digest}"
 
     def verify_image_digest(self) -> bool:
@@ -1563,26 +1734,45 @@ class PythonSandboxRunner:
             # - Kernel PID namespace teardown on PID 1 exit
             cid_file = input_path / "container.cid"
             docker_cmd = [
-                "docker", "run",
-                "--cidfile", str(cid_file),
-                "--name", container_name,
-                "--label", "vibe.managed=true",
-                "--label", f"vibe.execution_id={container_name}",
-                "--label", f"vibe.created_at={created_ts}",
-                "--network", "none",
+                "docker",
+                "run",
+                "--cidfile",
+                str(cid_file),
+                "--name",
+                container_name,
+                "--label",
+                "vibe.managed=true",
+                "--label",
+                f"vibe.execution_id={container_name}",
+                "--label",
+                f"vibe.created_at={created_ts}",
+                "--network",
+                "none",
                 "--read-only",
-                "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m",
-                "--tmpfs", "/workspace:rw,nosuid,nodev,noexec,size=64m,nr_inodes=1024,uid=10001,gid=10001,mode=0700",
-                "--tmpfs", "/output:rw,nosuid,nodev,noexec,size=8m,nr_inodes=16,uid=10001,gid=10001,mode=0700",
-                "--memory", f"{self.memory_limit_mb}m",
-                "--memory-swap", f"{self.memory_limit_mb}m",
-                "--cpus", "1.0",
-                "--pids-limit", "32",
-                "--cap-drop", "ALL",
-                "--security-opt", "no-new-privileges:true",
-                "--entrypoint", "python",
-                "-v", f"{str(input_path)}:/input:ro",
-                "-w", "/workspace",
+                "--tmpfs",
+                "/tmp:rw,noexec,nosuid,size=64m",
+                "--tmpfs",
+                "/workspace:rw,nosuid,nodev,noexec,size=64m,nr_inodes=1024,uid=10001,gid=10001,mode=0700",
+                "--tmpfs",
+                "/output:rw,nosuid,nodev,noexec,size=8m,nr_inodes=16,uid=10001,gid=10001,mode=0700",
+                "--memory",
+                f"{self.memory_limit_mb}m",
+                "--memory-swap",
+                f"{self.memory_limit_mb}m",
+                "--cpus",
+                "1.0",
+                "--pids-limit",
+                "32",
+                "--cap-drop",
+                "ALL",
+                "--security-opt",
+                "no-new-privileges:true",
+                "--entrypoint",
+                "python",
+                "-v",
+                f"{str(input_path)}:/input:ro",
+                "-w",
+                "/workspace",
                 effective_image,
                 "/input/runner.py",
             ]
@@ -1654,7 +1844,11 @@ class PythonSandboxRunner:
                     pass
                 stop_and_remove_container(container_name, container_id=container_full_id)
                 shutil.rmtree(tmp_dir, ignore_errors=True)
-                err_category = "entrypoint_mismatch" if "entrypoint_mismatch" in (prov_err or "") else "image_provenance_mismatch"
+                err_category = (
+                    "entrypoint_mismatch"
+                    if "entrypoint_mismatch" in (prov_err or "")
+                    else "image_provenance_mismatch"
+                )
                 return SandboxExecutionResult(
                     status="failed",
                     execution_time_ms=0,
@@ -1700,11 +1894,17 @@ class PythonSandboxRunner:
             cleanup_error: str | None = None
 
             MAX_OUTPUT_BYTES = 5 * 1024 * 1024  # 5MB
-            MAX_STDERR_BYTES = 65536           # 64KB
+            MAX_STDERR_BYTES = 65536  # 64KB
             MAX_FLOOD_BYTES = 10 * 1024 * 1024  # 10MB
 
             def elect_and_trigger_overflow(reason: str) -> bool:
-                nonlocal overflow_claimed, flood_killed, stdout_overflow, stderr_overflow, cleanup_confirmed, cleanup_error
+                nonlocal \
+                    overflow_claimed, \
+                    flood_killed, \
+                    stdout_overflow, \
+                    stderr_overflow, \
+                    cleanup_confirmed, \
+                    cleanup_error
                 with election_lock:
                     if overflow_claimed:
                         return False
@@ -1721,7 +1921,9 @@ class PythonSandboxRunner:
                     proc.kill()
                 except Exception as e:
                     cleanup_error = f"kill_proc_err: {e}"
-                confirmed, err = stop_and_remove_container(container_name, grace_seconds=1, container_id=container_full_id)
+                confirmed, err = stop_and_remove_container(
+                    container_name, grace_seconds=1, container_id=container_full_id
+                )
                 cleanup_confirmed = confirmed
                 if err:
                     cleanup_error = f"{cleanup_error}; {err}" if cleanup_error else err
@@ -1787,7 +1989,9 @@ class PythonSandboxRunner:
                     proc.kill()
                 except Exception as e:
                     cleanup_error = f"kill_proc_err: {e}"
-                confirmed, err = stop_and_remove_container(container_name, container_id=container_full_id)
+                confirmed, err = stop_and_remove_container(
+                    container_name, container_id=container_full_id
+                )
                 cleanup_confirmed = confirmed
                 if err:
                     cleanup_error = f"{cleanup_error}; {err}" if cleanup_error else err
@@ -1815,7 +2019,9 @@ class PythonSandboxRunner:
 
             # Container has reached stopped state. Guarantee cleanup if not already confirmed.
             if not cleanup_confirmed:
-                confirmed, err = stop_and_remove_container(container_name, container_id=container_full_id)
+                confirmed, err = stop_and_remove_container(
+                    container_name, container_id=container_full_id
+                )
                 cleanup_confirmed = confirmed
                 if err:
                     cleanup_error = f"{cleanup_error}; {err}" if cleanup_error else err
@@ -1823,7 +2029,9 @@ class PythonSandboxRunner:
             duration_ms = int((time.perf_counter() - start_time) * 1000)
             stdout_raw = b"".join(stdout_chunks)
             stdout_text = stdout_raw.decode("utf-8", errors="replace")
-            stderr_text = b"".join(stderr_chunks)[:MAX_STDERR_BYTES].decode("utf-8", errors="replace")
+            stderr_text = b"".join(stderr_chunks)[:MAX_STDERR_BYTES].decode(
+                "utf-8", errors="replace"
+            )
 
             # FAIL-CLOSED CHECK: If container removal cannot be confirmed, execution MUST fail!
             if not cleanup_confirmed:
@@ -1895,9 +2103,15 @@ class PythonSandboxRunner:
 
             if proc.returncode != 0:
                 err_code = 137 if proc.returncode in (137, -9) else proc.returncode
-                err_msg = stderr_text.strip().splitlines()[-1] if stderr_text.strip() else f"Container exited with code {err_code}"
+                err_msg = (
+                    stderr_text.strip().splitlines()[-1]
+                    if stderr_text.strip()
+                    else f"Container exited with code {err_code}"
+                )
                 if err_code == 137:
-                    err_msg = "Container terminated (OOM or resource limit exceeded, exit code 137)."
+                    err_msg = (
+                        "Container terminated (OOM or resource limit exceeded, exit code 137)."
+                    )
 
                 return SandboxExecutionResult(
                     status="failed",
@@ -1976,7 +2190,9 @@ class PythonSandboxRunner:
 
         except Exception as exc:
             # Guarantee container cleanup on host exception
-            confirmed, err = stop_and_remove_container(container_name, container_id=container_full_id)
+            confirmed, err = stop_and_remove_container(
+                container_name, container_id=container_full_id
+            )
             duration_ms = int((time.perf_counter() - start_time) * 1000)
             return SandboxExecutionResult(
                 status="failed",
@@ -1997,7 +2213,9 @@ class PythonSandboxRunner:
             try:
                 target_cleanup = container_full_id or container_name
                 subprocess.run(["docker", "kill", target_cleanup], capture_output=True, timeout=5)
-                subprocess.run(["docker", "rm", "-f", target_cleanup], capture_output=True, timeout=5)
+                subprocess.run(
+                    ["docker", "rm", "-f", target_cleanup], capture_output=True, timeout=5
+                )
             except Exception:
                 pass
             shutil.rmtree(tmp_dir, ignore_errors=True)
@@ -2029,11 +2247,17 @@ class SandboxController:
     - In dev mode (WSL2), local Docker daemon interaction is mediated exclusively by this controller.
     """
 
-    def __init__(self, service_token: str | None = None, runner: PythonSandboxRunner | None = None) -> None:
-        self.service_token = service_token or getattr(settings, "SANDBOX_CONTROLLER_SECRET", "internal-secret")
+    def __init__(
+        self, service_token: str | None = None, runner: PythonSandboxRunner | None = None
+    ) -> None:
+        self.service_token = service_token or getattr(
+            settings, "SANDBOX_CONTROLLER_SECRET", "internal-secret"
+        )
         self.runner = runner or PythonSandboxRunner()
 
-    def execute(self, request: SandboxExecutionRequest, caller_token: str | None = None) -> SandboxExecutionResult:
+    def execute(
+        self, request: SandboxExecutionRequest, caller_token: str | None = None
+    ) -> SandboxExecutionResult:
         """Executes authorized request through server-side policy enforcement."""
         if caller_token and caller_token != self.service_token:
             return SandboxExecutionResult(
@@ -2062,9 +2286,13 @@ def reap_orphaned_sandbox_containers(
     try:
         res = subprocess.run(
             [
-                "docker", "ps", "-a",
-                "--filter", "label=vibe.managed=true",
-                "--format", "{{.ID}}|{{.CreatedAt}}|{{.Names}}|{{.Status}}",
+                "docker",
+                "ps",
+                "-a",
+                "--filter",
+                "label=vibe.managed=true",
+                "--format",
+                "{{.ID}}|{{.CreatedAt}}|{{.Names}}|{{.Status}}",
             ],
             capture_output=True,
             text=True,
@@ -2089,7 +2317,9 @@ def reap_orphaned_sandbox_containers(
                     subprocess.run(["docker", "rm", "-f", c_id], capture_output=True, timeout=5)
                     reaped += 1
                     vol_guess = c_name.replace("vibe-sandbox-", "vibe-out-")
-                    subprocess.run(["docker", "volume", "rm", "-f", vol_guess], capture_output=True, timeout=5)
+                    subprocess.run(
+                        ["docker", "volume", "rm", "-f", vol_guess], capture_output=True, timeout=5
+                    )
         return reaped
     except Exception as e:
         logger.warning(f"Error reaping orphaned sandbox containers: {e}")
@@ -2102,29 +2332,46 @@ def verify_sandbox_runtime_profile() -> dict[str, Any]:
     probe_name = f"vibe-probe-{os.urandom(4).hex()}"
     effective_image = runner.get_effective_image_ref()
     cmd = [
-        "docker", "run", "-d",
-        "--name", probe_name,
-        "--label", "vibe.managed=true",
-        "--network", "none",
+        "docker",
+        "run",
+        "-d",
+        "--name",
+        probe_name,
+        "--label",
+        "vibe.managed=true",
+        "--network",
+        "none",
         "--read-only",
-        "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m",
-        "--tmpfs", "/workspace:rw,nosuid,nodev,size=64m,nr_inodes=1024,uid=10001,gid=10001,mode=0700",
-        "--tmpfs", "/output:rw,nosuid,nodev,noexec,size=8m,nr_inodes=16,uid=10001,gid=10001,mode=0700",
-        "--memory", "256m",
-        "--memory-swap", "256m",
-        "--cpus", "1.0",
-        "--pids-limit", "32",
-        "--cap-drop", "ALL",
-        "--security-opt", "no-new-privileges:true",
+        "--tmpfs",
+        "/tmp:rw,noexec,nosuid,size=64m",
+        "--tmpfs",
+        "/workspace:rw,nosuid,nodev,size=64m,nr_inodes=1024,uid=10001,gid=10001,mode=0700",
+        "--tmpfs",
+        "/output:rw,nosuid,nodev,noexec,size=8m,nr_inodes=16,uid=10001,gid=10001,mode=0700",
+        "--memory",
+        "256m",
+        "--memory-swap",
+        "256m",
+        "--cpus",
+        "1.0",
+        "--pids-limit",
+        "32",
+        "--cap-drop",
+        "ALL",
+        "--security-opt",
+        "no-new-privileges:true",
         effective_image,
-        "sleep", "5",
+        "sleep",
+        "5",
     ]
     try:
         run_res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
         if run_res.returncode != 0:
             return {"status": "failed", "error": run_res.stderr}
 
-        insp_res = subprocess.run(["docker", "inspect", probe_name], capture_output=True, text=True, timeout=5)
+        insp_res = subprocess.run(
+            ["docker", "inspect", probe_name], capture_output=True, text=True, timeout=5
+        )
         subprocess.run(["docker", "rm", "-f", probe_name], capture_output=True, timeout=5)
 
         if insp_res.returncode != 0:
@@ -2165,4 +2412,3 @@ def verify_sandbox_runtime_profile() -> dict[str, Any]:
     except Exception as exc:
         subprocess.run(["docker", "rm", "-f", probe_name], capture_output=True, timeout=5)
         return {"status": "error", "message": str(exc)}
-

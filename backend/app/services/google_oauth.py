@@ -36,6 +36,7 @@ GOOGLE_USERINFO_ENDPOINT = "https://www.googleapis.com/oauth2/v2/userinfo"
 GOOGLE_DRIVE_FILES_ENDPOINT = "https://www.googleapis.com/drive/v3/files"
 GOOGLE_SHEETS_BASE_ENDPOINT = "https://sheets.googleapis.com/v4/spreadsheets"
 
+
 def get_required_google_scopes() -> list[str]:
     """Returns exact Google OAuth 2.0 scopes, allowing selection of drive.file vs drive.readonly."""
     drive_scope = (
@@ -188,7 +189,9 @@ class GoogleOAuthService:
             aad = str(organization_id).encode("utf-8")
             encrypted_access = encrypt_integration_token(raw_access_token, associated_data=aad)
             encrypted_refresh = (
-                encrypt_integration_token(raw_refresh_token, associated_data=aad) if raw_refresh_token else None
+                encrypt_integration_token(raw_refresh_token, associated_data=aad)
+                if raw_refresh_token
+                else None
             )
 
             existing = await self.repo.get_by_provider(organization_id, "google")
@@ -223,22 +226,27 @@ class GoogleOAuthService:
     async def get_valid_access_token(self, integration: ExternalIntegration) -> str:
         """Decrypt access token, refreshing automatically via refresh token if nearing expiration."""
         now = datetime.now(UTC)
-        is_expired = (
-            integration.token_expires_at is not None
-            and integration.token_expires_at <= (now + timedelta(seconds=60))
+        is_expired = integration.token_expires_at is not None and integration.token_expires_at <= (
+            now + timedelta(seconds=60)
         )
 
         aad = str(integration.organization_id).encode("utf-8")
         if not is_expired:
-            return decrypt_integration_token(integration.encrypted_access_token, associated_data=aad)
+            return decrypt_integration_token(
+                integration.encrypted_access_token, associated_data=aad
+            )
 
         # Token is expired; attempt refresh
         if not integration.encrypted_refresh_token:
             integration.status = "expired"
             await self.session.flush()
-            raise ValidationError("Google integration token expired and no refresh token available. Reconnect account.")
+            raise ValidationError(
+                "Google integration token expired and no refresh token available. Reconnect account."
+            )
 
-        refresh_token = decrypt_integration_token(integration.encrypted_refresh_token, associated_data=aad)
+        refresh_token = decrypt_integration_token(
+            integration.encrypted_refresh_token, associated_data=aad
+        )
         client_id = settings.GOOGLE_CLIENT_ID or "mock-client-id.apps.googleusercontent.com"
         client_secret = settings.GOOGLE_CLIENT_SECRET or "mock-client-secret"
 
@@ -265,16 +273,16 @@ class GoogleOAuthService:
                 expires_in = int(data.get("expires_in", 3600))
                 new_expires_at = now + timedelta(seconds=expires_in)
 
-        integration.encrypted_access_token = encrypt_integration_token(new_access_token, associated_data=aad)
+        integration.encrypted_access_token = encrypt_integration_token(
+            new_access_token, associated_data=aad
+        )
         integration.token_expires_at = new_expires_at
         integration.status = "active"
         integration.last_used_at = now
         await self.session.flush()
         return new_access_token
 
-    async def disconnect(
-        self, integration_id: uuid.UUID, organization_id: uuid.UUID
-    ) -> bool:
+    async def disconnect(self, integration_id: uuid.UUID, organization_id: uuid.UUID) -> bool:
         """Revoke Google credentials if possible and remove integration."""
         integration = await self.repo.get_by_id(integration_id, organization_id)
         if not integration:
@@ -282,7 +290,9 @@ class GoogleOAuthService:
 
         aad = str(organization_id).encode("utf-8")
         try:
-            token = decrypt_integration_token(integration.encrypted_access_token, associated_data=aad)
+            token = decrypt_integration_token(
+                integration.encrypted_access_token, associated_data=aad
+            )
             if not token.startswith("mock_"):
                 async with httpx.AsyncClient(timeout=5.0) as client:
                     await client.post(GOOGLE_REVOKE_ENDPOINT, params={"token": token})
@@ -307,9 +317,21 @@ class GoogleOAuthService:
 
         if access_token.startswith("mock_"):
             return [
-                GoogleSpreadsheetItem(id="mock_sheet_1", name="Quarterly Financials 2026", modified_time="2026-10-15T12:00:00Z"),
-                GoogleSpreadsheetItem(id="mock_sheet_2", name="Marketing Campaign Performance", modified_time="2026-10-20T14:30:00Z"),
-                GoogleSpreadsheetItem(id="mock_sheet_3", name="Customer Churn & Retention Model", modified_time="2026-10-28T09:15:00Z"),
+                GoogleSpreadsheetItem(
+                    id="mock_sheet_1",
+                    name="Quarterly Financials 2026",
+                    modified_time="2026-10-15T12:00:00Z",
+                ),
+                GoogleSpreadsheetItem(
+                    id="mock_sheet_2",
+                    name="Marketing Campaign Performance",
+                    modified_time="2026-10-20T14:30:00Z",
+                ),
+                GoogleSpreadsheetItem(
+                    id="mock_sheet_3",
+                    name="Customer Churn & Retention Model",
+                    modified_time="2026-10-28T09:15:00Z",
+                ),
             ]
 
         query = "mimeType='application/vnd.google-apps.spreadsheet' and trashed=false"
@@ -356,8 +378,12 @@ class GoogleOAuthService:
                 title="Mock Spreadsheet Model",
                 sheets=[
                     GoogleSheetTabItem(sheet_id=0, title="Summary", row_count=100, column_count=10),
-                    GoogleSheetTabItem(sheet_id=1, title="Revenue Details", row_count=500, column_count=15),
-                    GoogleSheetTabItem(sheet_id=2, title="Raw Data", row_count=2000, column_count=8),
+                    GoogleSheetTabItem(
+                        sheet_id=1, title="Revenue Details", row_count=500, column_count=15
+                    ),
+                    GoogleSheetTabItem(
+                        sheet_id=2, title="Raw Data", row_count=2000, column_count=8
+                    ),
                 ],
             )
 
@@ -434,9 +460,7 @@ class GoogleOAuthService:
 
             raw_data = res.json()
             raw_values = raw_data.get("values", [])
-            values: list[list[Any]] = [
-                row if isinstance(row, list) else [] for row in raw_values
-            ]
+            values: list[list[Any]] = [row if isinstance(row, list) else [] for row in raw_values]
             max_cols = max((len(row) for row in values), default=0)
             return GoogleSpreadsheetValuesResponse(
                 spreadsheet_id=external_spreadsheet_id,
@@ -511,9 +535,7 @@ class GoogleOAuthService:
             "properties": {"title": title},
         }
         if sheet_titles:
-            payload["sheets"] = [
-                {"properties": {"title": st}} for st in sheet_titles
-            ]
+            payload["sheets"] = [{"properties": {"title": st}} for st in sheet_titles]
 
         async with httpx.AsyncClient(timeout=15.0) as client:
             res = await client.post(

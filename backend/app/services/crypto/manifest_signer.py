@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import (
@@ -25,7 +25,7 @@ class ManifestSecurityError(Exception):
     """Raised when manifest canonicalization, signing, or verification fails."""
 
 
-def canonicalize_json(data: Dict[str, Any]) -> bytes:
+def canonicalize_json(data: dict[str, Any]) -> bytes:
     """Serialize dictionary into deterministic RFC 8785 JCS canonical JSON bytes."""
     # JSON Canonicalization Scheme (RFC 8785):
     # - Lexicographic UTF-16 code unit key ordering
@@ -70,13 +70,19 @@ class ManifestSigner:
             if len(raw_key_bytes) == 32:
                 return Ed25519PublicKey.from_public_bytes(raw_key_bytes)
             elif len(raw_key_bytes.strip()) == 64:
-                return Ed25519PublicKey.from_public_bytes(bytes.fromhex(raw_key_bytes.strip().decode("ascii")))
+                return Ed25519PublicKey.from_public_bytes(
+                    bytes.fromhex(raw_key_bytes.strip().decode("ascii"))
+                )
             else:
                 return Ed25519PublicKey.from_public_bytes(raw_key_bytes)
         except Exception as e:
-            raise ManifestSecurityError(f"Malformed public key in trusted registry for '{safe_key_id}': {e}") from e
+            raise ManifestSecurityError(
+                f"Malformed public key in trusted registry for '{safe_key_id}': {e}"
+            ) from e
 
-    def sign_manifest(self, manifest_dict: Dict[str, Any], private_key: Ed25519PrivateKey) -> Dict[str, Any]:
+    def sign_manifest(
+        self, manifest_dict: dict[str, Any], private_key: Ed25519PrivateKey
+    ) -> dict[str, Any]:
         """Sign canonical payload (excluding 'signature') and return updated dictionary."""
         # Ensure signing_key_id is present and valid
         key_id = manifest_dict.get("signing_key_id")
@@ -92,7 +98,7 @@ class ManifestSigner:
         payload["signature"] = sig_bytes.hex()
         return payload
 
-    def verify_manifest(self, manifest_dict: Dict[str, Any]) -> bytes:
+    def verify_manifest(self, manifest_dict: dict[str, Any]) -> bytes:
         """Verify Ed25519 signature against trusted registry. Returns canonical signed bytes."""
         # 1. Reject self-asserted or embedded public keys
         if "public_key" in manifest_dict or "signing_public_key" in manifest_dict:
@@ -125,7 +131,8 @@ class ManifestSigner:
         try:
             public_key.verify(sig_bytes, canonical_bytes)
         except InvalidSignature as e:
-            raise ManifestSecurityError("Ed25519 signature verification failed: manifest tampered or wrong key.") from e
+            raise ManifestSecurityError(
+                "Ed25519 signature verification failed: manifest tampered or wrong key."
+            ) from e
 
         return canonical_bytes
-

@@ -10,20 +10,15 @@ Validates:
 
 from __future__ import annotations
 
-import copy
-import hashlib
-import json
 import secrets
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
-from unittest.mock import patch
 
 import polars as pl
 import pytest
-from sqlalchemy import select, text
-from sqlalchemy.exc import DBAPIError, IntegrityError
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
@@ -33,32 +28,23 @@ from app.core.exceptions import (
     CrossTenantAccessError,
     EntityNotFoundError,
     ForbiddenError,
-    ValidationError,
 )
 from app.db.base import utc_now
-from app.models.analytics import AnalyticsJob, AnalyticsResult
 from app.models.dashboard import Dashboard, DashboardWidget
 from app.models.membership import OrganizationMembership
 from app.models.organization import Organization
 from app.models.permission import Permission
 from app.models.report import (
-    ReportDefinition,
     ReportOutboxEvent,
     ReportRun,
     ReportRunStatus,
-    ReportSection,
 )
-from app.models.role import MembershipRole, OrganizationRole
+from app.models.role import OrganizationRole
 from app.models.spreadsheet import Sheet, Workbook
 from app.models.user import User
 from app.models.workspace import Workspace
-from app.repositories.analytics import AnalyticsResultRepository
-from app.repositories.membership import MembershipRepository
 from app.repositories.report import (
-    ReportDefinitionRepository,
-    ReportOutboxRepository,
     ReportRunRepository,
-    ReportSectionRepository,
 )
 from app.repositories.role import RoleRepository
 from app.schemas.report import (
@@ -66,7 +52,6 @@ from app.schemas.report import (
     ReportRunTriggerInput,
     ReportSectionCreateInput,
 )
-from app.services.permission import PermissionService
 from app.services.report import ReportService
 from app.services.report_snapshot import (
     ReportSnapshotService,
@@ -75,8 +60,7 @@ from app.services.report_snapshot import (
 )
 from app.services.report_storage import ReportStorageService
 from app.services.role import RoleService
-from app.tasks.dispatcher import OutboxDispatcher, ReportingOutboxDispatcher
-from app.tasks.reporting import _execute_report_run_async
+from app.tasks.dispatcher import ReportingOutboxDispatcher
 
 
 @pytest.fixture
@@ -663,6 +647,7 @@ async def test_correction_e_snapshot_truncation_capacity_and_staging_cleanup(
 
     # Insert sheet rows (row 0 is header, rows 1..10 are data)
     from app.models.spreadsheet import SheetRow
+
     db_session.add(
         SheetRow(
             sheet_id=sheet.id,

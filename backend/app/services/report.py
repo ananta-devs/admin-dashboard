@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 import logging
 import uuid
 from collections.abc import Sequence
@@ -78,7 +77,9 @@ class ReportService:
         if membership_id or user_id:
             resolved_mem_id = membership_id
             if not resolved_mem_id and user_id:
-                mem = await self.membership_repo.get(organization_id=organization_id, user_id=user_id)
+                mem = await self.membership_repo.get(
+                    organization_id=organization_id, user_id=user_id
+                )
                 if mem:
                     resolved_mem_id = mem.id
             if resolved_mem_id:
@@ -125,6 +126,7 @@ class ReportService:
         definition = await self.def_repo.get_by_id(id, organization_id)
         if not definition:
             from sqlalchemy import select
+
             global_stmt = select(ReportDefinition).where(ReportDefinition.id == id)
             other_def = (await self.session.execute(global_stmt)).scalar_one_or_none()
             if other_def and other_def.organization_id != organization_id:
@@ -308,9 +310,7 @@ class ReportService:
             )
         return reordered
 
-    async def delete_section(
-        self, section_id: uuid.UUID, organization_id: uuid.UUID
-    ) -> bool:
+    async def delete_section(self, section_id: uuid.UUID, organization_id: uuid.UUID) -> bool:
         async with transaction(self.session):
             deleted = await self.section_repo.delete(section_id, organization_id)
             if not deleted:
@@ -342,7 +342,9 @@ class ReportService:
         if membership_id or user_id:
             resolved_mem_id = membership_id
             if not resolved_mem_id and user_id:
-                mem = await self.membership_repo.get(organization_id=organization_id, user_id=user_id)
+                mem = await self.membership_repo.get(
+                    organization_id=organization_id, user_id=user_id
+                )
                 if mem:
                     resolved_mem_id = mem.id
             if resolved_mem_id:
@@ -377,7 +379,10 @@ class ReportService:
                     run_id=created_run.id,
                     organization_id=organization_id,
                     event_type="report.run.dispatched",
-                    payload={"run_id": str(created_run.id), "organization_id": str(organization_id)},
+                    payload={
+                        "run_id": str(created_run.id),
+                        "organization_id": str(organization_id),
+                    },
                 )
                 await self.outbox_repo.create_event(outbox_event)
 
@@ -390,9 +395,7 @@ class ReportService:
                 return existing_run
             raise
 
-    async def get_report_run(
-        self, run_id: uuid.UUID, organization_id: uuid.UUID
-    ) -> ReportRun:
+    async def get_report_run(self, run_id: uuid.UUID, organization_id: uuid.UUID) -> ReportRun:
         run = await self.run_repo.get_by_id(run_id, organization_id)
         if not run:
             raise EntityNotFoundError("ReportRun", str(run_id))
@@ -409,4 +412,3 @@ class ReportService:
         return await self.run_repo.list_by_definition_paginated(
             report_definition_id, organization_id, limit=limit, offset=offset
         )
-

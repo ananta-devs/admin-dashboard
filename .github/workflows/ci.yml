@@ -38,17 +38,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.14
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.14"
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: backend/requirements.lock
 
-      - name: Install Locked Dependencies
+      - name: Install Dependencies
         run: |
           cd backend
           python -m pip install --upgrade pip
           pip install -r requirements.lock
-          pip install ruff mypy
+          pip install ruff mypy types-defusedxml
 
       - name: Run Ruff Linter & Formatter Check
         run: |
@@ -60,6 +62,10 @@ jobs:
         run: |
           cd backend
           mypy app --explicit-package-bases
+
+      - name: Initialize PostgreSQL Databases
+        run: |
+          python -c "import psycopg; conn = psycopg.connect('postgresql://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise', autocommit=True); conn.execute('CREATE DATABASE vibe_enterprise_test;') if not conn.execute(\"SELECT 1 FROM pg_database WHERE datname='vibe_enterprise_test'\").fetchone() else None"
 
       - name: Run Database Migrations
         env:
@@ -76,6 +82,8 @@ jobs:
       - name: Run Integration Tests
         env:
           DATABASE_URL: postgresql+asyncpg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise
+          DATABASE_TEST_URL: postgresql+asyncpg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise_test
+          DATABASE_SYNC_URL: postgresql+psycopg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise
           REDIS_URL: redis://:dev_secret_redis_pass_change_in_prod@127.0.0.1:6379/0
         run: |
           cd backend
@@ -116,6 +124,10 @@ jobs:
           npx vitest run
 
       - name: Build Next.js
+        env:
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          BACKEND_INTERNAL_URL: http://127.0.0.1:8000
+          NEXT_PUBLIC_API_URL: http://localhost:3000/api/v1
         run: |
           cd frontend
           npm run build

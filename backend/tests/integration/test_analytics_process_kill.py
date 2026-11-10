@@ -78,8 +78,10 @@ async def create_test_context(api_client: AsyncClient, db_session: AsyncSession,
 
     # Populate sheet with 600 rows (in 2 batches of 300 to respect 500 batch limit)
     # to ensure Parquet result artifact generation (>500 rows)
-    row_updates_1 = [CellEditInput(cell_ref=f"A{i+1}", value=float(i * 1.5)) for i in range(300)]
-    row_updates_2 = [CellEditInput(cell_ref=f"A{i+301}", value=float((i + 300) * 1.5)) for i in range(300)]
+    row_updates_1 = [CellEditInput(cell_ref=f"A{i + 1}", value=float(i * 1.5)) for i in range(300)]
+    row_updates_2 = [
+        CellEditInput(cell_ref=f"A{i + 301}", value=float((i + 300) * 1.5)) for i in range(300)
+    ]
     await spreadsheet_svc.update_cells_batch(
         sheet_id=sheets[0].id,
         organization_id=org_id,
@@ -97,7 +99,9 @@ async def create_test_context(api_client: AsyncClient, db_session: AsyncSession,
     return org_id, ws.id, wb.id, sheets[0].id, user_id, csrf_token
 
 
-def _spawn_worker_process(job_id: uuid.UUID, crash_stage: str | None = None) -> tuple[int, str, str]:
+def _spawn_worker_process(
+    job_id: uuid.UUID, crash_stage: str | None = None
+) -> tuple[int, str, str]:
     """Launch real independent OS process executing the analytics worker task."""
     env = os.environ.copy()
     env["PYTHONPATH"] = str(Path("backend").resolve())
@@ -137,7 +141,9 @@ async def _create_queued_job(
         source_sheet_id=sheet_id,
         requested_by_user_id=user_id,
         operation_id=operation_id,
-        parameters={"filters": [{"column": "A", "operator": "greater_than_or_equal", "value": 0.0}]},
+        parameters={
+            "filters": [{"column": "A", "operator": "greater_than_or_equal", "value": 0.0}]
+        },
         status=AnalyticsJobStatus.QUEUED,
         attempt_count=0,
         max_attempts=3,
@@ -150,12 +156,14 @@ async def _create_queued_job(
 
 async def get_fresh_job(job_id: uuid.UUID) -> AnalyticsJob:
     from app.db.session import async_session_maker
+
     async with async_session_maker() as session:
         return await AnalyticsJobRepository(session).get_by_id(job_id)
 
 
 async def get_fresh_result(job_id: uuid.UUID, org_id: uuid.UUID) -> AnalyticsResult | None:
     from app.db.session import async_session_maker
+
     async with async_session_maker() as session:
         return await AnalyticsResultRepository(session).get_by_job_id_scoped(job_id, org_id)
 
@@ -165,7 +173,9 @@ async def test_crash_stage_1_during_snapshot_extraction(
     api_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     """Stage 1: Process killed during snapshot extraction (before DB commit)."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "kill_s1")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "kill_s1"
+    )
     job = await _create_queued_job(db_session, org_id, ws_id, wb_id, sheet_id, user_id)
 
     code, stdout, stderr = _spawn_worker_process(job.id, "STAGE_1_SNAPSHOT_EXTRACT")
@@ -185,7 +195,9 @@ async def test_crash_stage_2_after_snapshot_commit(
     api_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     """Stage 2: Process killed between snapshot DB commit and task dispatch/execution."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "kill_s2")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "kill_s2"
+    )
     job = await _create_queued_job(db_session, org_id, ws_id, wb_id, sheet_id, user_id)
 
     code, stdout, stderr = _spawn_worker_process(job.id, "STAGE_2_AFTER_SNAPSHOT_COMMIT")
@@ -205,7 +217,9 @@ async def test_crash_stage_3_before_claim(
     api_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     """Stage 3: Process killed before worker claim transaction."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "kill_s3")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "kill_s3"
+    )
     job = await _create_queued_job(db_session, org_id, ws_id, wb_id, sheet_id, user_id)
 
     code, stdout, stderr = _spawn_worker_process(job.id, "STAGE_3_BEFORE_CLAIM")
@@ -222,7 +236,9 @@ async def test_crash_stage_4_during_claim(
     api_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     """Stage 4: Process killed during worker claim transaction."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "kill_s4")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "kill_s4"
+    )
     job = await _create_queued_job(db_session, org_id, ws_id, wb_id, sheet_id, user_id)
 
     code, stdout, stderr = _spawn_worker_process(job.id, "STAGE_4_DURING_CLAIM")
@@ -239,7 +255,9 @@ async def test_crash_stage_5_before_heartbeat(
     api_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     """Stage 5: Process killed after claim, before heartbeat thread starts."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "kill_s5")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "kill_s5"
+    )
     job = await _create_queued_job(db_session, org_id, ws_id, wb_id, sheet_id, user_id)
 
     code, stdout, stderr = _spawn_worker_process(job.id, "STAGE_5_BEFORE_HEARTBEAT")
@@ -256,7 +274,9 @@ async def test_crash_stage_6_during_compute(
     api_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     """Stage 6: Process killed during Polars analytical computation."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "kill_s6")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "kill_s6"
+    )
     job = await _create_queued_job(db_session, org_id, ws_id, wb_id, sheet_id, user_id)
 
     code, stdout, stderr = _spawn_worker_process(job.id, "STAGE_6_DURING_COMPUTE")
@@ -275,7 +295,9 @@ async def test_crash_stage_7_during_parquet_write(
     api_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     """Stage 7: Process killed during Parquet write to temp path."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "kill_s7")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "kill_s7"
+    )
     job = await _create_queued_job(db_session, org_id, ws_id, wb_id, sheet_id, user_id)
 
     code, stdout, stderr = _spawn_worker_process(job.id, "STAGE_7_DURING_PARQUET_WRITE")
@@ -294,7 +316,9 @@ async def test_crash_stage_8_before_promote(
     api_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     """Stage 8: Process killed between temp Parquet write and atomic promotion."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "kill_s8")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "kill_s8"
+    )
     job = await _create_queued_job(db_session, org_id, ws_id, wb_id, sheet_id, user_id)
 
     code, stdout, stderr = _spawn_worker_process(job.id, "STAGE_8_BEFORE_PROMOTE")
@@ -313,7 +337,9 @@ async def test_crash_stage_9_before_db_commit(
     api_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     """Stage 9: Process killed between atomic promotion and DB result commit."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "kill_s9")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "kill_s9"
+    )
     job = await _create_queued_job(db_session, org_id, ws_id, wb_id, sheet_id, user_id)
 
     code, stdout, stderr = _spawn_worker_process(job.id, "STAGE_9_BEFORE_DB_COMMIT")
@@ -331,7 +357,9 @@ async def test_crash_stage_10_during_db_commit(
     api_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     """Stage 10: Process killed during DB result commit transaction."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "kill_s10")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "kill_s10"
+    )
     job = await _create_queued_job(db_session, org_id, ws_id, wb_id, sheet_id, user_id)
 
     code, stdout, stderr = _spawn_worker_process(job.id, "STAGE_10_DURING_DB_COMMIT")
@@ -349,7 +377,9 @@ async def test_crash_stage_11_after_db_commit(
     api_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     """Stage 11: Process killed between DB result commit and outbox completion."""
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "kill_s11")
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "kill_s11"
+    )
     job = await _create_queued_job(db_session, org_id, ws_id, wb_id, sheet_id, user_id)
 
     code, stdout, stderr = _spawn_worker_process(job.id, "STAGE_11_AFTER_DB_COMMIT")
@@ -372,7 +402,9 @@ async def test_crash_stage_12_during_publishing_rollback(
     api_client: AsyncClient, db_session: AsyncSession
 ) -> None:
     """Stage 12: Process killed during publishing between sheet creation and cell write."""
-    org_id, ws_id, wb_id, sheet_id, user_id, csrf_token = await create_test_context(api_client, db_session, "kill_s12")
+    org_id, ws_id, wb_id, sheet_id, user_id, csrf_token = await create_test_context(
+        api_client, db_session, "kill_s12"
+    )
 
     # Create succeeded job and result
     job = await _create_queued_job(db_session, org_id, ws_id, wb_id, sheet_id, user_id)
@@ -419,7 +451,9 @@ asyncio.run(run())
     env["PYTHONPATH"] = str(Path("backend").resolve())
     env["VIBE_CRASH_STAGE"] = "STAGE_12_DURING_PUBLISH"
 
-    proc = subprocess.Popen([sys.executable, "-c", script], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        [sys.executable, "-c", script], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     stdout, stderr = proc.communicate(timeout=30)
     assert proc.returncode == 99
 
@@ -436,7 +470,10 @@ async def test_watchdog_recovers_dead_worker_and_second_worker_succeeds(
 ) -> None:
     """Verifies that when a worker process dies abruptly, watchdog recovers the lease and a second worker executes cleanly."""
     from app.db.session import async_session_maker
-    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(api_client, db_session, "kill_watchdog")
+
+    org_id, ws_id, wb_id, sheet_id, user_id, _ = await create_test_context(
+        api_client, db_session, "kill_watchdog"
+    )
     job = await _create_queued_job(db_session, org_id, ws_id, wb_id, sheet_id, user_id)
 
     # Worker 1 crashes at Stage 6 (during computation)
@@ -457,6 +494,7 @@ async def test_watchdog_recovers_dead_worker_and_second_worker_succeeds(
 
         # Run watchdog lease recovery
         from app.tasks.dispatcher import OutboxDispatcher
+
         dispatcher = OutboxDispatcher()
         await dispatcher.recover_stale_leases()
 

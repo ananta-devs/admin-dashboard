@@ -68,30 +68,46 @@ class WorkspaceRepository:
     ) -> dict[str, int]:
         """Count active dependent resources associated with this workspace within the organization."""
         # Dashboards
-        dash_stmt = select(func.count()).select_from(Dashboard).where(
-            Dashboard.workspace_id == workspace_id,
-            Dashboard.organization_id == organization_id,
+        dash_stmt = (
+            select(func.count())
+            .select_from(Dashboard)
+            .where(
+                Dashboard.workspace_id == workspace_id,
+                Dashboard.organization_id == organization_id,
+            )
         )
         dash_count = (await self.session.execute(dash_stmt)).scalar() or 0
 
         # Workbooks
-        wb_stmt = select(func.count()).select_from(Workbook).where(
-            Workbook.workspace_id == workspace_id,
-            Workbook.organization_id == organization_id,
+        wb_stmt = (
+            select(func.count())
+            .select_from(Workbook)
+            .where(
+                Workbook.workspace_id == workspace_id,
+                Workbook.organization_id == organization_id,
+            )
         )
         wb_count = (await self.session.execute(wb_stmt)).scalar() or 0
 
         # Analytics Jobs
-        job_stmt = select(func.count()).select_from(AnalyticsJob).where(
-            AnalyticsJob.workspace_id == workspace_id,
-            AnalyticsJob.organization_id == organization_id,
+        job_stmt = (
+            select(func.count())
+            .select_from(AnalyticsJob)
+            .where(
+                AnalyticsJob.workspace_id == workspace_id,
+                AnalyticsJob.organization_id == organization_id,
+            )
         )
         job_count = (await self.session.execute(job_stmt)).scalar() or 0
 
         # Report Definitions
-        rep_stmt = select(func.count()).select_from(ReportDefinition).where(
-            ReportDefinition.workspace_id == workspace_id,
-            ReportDefinition.organization_id == organization_id,
+        rep_stmt = (
+            select(func.count())
+            .select_from(ReportDefinition)
+            .where(
+                ReportDefinition.workspace_id == workspace_id,
+                ReportDefinition.organization_id == organization_id,
+            )
         )
         rep_count = (await self.session.execute(rep_stmt)).scalar() or 0
 

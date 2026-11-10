@@ -25,16 +25,35 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # 1. Add claim fencing and snapshot metadata columns to analytics_jobs
-    op.add_column("analytics_jobs", sa.Column("claim_token", postgresql.UUID(as_uuid=True), nullable=True))
-    op.add_column("analytics_jobs", sa.Column("claim_generation", sa.Integer(), nullable=False, server_default="0"))
-    op.add_column("analytics_jobs", sa.Column("snapshot_created_at", sa.DateTime(timezone=True), nullable=True))
-    op.add_column("analytics_jobs", sa.Column("snapshot_sheet_id", postgresql.UUID(as_uuid=True), nullable=True))
-    op.add_column("analytics_jobs", sa.Column("snapshot_sheet_version", sa.Integer(), nullable=True))
+    op.add_column(
+        "analytics_jobs", sa.Column("claim_token", postgresql.UUID(as_uuid=True), nullable=True)
+    )
+    op.add_column(
+        "analytics_jobs",
+        sa.Column("claim_generation", sa.Integer(), nullable=False, server_default="0"),
+    )
+    op.add_column(
+        "analytics_jobs",
+        sa.Column("snapshot_created_at", sa.DateTime(timezone=True), nullable=True),
+    )
+    op.add_column(
+        "analytics_jobs",
+        sa.Column("snapshot_sheet_id", postgresql.UUID(as_uuid=True), nullable=True),
+    )
+    op.add_column(
+        "analytics_jobs", sa.Column("snapshot_sheet_version", sa.Integer(), nullable=True)
+    )
     op.add_column("analytics_jobs", sa.Column("snapshot_row_count", sa.Integer(), nullable=True))
     op.add_column("analytics_jobs", sa.Column("snapshot_col_count", sa.Integer(), nullable=True))
-    op.add_column("analytics_jobs", sa.Column("snapshot_checksum_sha256", sa.String(length=64), nullable=True))
-    op.add_column("analytics_jobs", sa.Column("snapshot_size_bytes", sa.BigInteger(), nullable=True))
-    op.add_column("analytics_jobs", sa.Column("snapshot_storage_id", sa.String(length=500), nullable=True))
+    op.add_column(
+        "analytics_jobs", sa.Column("snapshot_checksum_sha256", sa.String(length=64), nullable=True)
+    )
+    op.add_column(
+        "analytics_jobs", sa.Column("snapshot_size_bytes", sa.BigInteger(), nullable=True)
+    )
+    op.add_column(
+        "analytics_jobs", sa.Column("snapshot_storage_id", sa.String(length=500), nullable=True)
+    )
 
     op.create_index(
         "ix_analytics_jobs_claim_token",
@@ -44,9 +63,17 @@ def upgrade() -> None:
     )
 
     # 2. Add published sheet and publish idempotency columns to analytics_results
-    op.add_column("analytics_results", sa.Column("published_sheet_id", postgresql.UUID(as_uuid=True), nullable=True))
-    op.add_column("analytics_results", sa.Column("published_sheet_name", sa.String(length=255), nullable=True))
-    op.add_column("analytics_results", sa.Column("publish_idempotency_key", sa.String(length=100), nullable=True))
+    op.add_column(
+        "analytics_results",
+        sa.Column("published_sheet_id", postgresql.UUID(as_uuid=True), nullable=True),
+    )
+    op.add_column(
+        "analytics_results", sa.Column("published_sheet_name", sa.String(length=255), nullable=True)
+    )
+    op.add_column(
+        "analytics_results",
+        sa.Column("publish_idempotency_key", sa.String(length=100), nullable=True),
+    )
 
     op.create_index(
         "ix_analytics_results_published_sheet_id",

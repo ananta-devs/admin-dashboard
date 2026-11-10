@@ -383,5 +383,7 @@ async def get_storage_usage(
         "usage_bytes": usage_bytes,
         "quota_bytes": quota_bytes,
         "available_bytes": max(0, quota_bytes - usage_bytes),
-        "utilization_percent": round((usage_bytes / quota_bytes) * 100, 2) if quota_bytes > 0 else 0.0,
+        "utilization_percent": round((usage_bytes / quota_bytes) * 100, 2)
+        if quota_bytes > 0
+        else 0.0,
     }

@@ -71,7 +71,9 @@ async def render_report(request: Request):
     sig = request.headers.get("X-Report-Signature") or request.headers.get("X-Renderer-Signature")
     ts_str = request.headers.get("X-Report-Timestamp")
     nonce = request.headers.get("X-Report-Nonce")
-    version = request.headers.get("X-Renderer-Signature-Version") or request.headers.get("X-Report-Signature-Version")
+    version = request.headers.get("X-Renderer-Signature-Version") or request.headers.get(
+        "X-Report-Signature-Version"
+    )
     tenant_id_hdr = request.headers.get("X-Tenant-Id")
     report_id_hdr = request.headers.get("X-Report-Id")
 
@@ -84,7 +86,9 @@ async def render_report(request: Request):
     if not version:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            content={"detail": "Missing signature version header (X-Renderer-Signature-Version required)"},
+            content={
+                "detail": "Missing signature version header (X-Renderer-Signature-Version required)"
+            },
         )
 
     try:
@@ -215,7 +219,9 @@ async def cancel_render(request: Request):
     sig = request.headers.get("X-Report-Signature") or request.headers.get("X-Renderer-Signature")
     ts_str = request.headers.get("X-Report-Timestamp")
     nonce = request.headers.get("X-Report-Nonce")
-    version = request.headers.get("X-Renderer-Signature-Version") or request.headers.get("X-Report-Signature-Version")
+    version = request.headers.get("X-Renderer-Signature-Version") or request.headers.get(
+        "X-Report-Signature-Version"
+    )
     tenant_id_hdr = request.headers.get("X-Tenant-Id")
     report_id_hdr = request.headers.get("X-Report-Id")
 
@@ -228,7 +234,9 @@ async def cancel_render(request: Request):
     if not version:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            content={"detail": "Missing signature version header (X-Renderer-Signature-Version required)"},
+            content={
+                "detail": "Missing signature version header (X-Renderer-Signature-Version required)"
+            },
         )
 
     try:

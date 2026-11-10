@@ -64,6 +64,7 @@ async def _execute_report_run_async(run_id_str: str, celery_task_id: str) -> dic
             from sqlalchemy import select
 
             from app.models.report import ReportRun
+
             stmt = select(ReportRun).where(ReportRun.id == run_id)
             res = await check_session.execute(stmt)
             existing = res.scalar_one_or_none()
@@ -86,11 +87,11 @@ async def _execute_report_run_async(run_id_str: str, celery_task_id: str) -> dic
         )
         await claim_session.commit()
 
-        if not claimed or run is None:
+        if not claimed or run is None or run.claim_token is None:
             logger.info("Run %s could not be claimed (already claimed or exhausted).", run_id)
             return {"status": "skipped", "reason": "not_claimable"}
 
-    claim_token = run.claim_token
+    claim_token: uuid.UUID = run.claim_token
     claim_generation = run.claim_generation
     org_id = run.organization_id
 
@@ -199,7 +200,9 @@ async def _execute_report_run_async(run_id_str: str, celery_task_id: str) -> dic
                     organization_id=str(org_id),
                     report_id=str(run.report_definition_id or ""),
                 )
-                raise LeaseExpiredError(f"Worker lease expired during PDF rendering for run {run_id}")
+                raise LeaseExpiredError(
+                    f"Worker lease expired during PDF rendering for run {run_id}"
+                )
 
             pdf_bytes, pdf_page_count, pdf_checksum, pdf_size_bytes = await render_task
 
@@ -258,7 +261,9 @@ async def _execute_report_run_async(run_id_str: str, celery_task_id: str) -> dic
                     run_id,
                     claim_generation,
                 )
-                storage.cleanup_generation_artifacts(org_id, run_id, claim_generation=claim_generation)
+                storage.cleanup_generation_artifacts(
+                    org_id, run_id, claim_generation=claim_generation
+                )
                 return {"status": "fenced_out", "run_id": str(run_id)}
 
         logger.info(

@@ -1,7 +1,7 @@
 """Unit tests for Phase 10 Stage 4 (Restore Validation) and Stage 5 (Retention & DR Probe)."""
 
 import unittest.mock as mock
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -12,7 +12,6 @@ from app.services.backup.restore_validator import (
 from app.services.backup.retention_engine import (
     BackupArtifactMetadata,
     RetentionEngine,
-    WalSegmentMetadata,
 )
 from app.services.backup.rpo_probe import DisasterRecoveryProbe, RpoProbeEngine
 
@@ -83,15 +82,17 @@ def test_restore_validator_catalog_inventory():
 
 def test_retention_engine_gfs_promotion_and_fail_closed_pruning():
     """Verify GFS promotion rules and fail-closed behavior on missing WAL."""
-    engine = RetentionEngine(daily_retention_days=14, weekly_retention_days=56, monthly_retention_days=365)
+    engine = RetentionEngine(
+        daily_retention_days=14, weekly_retention_days=56, monthly_retention_days=365
+    )
 
-    now = datetime(2026, 11, 4, 12, 0, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 11, 4, 12, 0, 0, tzinfo=UTC)
     # Sunday backup: 2026-11-01 was Sunday (weekday 6) and 1st of month
     sunday_backup = BackupArtifactMetadata(
         backup_id="b-001",
         artifact_id="art-001",
         backup_type="PHYSICAL_BASE",
-        created_at=datetime(2026, 11, 1, 2, 0, 0, tzinfo=timezone.utc),
+        created_at=datetime(2026, 11, 1, 2, 0, 0, tzinfo=UTC),
         start_lsn="0/10000000",
         stop_lsn="0/10000100",
         timeline_id=1,
@@ -110,7 +111,7 @@ def test_retention_engine_gfs_promotion_and_fail_closed_pruning():
     assert "MONTHLY" in sunday_backup.promoted_tiers
     # Retention must be 365 days
     assert sunday_backup.retention_expires_at is not None
-    assert sunday_backup.retention_expires_at > datetime(2027, 10, 1, tzinfo=timezone.utc)
+    assert sunday_backup.retention_expires_at > datetime(2027, 10, 1, tzinfo=UTC)
 
     # Test Fail-Closed Pruning: WAL segment missing from registry
     # Pruning must return [] (freeze pruning)
@@ -125,7 +126,7 @@ def test_rpo_probe_recoverability_evaluation():
 
     probe = DisasterRecoveryProbe(
         probe_id="p-001",
-        emitted_at=datetime.now(timezone.utc),
+        emitted_at=datetime.now(UTC),
         confirmed_commit_lsn="0/16000160",
         status="COMMITTED",
     )
@@ -148,7 +149,7 @@ def test_rpo_probe_recoverability_evaluation():
     # 3. Remote LSN covers probe commit LSN BUT chain is broken -> NOT RECOVERABLE
     probe_broken = DisasterRecoveryProbe(
         probe_id="p-002",
-        emitted_at=datetime.now(timezone.utc),
+        emitted_at=datetime.now(UTC),
         confirmed_commit_lsn="0/16000160",
         status="COMMITTED",
     )

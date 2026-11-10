@@ -14,9 +14,8 @@ from __future__ import annotations
 import io
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from app.services.backup.remote_storage import S3StorageAdapter, UploadResult
 from app.services.backup.wal_archiver import WalArchiverService
@@ -33,7 +32,7 @@ class WalDurableRecord:
     remote_version_id: str
     stage: str  # 6-stage lifecycle
     uploaded_at: datetime
-    verified_at: Optional[datetime] = None
+    verified_at: datetime | None = None
 
 
 class WalUploaderService:
@@ -48,19 +47,24 @@ class WalUploaderService:
         self.spool_dir = Path(spool_dir).resolve()
         self.storage = storage_adapter
         self.cipher = cipher_service
-        self.registry: Dict[str, WalDurableRecord] = {}
+        self.registry: dict[str, WalDurableRecord] = {}
 
-    def discover_pending_segments(self) -> List[Path]:
+    def discover_pending_segments(self) -> list[Path]:
         """Find local segments not yet marked REMOTELY_VERIFIED."""
         pending = []
         if self.spool_dir.exists():
             for p in sorted(self.spool_dir.iterdir()):
                 if p.is_file() and not p.name.startswith("."):
-                    if p.name not in self.registry or self.registry[p.name].stage != "RECOVERY_AVAILABLE":
+                    if (
+                        p.name not in self.registry
+                        or self.registry[p.name].stage != "RECOVERY_AVAILABLE"
+                    ):
                         pending.append(p)
         return pending
 
-    def upload_and_verify_segment(self, segment_path: Path, max_retries: int = 3) -> WalDurableRecord:
+    def upload_and_verify_segment(
+        self, segment_path: Path, max_retries: int = 3
+    ) -> WalDurableRecord:
         """Encrypt, upload, and independently verify a single WAL segment."""
         segment_name = segment_path.name
         local_sha256 = WalArchiverService.calculate_file_sha256(segment_path)
@@ -74,7 +78,7 @@ class WalUploaderService:
         remote_key = f"physical/wal/{segment_name}.enc"
 
         # 2. Upload with retry
-        upload_res: Optional[UploadResult] = None
+        upload_res: UploadResult | None = None
         for attempt in range(1, max_retries + 1):
             try:
                 upload_res = self.storage.upload_stream(
@@ -87,8 +91,10 @@ class WalUploaderService:
                 break
             except Exception as e:
                 if attempt == max_retries:
-                    raise RuntimeError(f"Failed to upload WAL segment '{segment_name}' after {max_retries} attempts: {e}") from e
-                time.sleep(0.1 * (2 ** attempt))
+                    raise RuntimeError(
+                        f"Failed to upload WAL segment '{segment_name}' after {max_retries} attempts: {e}"
+                    ) from e
+                time.sleep(0.1 * (2**attempt))
 
         assert upload_res is not None
 
@@ -103,7 +109,7 @@ class WalUploaderService:
                 f"Independent remote SHA-256 verification failed for WAL segment '{segment_name}'."
             )
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         record = WalDurableRecord(
             segment_name=segment_name,
             local_path=str(segment_path),
@@ -118,7 +124,7 @@ class WalUploaderService:
         self.registry[segment_name] = record
         return record
 
-    def sync_spool_to_remote(self) -> List[WalDurableRecord]:
+    def sync_spool_to_remote(self) -> list[WalDurableRecord]:
         """Process all pending local spool segments and establish remote durability."""
         pending = self.discover_pending_segments()
         completed = []
@@ -126,4 +132,3 @@ class WalUploaderService:
             rec = self.upload_and_verify_segment(p)
             completed.append(rec)
         return completed
-

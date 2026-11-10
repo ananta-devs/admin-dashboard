@@ -56,7 +56,9 @@ def test_storage_symlink_escape_rejected(tmp_path: Path):
         pytest.skip("Symlink creation not permitted in this OS environment")
 
     # Storage read must detect and reject symlink escape
-    with pytest.raises(ValidationError, match="(Path traversal attempt detected|Symlink escape attempt detected)"):
+    with pytest.raises(
+        ValidationError, match="(Path traversal attempt detected|Symlink escape attempt detected)"
+    ):
         storage.read_and_verify_bytes(symlink_file)
 
 

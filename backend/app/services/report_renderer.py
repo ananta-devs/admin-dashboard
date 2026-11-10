@@ -70,7 +70,9 @@ class ReportRendererService:
         try:
             result_data = json.loads(proc.stdout)
         except Exception as e:
-            logger.error(f"Invalid JSON returned from ECharts SSR: {e}, stdout: {proc.stdout[:200]}")
+            logger.error(
+                f"Invalid JSON returned from ECharts SSR: {e}, stdout: {proc.stdout[:200]}"
+            )
             raise RenderingError("ECharts SSR emitted unparseable output") from e
 
         sanitized_svgs: dict[str, str] = {}
@@ -83,7 +85,7 @@ class ReportRendererService:
                 logger.warning(f"Error rendering chart for section {sec_id}: {err}")
                 sanitized_svgs[sec_id] = (
                     f'<div class="chart-error" style="color: #ef4444; padding: 20px; text-align: center;">'
-                    f'Unable to render chart: {ReportSanitizerService.escape_text(err)}</div>'
+                    f"Unable to render chart: {ReportSanitizerService.escape_text(err)}</div>"
                 )
             else:
                 raw_svg = item.get("svg") or ""
@@ -94,7 +96,7 @@ class ReportRendererService:
                     logger.error(f"Sanitization failed for section {sec_id} SVG: {e}")
                     sanitized_svgs[sec_id] = (
                         '<div class="chart-error" style="color: #ef4444; padding: 20px; text-align: center;">'
-                        'Chart SVG failed security validation.</div>'
+                        "Chart SVG failed security validation.</div>"
                     )
 
         return sanitized_svgs
@@ -152,7 +154,10 @@ class ReportRendererService:
                 if not cols and sec_data and isinstance(sec_data, list):
                     first_row = sec_data[0]
                     if isinstance(first_row, dict):
-                        cols = [{"name": k, "label": k.replace("_", " ").title()} for k in first_row.keys()]
+                        cols = [
+                            {"name": k, "label": k.replace("_", " ").title()}
+                            for k in first_row.keys()
+                        ]
 
                 # Paginate table rows for PDF sanity (limit max rows in printed PDF)
                 max_table_rows = 100
@@ -254,7 +259,7 @@ class ReportRendererService:
                         header_template=(
                             '<div style="font-size: 8px; width: 100%; text-align: right; '
                             'padding-right: 15mm; color: #94a3b8; font-family: sans-serif;">'
-                            f'{escaped_title}</div>'
+                            f"{escaped_title}</div>"
                         ),
                         footer_template=(
                             '<div style="font-size: 8px; width: 100%; text-align: center; '
@@ -291,7 +296,9 @@ class ReportRendererService:
             if page_count < 1:
                 raise ValidationError("Rendered PDF contains no pages")
         except Exception as e:
-            raise ValidationError(f"Rendered PDF failed structural integrity verification: {e}") from e
+            raise ValidationError(
+                f"Rendered PDF failed structural integrity verification: {e}"
+            ) from e
 
         checksum = hashlib.sha256(pdf_bytes).hexdigest()
         return page_count, checksum, file_size
@@ -357,6 +364,8 @@ class ReportRendererClient:
             }
         ).encode("utf-8")
 
+        if not self.service_url:
+            raise RuntimeError("Remote report renderer service URL is not configured")
         endpoint = f"{self.service_url.rstrip('/')}/render"
         path = "/render"
 
@@ -439,4 +448,3 @@ class ReportRendererClient:
                 await client.post(endpoint, content=payload_bytes, headers=headers)
         except Exception as e:
             logger.warning(f"Failed to deliver cooperative cancellation to remote renderer: {e}")
-

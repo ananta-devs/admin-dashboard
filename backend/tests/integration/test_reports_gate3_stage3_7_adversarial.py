@@ -27,6 +27,7 @@ from app.services.report_storage import ReportStorageService
 # AUDIT A & F: LEGACY V1 REMOVAL & PRODUCTION STARTUP VALIDATION
 # ==============================================================================
 
+
 def test_v1_signature_fails_always_without_fallback():
     """Verify legacy V1 signature verification is completely removed and rejected."""
     secret = "a" * 32
@@ -37,6 +38,7 @@ def test_v1_signature_fails_always_without_fallback():
     # Formulate legacy V1 message
     msg_v1 = f"{ts}:{nonce}:POST:/render:".encode() + body
     import hmac
+
     sig_v1 = hmac.new(secret.encode("utf-8"), msg_v1, hashlib.sha256).hexdigest()
 
     # Even with correct V1 signature, version='1' MUST be rejected
@@ -94,7 +96,9 @@ def test_config_rejects_legacy_v1_flag():
 def test_config_validates_renderer_secret_in_production():
     """Verify that Settings enforces length, non-default, and key separation for REPORT_RENDERER_SECRET in production."""
     # 1. Too short
-    with pytest.raises(ValueError, match="Cryptographic key REPORT_RENDERER_SECRET must be at least 32 characters"):
+    with pytest.raises(
+        ValueError, match="Cryptographic key REPORT_RENDERER_SECRET must be at least 32 characters"
+    ):
         Settings(
             ENVIRONMENT="production",
             SESSION_SECRET_KEY="a" * 32,
@@ -104,7 +108,9 @@ def test_config_validates_renderer_secret_in_production():
         )
 
     # 2. Insecure default
-    with pytest.raises(ValueError, match="Insecure default key detected for REPORT_RENDERER_SECRET in production"):
+    with pytest.raises(
+        ValueError, match="Insecure default key detected for REPORT_RENDERER_SECRET in production"
+    ):
         Settings(
             ENVIRONMENT="production",
             SESSION_SECRET_KEY="a" * 32,
@@ -140,7 +146,9 @@ def test_config_validates_redis_and_renderer_url_in_production():
         )
 
     # 2. Invalid renderer URL scheme in production
-    with pytest.raises(ValueError, match="REPORT_RENDERER_SERVICE_URL must use http:// or https:// scheme"):
+    with pytest.raises(
+        ValueError, match="REPORT_RENDERER_SERVICE_URL must use http:// or https:// scheme"
+    ):
         Settings(
             ENVIRONMENT="production",
             SESSION_SECRET_KEY="a" * 32,
@@ -155,6 +163,7 @@ def test_config_validates_redis_and_renderer_url_in_production():
 # ==============================================================================
 # AUDIT B: CANONICAL SIGNATURE SECURITY & TAMPERING RESISTANCE
 # ==============================================================================
+
 
 @pytest.mark.asyncio
 async def test_canonical_signature_tampering_matrix():
@@ -281,7 +290,9 @@ async def test_canonical_signature_tampering_matrix():
 def test_control_character_injection_rejected():
     """Verify that control characters, newlines, and carriage returns are rejected in all canonical fields."""
     for bad_field in ["POST\nGET", "POST\r", "POST\0"]:
-        with pytest.raises(AuthenticationError, match="Control characters or newlines not allowed in method"):
+        with pytest.raises(
+            AuthenticationError, match="Control characters or newlines not allowed in method"
+        ):
             RendererAuthService.build_canonical_payload(
                 method=bad_field,
                 path="/render",
@@ -293,7 +304,9 @@ def test_control_character_injection_rejected():
             )
 
     for bad_path in ["/render\n/evil", "/render\r", "/render\0"]:
-        with pytest.raises(AuthenticationError, match="Control characters or newlines not allowed in path"):
+        with pytest.raises(
+            AuthenticationError, match="Control characters or newlines not allowed in path"
+        ):
             RendererAuthService.build_canonical_payload(
                 method="POST",
                 path=bad_path,
@@ -305,7 +318,9 @@ def test_control_character_injection_rejected():
             )
 
     for bad_id in ["org1\nadmin", "org1\r", "org1\0", "org1;drop"]:
-        with pytest.raises(AuthenticationError, match="Control characters or newlines not allowed in tenant_id"):
+        with pytest.raises(
+            AuthenticationError, match="Control characters or newlines not allowed in tenant_id"
+        ):
             RendererAuthService.normalize_identifier(bad_id, "tenant_id")
 
 
@@ -319,7 +334,9 @@ async def test_render_endpoint_security_validations():
         report_id = str(uuid.uuid4())
 
         # 1. Missing X-Tenant-Id header returns 401
-        payload = json.dumps({"report_def": {"id": report_id}, "run_dict": {"id": run_id, "organization_id": org_id}}).encode()
+        payload = json.dumps(
+            {"report_def": {"id": report_id}, "run_dict": {"id": run_id, "organization_id": org_id}}
+        ).encode()
         sig, ts, nonce, ver = RendererAuthService.generate_signature(
             secret=settings.REPORT_RENDERER_SECRET,
             method="POST",
@@ -342,7 +359,12 @@ async def test_render_endpoint_security_validations():
 
         # 2. Header and body tenant mismatch returns 403
         other_org = str(uuid.uuid4())
-        payload_mismatch = json.dumps({"report_def": {"id": report_id}, "run_dict": {"id": run_id, "organization_id": other_org}}).encode()
+        payload_mismatch = json.dumps(
+            {
+                "report_def": {"id": report_id},
+                "run_dict": {"id": run_id, "organization_id": other_org},
+            }
+        ).encode()
         sig_mismatch, ts_m, nonce_m, ver_m = RendererAuthService.generate_signature(
             secret=settings.REPORT_RENDERER_SECRET,
             method="POST",
@@ -369,6 +391,7 @@ async def test_render_endpoint_security_validations():
 # AUDIT C: CANCELLATION AUTHORIZATION MATRIX (10 ADVERSARIAL TESTS)
 # ==============================================================================
 
+
 @pytest.mark.asyncio
 async def test_cancellation_authorization_matrix():
     """Execute the full 10-case cancellation authorization matrix against /cancel."""
@@ -386,7 +409,14 @@ async def test_cancellation_authorization_matrix():
         }
 
         # Helper to generate authenticated request
-        def make_cancel_req(run_id_val, hdr_tenant, hdr_report, body_tenant=None, body_report=None, custom_nonce=None):
+        def make_cancel_req(
+            run_id_val,
+            hdr_tenant,
+            hdr_report,
+            body_tenant=None,
+            body_report=None,
+            custom_nonce=None,
+        ):
             body_dict = {"run_id": run_id_val}
             if body_tenant:
                 body_dict["organization_id"] = body_tenant
@@ -415,14 +445,18 @@ async def test_cancellation_authorization_matrix():
 
         # 1. Wrong tenant -> 403 Forbidden
         wrong_org = str(uuid.uuid4())
-        raw, headers = make_cancel_req(active_run_id, wrong_org, active_report_id, wrong_org, active_report_id)
+        raw, headers = make_cancel_req(
+            active_run_id, wrong_org, active_report_id, wrong_org, active_report_id
+        )
         resp = await client.post("/cancel", content=raw, headers=headers)
         assert resp.status_code == 403
         assert "Cross-tenant cancellation forbidden" in resp.json()["detail"]
 
         # 2. Wrong report -> 403 Forbidden
         wrong_rep = str(uuid.uuid4())
-        raw, headers = make_cancel_req(active_run_id, active_org_id, wrong_rep, active_org_id, wrong_rep)
+        raw, headers = make_cancel_req(
+            active_run_id, active_org_id, wrong_rep, active_org_id, wrong_rep
+        )
         resp = await client.post("/cancel", content=raw, headers=headers)
         assert resp.status_code == 403
         assert "Report binding mismatch" in resp.json()["detail"]
@@ -434,14 +468,23 @@ async def test_cancellation_authorization_matrix():
 
         # 4. Unrelated / Unknown run ID -> 200 not_running
         unknown_run = str(uuid.uuid4())
-        raw, headers = make_cancel_req(unknown_run, active_org_id, active_report_id, active_org_id, active_report_id)
+        raw, headers = make_cancel_req(
+            unknown_run, active_org_id, active_report_id, active_org_id, active_report_id
+        )
         resp = await client.post("/cancel", content=raw, headers=headers)
         assert resp.status_code == 200
         assert resp.json() == {"status": "not_running", "run_id": unknown_run}
 
         # 5. Replayed cancellation request rejected -> 401
         replay_nonce = uuid.uuid4().hex
-        raw, headers = make_cancel_req(active_run_id, active_org_id, active_report_id, active_org_id, active_report_id, custom_nonce=replay_nonce)
+        raw, headers = make_cancel_req(
+            active_run_id,
+            active_org_id,
+            active_report_id,
+            active_org_id,
+            active_report_id,
+            custom_nonce=replay_nonce,
+        )
         # First send (valid cancellation)
         resp1 = await client.post("/cancel", content=raw, headers=headers)
         assert resp1.status_code == 200
@@ -455,7 +498,9 @@ async def test_cancellation_authorization_matrix():
         assert "already consumed" in detail or "already been used" in detail
 
         # 6. Completed run cancellation attempt -> 200 not_running
-        raw_comp, headers_comp = make_cancel_req(active_run_id, active_org_id, active_report_id, active_org_id, active_report_id)
+        raw_comp, headers_comp = make_cancel_req(
+            active_run_id, active_org_id, active_report_id, active_org_id, active_report_id
+        )
         resp_comp = await client.post("/cancel", content=raw_comp, headers=headers_comp)
         assert resp_comp.status_code == 200
         assert resp_comp.json() == {"status": "not_running", "run_id": active_run_id}
@@ -477,7 +522,9 @@ async def test_cancellation_concurrent_racing():
         }
 
         async def send_cancel():
-            raw = json.dumps({"run_id": run_id, "organization_id": org_id, "report_id": report_id}).encode()
+            raw = json.dumps(
+                {"run_id": run_id, "organization_id": org_id, "report_id": report_id}
+            ).encode()
             sig, ts, nonce, ver = RendererAuthService.generate_signature(
                 secret=settings.REPORT_RENDERER_SECRET,
                 method="POST",
@@ -511,6 +558,7 @@ async def test_cancellation_concurrent_racing():
 # AUDIT D: RACE-RESISTANT ARTIFACT STORAGE
 # ==============================================================================
 
+
 def test_storage_prefix_confusion_attack_prevented(tmp_path: Path):
     """Verify that sibling directory prefix confusion (e.g. /reports_evil) is strictly blocked by is_relative_to."""
     base_dir = tmp_path / "reports"
@@ -522,7 +570,9 @@ def test_storage_prefix_confusion_attack_prevented(tmp_path: Path):
     storage = ReportStorageService(base_dir=base_dir)
 
     # Attempt to read evil_file via read_and_verify_bytes
-    with pytest.raises(ValidationError, match="Path traversal attempt detected during artifact read"):
+    with pytest.raises(
+        ValidationError, match="Path traversal attempt detected during artifact read"
+    ):
         storage.read_and_verify_bytes(evil_file)
 
     # Attempt to promote from evil_file
@@ -549,7 +599,9 @@ def test_storage_final_artifact_cannot_be_overwritten(tmp_path: Path):
     staging_2 = storage.get_pdf_staging_path(org_id, run_id, claim_generation=1)
     staging_2.write_bytes(b"%PDF-tampered")
 
-    with pytest.raises(ValidationError, match="Cannot overwrite existing immutable reporting artifact"):
+    with pytest.raises(
+        ValidationError, match="Cannot overwrite existing immutable reporting artifact"
+    ):
         storage.atomic_promote(staging_2, final_path)
 
     # Original contents remain intact
@@ -586,6 +638,7 @@ def test_storage_checksum_and_size_enforcement(tmp_path: Path):
 # ==============================================================================
 # AUDIT E: CONTAINER RUNTIME SECURITY PROBES (DOCKER)
 # ==============================================================================
+
 
 def test_container_runtime_security_probes():
     """Verify live Docker container runtime restrictions for vibe_report_renderer."""
@@ -725,7 +778,9 @@ def test_storage_overwrite_flag_unconditionally_rejected(tmp_path: Path):
     staging_tamper.parent.mkdir(parents=True, exist_ok=True)
     staging_tamper.write_bytes(b"%PDF-tampered-force")
 
-    with pytest.raises(ValidationError, match="Overwriting finalized reporting artifacts is strictly prohibited"):
+    with pytest.raises(
+        ValidationError, match="Overwriting finalized reporting artifacts is strictly prohibited"
+    ):
         storage.atomic_promote(staging_tamper, final_path, overwrite=True)
 
     # Original contents and checksum remain 100% intact
@@ -758,7 +813,9 @@ def test_storage_stale_generation_and_checksum_preservation(tmp_path: Path):
     gen1_content = b"%PDF-1.4 stale generation 1 zombie content"
     gen1_staging.write_bytes(gen1_content)
 
-    with pytest.raises(ValidationError, match="Cannot overwrite existing immutable reporting artifact"):
+    with pytest.raises(
+        ValidationError, match="Cannot overwrite existing immutable reporting artifact"
+    ):
         storage.atomic_promote(gen1_staging, final_path)
 
     # Destination bytes and checksum strictly match Generation 2
@@ -769,7 +826,9 @@ def test_storage_stale_generation_and_checksum_preservation(tmp_path: Path):
     assert not gen1_staging.exists()
 
 
-def _multiprocess_worker_promote(args: tuple[int, str, str, str, str]) -> tuple[int, bool, str | None]:
+def _multiprocess_worker_promote(
+    args: tuple[int, str, str, str, str],
+) -> tuple[int, bool, str | None]:
     """Worker function executed in separate OS processes for atomic publication competition."""
     worker_idx, base_dir_str, org_id_str, run_id_str, dest_str = args
     import uuid
@@ -807,8 +866,7 @@ def test_multiprocess_atomic_publication_across_10_processes(tmp_path: Path):
     final_dest = storage.get_pdf_artifact_path(org_id, run_id, claim_generation=1)
 
     args_list = [
-        (idx, str(storage.base_dir), str(org_id), str(run_id), str(final_dest))
-        for idx in range(10)
+        (idx, str(storage.base_dir), str(org_id), str(run_id), str(final_dest)) for idx in range(10)
     ]
 
     with ProcessPoolExecutor(max_workers=10) as executor:
@@ -822,7 +880,9 @@ def test_multiprocess_atomic_publication_across_10_processes(tmp_path: Path):
     assert len(losers) == 9, f"Expected 9 losers, got {len(losers)}"
 
     winning_worker_idx = winners[0][0]
-    expected_winning_bytes = f"%PDF-1.4 multiprocess worker {winning_worker_idx:02d} unique payload".encode()
+    expected_winning_bytes = (
+        f"%PDF-1.4 multiprocess worker {winning_worker_idx:02d} unique payload".encode()
+    )
 
     # Final destination bytes MUST match the winner byte-for-byte and NEVER be overwritten
     assert final_dest.is_file()

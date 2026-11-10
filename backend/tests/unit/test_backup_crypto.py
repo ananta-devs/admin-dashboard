@@ -10,15 +10,13 @@ import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from app.services.crypto.backup_cipher import (
+    DEFAULT_CHUNK_SIZE,
     BackupCipherService,
     CryptoProtocolError,
-    DEFAULT_CHUNK_SIZE,
-    HEADER_SIZE,
 )
 from app.services.crypto.manifest_signer import (
     ManifestSecurityError,
     ManifestSigner,
-    canonicalize_json,
 )
 
 MASTER_KEK = bytes.fromhex("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")
@@ -206,4 +204,3 @@ def test_manifest_signing_and_verification():
         traversal_manifest["signing_key_id"] = "../../../etc/passwd"
         with pytest.raises(ManifestSecurityError, match="Invalid key_id syntax"):
             signer.verify_manifest(traversal_manifest)
-

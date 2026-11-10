@@ -137,9 +137,14 @@ async def test_scenario_1_original_transaction_commits_normally(
     """Scenario 1: Original transaction commits normally -> result persisted, final artifact retained, job SUCCEEDED."""
     ctx = setup_test_context
     storage = AnalyticsStorageService()
-    job = await _create_test_job(db_session, ctx["org_id"], ctx["ws_id"], ctx["user_id"], ctx["sheet_id"], ctx["wb_id"])
+    job = await _create_test_job(
+        db_session, ctx["org_id"], ctx["ws_id"], ctx["user_id"], ctx["sheet_id"], ctx["wb_id"]
+    )
 
-    with patch("app.tasks.analytics.registry.execute", return_value={"data": [{"val": i} for i in range(600)]}):
+    with patch(
+        "app.tasks.analytics.registry.execute",
+        return_value={"data": [{"val": i} for i in range(600)]},
+    ):
         with patch("app.tasks.analytics.capture_sheet_snapshot") as mock_snap:
             dummy_snap_path = storage.get_snapshot_path(ctx["org_id"], job.id, 1)
             dummy_snap_path.parent.mkdir(parents=True, exist_ok=True)
@@ -172,11 +177,19 @@ async def test_scenario_2_original_transaction_rolls_back(
     """Scenario 2: Original transaction rolls back -> reconciliation detects rollback and moves artifact to quarantine."""
     ctx = setup_test_context
     storage = AnalyticsStorageService()
-    job = await _create_test_job(db_session, ctx["org_id"], ctx["ws_id"], ctx["user_id"], ctx["sheet_id"], ctx["wb_id"])
+    job = await _create_test_job(
+        db_session, ctx["org_id"], ctx["ws_id"], ctx["user_id"], ctx["sheet_id"], ctx["wb_id"]
+    )
 
     # Simulate real database error inside transaction boundary (e.g. unique violation / deadlock abort)
-    with patch("app.tasks.analytics.AnalyticsResultRepository.create", side_effect=RuntimeError("Database deadlock abort")):
-        with patch("app.tasks.analytics.registry.execute", return_value={"data": [{"val": i} for i in range(600)]}):
+    with patch(
+        "app.tasks.analytics.AnalyticsResultRepository.create",
+        side_effect=RuntimeError("Database deadlock abort"),
+    ):
+        with patch(
+            "app.tasks.analytics.registry.execute",
+            return_value={"data": [{"val": i} for i in range(600)]},
+        ):
             with patch("app.tasks.analytics.capture_sheet_snapshot") as mock_snap:
                 dummy_snap_path = storage.get_snapshot_path(ctx["org_id"], job.id, 1)
                 dummy_snap_path.parent.mkdir(parents=True, exist_ok=True)
@@ -214,7 +227,9 @@ async def test_scenario_3_genuine_lost_acknowledgement_after_server_commit(
     """
     ctx = setup_test_context
     storage = AnalyticsStorageService()
-    job = await _create_test_job(db_session, ctx["org_id"], ctx["ws_id"], ctx["user_id"], ctx["sheet_id"], ctx["wb_id"])
+    job = await _create_test_job(
+        db_session, ctx["org_id"], ctx["ws_id"], ctx["user_id"], ctx["sheet_id"], ctx["wb_id"]
+    )
 
     # Create dummy snapshot
     snap_path = storage.get_snapshot_path(ctx["org_id"], job.id, 1)
@@ -223,7 +238,9 @@ async def test_scenario_3_genuine_lost_acknowledgement_after_server_commit(
 
     # 1. Execute job up to result write and artifact promotion manually
     result_id = uuid.uuid4()
-    final_art_path = storage.get_result_artifact_path(ctx["org_id"], job.id, result_id, claim_generation=1)
+    final_art_path = storage.get_result_artifact_path(
+        ctx["org_id"], job.id, result_id, claim_generation=1
+    )
     final_art_path.parent.mkdir(parents=True, exist_ok=True)
     pl.DataFrame({"val": [10.0, 20.0, 30.0]}).write_parquet(final_art_path)
     assert final_art_path.is_file()
@@ -320,10 +337,14 @@ async def test_scenario_4_reconciliation_starts_while_original_tx_unresolved_and
     """
     ctx = setup_test_context
     storage = AnalyticsStorageService()
-    job = await _create_test_job(db_session, ctx["org_id"], ctx["ws_id"], ctx["user_id"], ctx["sheet_id"], ctx["wb_id"])
+    job = await _create_test_job(
+        db_session, ctx["org_id"], ctx["ws_id"], ctx["user_id"], ctx["sheet_id"], ctx["wb_id"]
+    )
 
     result_id = uuid.uuid4()
-    final_art_path = storage.get_result_artifact_path(ctx["org_id"], job.id, result_id, claim_generation=1)
+    final_art_path = storage.get_result_artifact_path(
+        ctx["org_id"], job.id, result_id, claim_generation=1
+    )
     final_art_path.parent.mkdir(parents=True, exist_ok=True)
     pl.DataFrame({"val": [100.0]}).write_parquet(final_art_path)
 
@@ -380,7 +401,9 @@ async def test_scenario_4_reconciliation_starts_while_original_tx_unresolved_and
     await asyncio.sleep(0.3)
 
     # Verify reconciliation is BLOCKED waiting on row lock
-    assert not reconciliation_finished.is_set(), "Reconciliation must not finish while original transaction is in flight!"
+    assert not reconciliation_finished.is_set(), (
+        "Reconciliation must not finish while original transaction is in flight!"
+    )
 
     # Now Session 1 commits!
     await tx1.commit()
@@ -404,10 +427,14 @@ async def test_scenario_5_reconciliation_waits_for_unresolved_then_quarantines_o
     """Scenario 5: Reconciliation waits for unresolved transaction then detects rollback and quarantines artifact."""
     ctx = setup_test_context
     storage = AnalyticsStorageService()
-    job = await _create_test_job(db_session, ctx["org_id"], ctx["ws_id"], ctx["user_id"], ctx["sheet_id"], ctx["wb_id"])
+    job = await _create_test_job(
+        db_session, ctx["org_id"], ctx["ws_id"], ctx["user_id"], ctx["sheet_id"], ctx["wb_id"]
+    )
 
     result_id = uuid.uuid4()
-    final_art_path = storage.get_result_artifact_path(ctx["org_id"], job.id, result_id, claim_generation=1)
+    final_art_path = storage.get_result_artifact_path(
+        ctx["org_id"], job.id, result_id, claim_generation=1
+    )
     final_art_path.parent.mkdir(parents=True, exist_ok=True)
     pl.DataFrame({"val": [50.0]}).write_parquet(final_art_path)
 
@@ -456,7 +483,9 @@ async def test_scenario_5_reconciliation_waits_for_unresolved_then_quarantines_o
     assert recon_outcome["res"] is None
 
     # Final artifact must be safely moved to quarantine
-    quarantine_path = storage.quarantine_dir / "results" / str(ctx["org_id"]) / str(job.id) / final_art_path.name
+    quarantine_path = (
+        storage.quarantine_dir / "results" / str(ctx["org_id"]) / str(job.id) / final_art_path.name
+    )
     assert quarantine_path.is_file()
     assert not final_art_path.is_file()
 
@@ -469,15 +498,22 @@ async def test_scenario_6_postgresql_unavailable_during_reconciliation(
     """Scenario 6: PostgreSQL unavailable during reconciliation -> artifact PRESERVED (never deleted during outage)."""
     ctx = setup_test_context
     storage = AnalyticsStorageService()
-    job = await _create_test_job(db_session, ctx["org_id"], ctx["ws_id"], ctx["user_id"], ctx["sheet_id"], ctx["wb_id"])
+    job = await _create_test_job(
+        db_session, ctx["org_id"], ctx["ws_id"], ctx["user_id"], ctx["sheet_id"], ctx["wb_id"]
+    )
 
     result_id = uuid.uuid4()
-    final_art_path = storage.get_result_artifact_path(ctx["org_id"], job.id, result_id, claim_generation=1)
+    final_art_path = storage.get_result_artifact_path(
+        ctx["org_id"], job.id, result_id, claim_generation=1
+    )
     final_art_path.parent.mkdir(parents=True, exist_ok=True)
     pl.DataFrame({"val": [999.0]}).write_parquet(final_art_path)
 
     # Point DATABASE_URL to a non-existent port to simulate PostgreSQL network outage
-    with patch("app.core.config.settings.DATABASE_URL", "postgresql+asyncpg://vibe_admin:pass@127.0.0.1:59999/vibe_enterprise"):
+    with patch(
+        "app.core.config.settings.DATABASE_URL",
+        "postgresql+asyncpg://vibe_admin:pass@127.0.0.1:59999/vibe_enterprise",
+    ):
         status, res = await reconcile_commit_outcome(
             job_id=job.id,
             result_id=result_id,
@@ -501,7 +537,9 @@ async def test_scenario_7_quarantine_recovery_does_not_break_committed_result(
     """Scenario 7: Quarantine sweeper / recovery does not purge or break a valid committed result."""
     ctx = setup_test_context
     storage = AnalyticsStorageService(base_dir=str(tmp_path))
-    job = await _create_test_job(db_session, ctx["org_id"], ctx["ws_id"], ctx["user_id"], ctx["sheet_id"], ctx["wb_id"])
+    job = await _create_test_job(
+        db_session, ctx["org_id"], ctx["ws_id"], ctx["user_id"], ctx["sheet_id"], ctx["wb_id"]
+    )
 
     # Create committed result
     result_id = uuid.uuid4()

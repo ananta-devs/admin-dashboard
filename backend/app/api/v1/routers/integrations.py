@@ -189,4 +189,3 @@ async def get_google_spreadsheet_values(
         external_spreadsheet_id=spreadsheet_id,
         range_name=range_name,
     )
-

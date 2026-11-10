@@ -310,4 +310,3 @@ async def get_runtime_environment(
         "runtime_pip_install_allowed": False,
         "network_access_allowed": False,
     }
-

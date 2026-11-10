@@ -13,21 +13,19 @@ Fulfills Phase 10 Stage 4 requirements:
 from __future__ import annotations
 
 import io
-import os
 import shutil
 import tempfile
 import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
-from app.services.backup.logical_runner import LogicalBackupRunner
-from app.services.backup.physical_runner import PhysicalBackupRunner
-from app.services.backup.remote_storage import S3StorageAdapter, UploadResult
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+from app.services.backup.remote_storage import S3StorageAdapter
 from app.services.crypto.backup_cipher import BackupCipherService
 from app.services.crypto.manifest_signer import ManifestSigner
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 
 @dataclass
@@ -37,16 +35,16 @@ class BackupJobState:
     backup_type: str  # 'PHYSICAL_BASE' or 'LOGICAL_CUSTOM'
     status: str
     created_at: datetime
-    start_lsn: Optional[str] = None
-    stop_lsn: Optional[str] = None
+    start_lsn: str | None = None
+    stop_lsn: str | None = None
     timeline_id: int = 1
-    artifact_id: Optional[str] = None
-    encrypted_sha256: Optional[str] = None
-    remote_key: Optional[str] = None
-    remote_version_id: Optional[str] = None
-    error_message: Optional[str] = None
-    signed_manifest: Optional[Dict[str, Any]] = None
-    completed_at: Optional[datetime] = None
+    artifact_id: str | None = None
+    encrypted_sha256: str | None = None
+    remote_key: str | None = None
+    remote_version_id: str | None = None
+    error_message: str | None = None
+    signed_manifest: dict[str, Any] | None = None
+    completed_at: datetime | None = None
 
 
 class BackupOrchestrationService:
@@ -59,7 +57,7 @@ class BackupOrchestrationService:
         manifest_signer: ManifestSigner,
         signing_private_key: Ed25519PrivateKey,
         signing_key_id: str = "vibe-signer-2026-v1",
-        staging_root: Optional[str | Path] = None,
+        staging_root: str | Path | None = None,
     ) -> None:
         self.storage = storage_adapter
         self.cipher = cipher_service
@@ -67,18 +65,18 @@ class BackupOrchestrationService:
         self.signing_private_key = signing_private_key
         self.signing_key_id = signing_key_id
         self.staging_root = Path(staging_root or tempfile.gettempdir()).resolve()
-        self.jobs: Dict[str, BackupJobState] = {}
+        self.jobs: dict[str, BackupJobState] = {}
 
     def create_job(self, backup_type: str = "PHYSICAL_BASE") -> BackupJobState:
         """Initialize a new tracked backup job state."""
         job_id = str(uuid.uuid4())
-        backup_id = f"b-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{job_id[:8]}"
+        backup_id = f"b-{datetime.now(UTC).strftime('%Y%m%d%H%M%S')}-{job_id[:8]}"
         job = BackupJobState(
             job_id=job_id,
             backup_id=backup_id,
             backup_type=backup_type,
             status="CREATED",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         self.jobs[job_id] = job
         return job
@@ -175,7 +173,7 @@ class BackupOrchestrationService:
                     "sha256": enc_sha256,
                     "size_bytes": total_enc_bytes,
                 },
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
             }
             signed_manifest = self.signer.sign_manifest(manifest, self.signing_private_key)
             job.signed_manifest = signed_manifest
@@ -183,6 +181,7 @@ class BackupOrchestrationService:
 
             # 7. Publish Signed Manifest to Remote Storage
             import json
+
             manifest_bytes = json.dumps(signed_manifest, sort_keys=True).encode("utf-8")
             self.storage.upload_stream(
                 key=f"manifests/{job.backup_id}.manifest.json",
@@ -191,7 +190,7 @@ class BackupOrchestrationService:
             )
 
             job.status = "COMPLETED"
-            job.completed_at = datetime.now(timezone.utc)
+            job.completed_at = datetime.now(UTC)
 
             # Persist durable job record to staging and storage root
             self._persist_job_state(job)
@@ -237,13 +236,16 @@ class BackupOrchestrationService:
         job_file.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
         # Also mirror in storage root if configured
-        if getattr(self.storage, "storage_root", None):
-            remote_meta_dir = self.storage.storage_root / "jobs"
+        storage_root = getattr(self.storage, "storage_root", None)
+        if storage_root:
+            remote_meta_dir = Path(storage_root) / "jobs"
             remote_meta_dir.mkdir(parents=True, exist_ok=True)
-            (remote_meta_dir / f"{job.job_id}.json").write_text(json.dumps(data, indent=2), encoding="utf-8")
+            (remote_meta_dir / f"{job.job_id}.json").write_text(
+                json.dumps(data, indent=2), encoding="utf-8"
+            )
 
     @classmethod
-    def list_persisted_jobs(cls, staging_root: str | Path) -> list[Dict[str, Any]]:
+    def list_persisted_jobs(cls, staging_root: str | Path) -> list[dict[str, Any]]:
         """Read and return all persisted backup jobs from disk."""
         import json
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import shutil
 import time
 import uuid
@@ -40,7 +39,9 @@ class SystemHealthService:
             "status": "Healthy",
             "uptime_seconds": uptime_seconds,
             "version": "1.0.0",
-            "environment": "production" if settings.ENVIRONMENT.lower() in ("production", "prod") else "development",
+            "environment": "production"
+            if settings.ENVIRONMENT.lower() in ("production", "prod")
+            else "development",
             "timestamp": now.isoformat(),
         }
 
@@ -120,22 +121,34 @@ class SystemHealthService:
         try:
             one_day_ago = now - timedelta(hours=24)
             # Active jobs
-            stmt_active = select(func.count()).select_from(AnalyticsJob).where(
-                AnalyticsJob.status.in_([AnalyticsJobStatus.QUEUED, AnalyticsJobStatus.RUNNING])
+            stmt_active = (
+                select(func.count())
+                .select_from(AnalyticsJob)
+                .where(
+                    AnalyticsJob.status.in_([AnalyticsJobStatus.QUEUED, AnalyticsJobStatus.RUNNING])
+                )
             )
             active_count = (await self.session.execute(stmt_active)).scalar() or 0
 
             # Completed jobs (last 24h)
-            stmt_done = select(func.count()).select_from(AnalyticsJob).where(
-                AnalyticsJob.status == AnalyticsJobStatus.COMPLETED,
-                AnalyticsJob.created_at >= one_day_ago,
+            stmt_done = (
+                select(func.count())
+                .select_from(AnalyticsJob)
+                .where(
+                    AnalyticsJob.status == AnalyticsJobStatus.SUCCEEDED,
+                    AnalyticsJob.created_at >= one_day_ago,
+                )
             )
             done_count = (await self.session.execute(stmt_done)).scalar() or 0
 
             # Failed jobs (last 24h)
-            stmt_fail = select(func.count()).select_from(AnalyticsJob).where(
-                AnalyticsJob.status == AnalyticsJobStatus.FAILED,
-                AnalyticsJob.created_at >= one_day_ago,
+            stmt_fail = (
+                select(func.count())
+                .select_from(AnalyticsJob)
+                .where(
+                    AnalyticsJob.status == AnalyticsJobStatus.FAILED,
+                    AnalyticsJob.created_at >= one_day_ago,
+                )
             )
             fail_count = (await self.session.execute(stmt_fail)).scalar() or 0
 
@@ -153,7 +166,9 @@ class SystemHealthService:
         storage_info: dict[str, Any] = {"status": "Healthy"}
         try:
             _, _, free_disk_bytes = shutil.disk_usage(".")
-            used_file_bytes, total_files = await self.file_repo.get_organization_usage(organization_id)
+            used_file_bytes, total_files = await self.file_repo.get_organization_usage(
+                organization_id
+            )
             storage_info = {
                 "status": "Healthy",
                 "tenant_files_stored": total_files,
@@ -167,9 +182,10 @@ class SystemHealthService:
         # 7. Backup & Disaster Recovery Subsystem (Traceable Telemetry)
         from app.services.backup.orchestrator import BackupOrchestrationService
 
-        persisted_backups = (
-            BackupOrchestrationService.list_persisted_jobs(getattr(settings, "BACKUP_STORAGE_DIR", "./uploads/backups"))
-            or BackupOrchestrationService.list_persisted_jobs(getattr(settings, "BACKUP_RESTORE_SCRATCH_DIR", "./scratch/backups"))
+        persisted_backups = BackupOrchestrationService.list_persisted_jobs(
+            getattr(settings, "BACKUP_STORAGE_DIR", "./uploads/backups")
+        ) or BackupOrchestrationService.list_persisted_jobs(
+            getattr(settings, "BACKUP_RESTORE_SCRATCH_DIR", "./scratch/backups")
         )
 
         last_backup_at = None
@@ -190,7 +206,9 @@ class SystemHealthService:
                     pass
 
         backup_info: dict[str, Any] = {
-            "status": "Healthy" if last_backup_status in ("COMPLETED", "REMOTELY_VERIFIED", "NO_BACKUP_RECORDED") else "Warning",
+            "status": "Healthy"
+            if last_backup_status in ("COMPLETED", "REMOTELY_VERIFIED", "NO_BACKUP_RECORDED")
+            else "Warning",
             "last_successful_backup_at": last_backup_at,
             "last_recovery_drill_at": None,
             "rpo": {
@@ -212,14 +230,18 @@ class SystemHealthService:
             "latest_probe_at": now.isoformat(),
         }
         try:
-            spool_mgr = SpoolManagerService(spool_dir=getattr(settings, "WAL_SPOOL_DIR", "./uploads/wal_spool"))
+            spool_mgr = SpoolManagerService(
+                spool_dir=getattr(settings, "WAL_SPOOL_DIR", "./uploads/wal_spool")
+            )
             backup_info["spool"] = spool_mgr.get_spool_metrics()
         except Exception:
             pass
 
         return {
             "timestamp": now.isoformat(),
-            "overall_status": "Healthy" if db_info["status"] == "Healthy" and redis_info["status"] == "Healthy" else "Degraded",
+            "overall_status": "Healthy"
+            if db_info["status"] == "Healthy" and redis_info["status"] == "Healthy"
+            else "Degraded",
             "subsystems": {
                 "backend": backend_info,
                 "database": db_info,
@@ -230,4 +252,3 @@ class SystemHealthService:
                 "backup_recovery": backup_info,
             },
         }
-

@@ -106,24 +106,30 @@ class TestSandboxStrictResultProtocolUnit:
     def test_11_nan_constant_rejected(self) -> None:
         """11. NaN constants in JSON are strictly rejected."""
         raw = b'{"value": NaN}'
-        with pytest.raises(SandboxResultProtocolError, match="Non-standard JSON constant rejected: NaN"):
+        with pytest.raises(
+            SandboxResultProtocolError, match="Non-standard JSON constant rejected: NaN"
+        ):
             parse_and_validate_sandbox_stdout(raw)
 
     def test_12_infinity_constant_rejected(self) -> None:
         """12. Infinity constants in JSON are strictly rejected."""
         raw = b'{"value": Infinity}'
-        with pytest.raises(SandboxResultProtocolError, match="Non-standard JSON constant rejected: Infinity"):
+        with pytest.raises(
+            SandboxResultProtocolError, match="Non-standard JSON constant rejected: Infinity"
+        ):
             parse_and_validate_sandbox_stdout(raw)
 
     def test_13_negative_infinity_constant_rejected(self) -> None:
         """13. -Infinity constants in JSON are strictly rejected."""
         raw = b'{"value": -Infinity}'
-        with pytest.raises(SandboxResultProtocolError, match="Non-standard JSON constant rejected: -Infinity"):
+        with pytest.raises(
+            SandboxResultProtocolError, match="Non-standard JSON constant rejected: -Infinity"
+        ):
             parse_and_validate_sandbox_stdout(raw)
 
     def test_14_excessive_nesting_rejected(self) -> None:
         """14. Excessive nesting depth (> 16) is strictly rejected."""
-        deep = '{"a":' * 17 + '1' + '}' * 17
+        deep = '{"a":' * 17 + "1" + "}" * 17
         with pytest.raises(SandboxResultProtocolError, match="JSON nesting depth exceeds maximum"):
             parse_and_validate_sandbox_stdout(deep.encode())
 
@@ -141,12 +147,18 @@ class TestSandboxStrictResultProtocolUnit:
 
     def test_17_unexpected_top_level_fields_non_object_root_rejected(self) -> None:
         """17. Non-object root (e.g. array, number, string, boolean) is strictly rejected."""
-        with pytest.raises(SandboxResultProtocolError, match="Top-level JSON value must be an object"):
-            parse_and_validate_sandbox_stdout(b'[1, 2, 3]')
-        with pytest.raises(SandboxResultProtocolError, match="Top-level JSON value must be an object"):
+        with pytest.raises(
+            SandboxResultProtocolError, match="Top-level JSON value must be an object"
+        ):
+            parse_and_validate_sandbox_stdout(b"[1, 2, 3]")
+        with pytest.raises(
+            SandboxResultProtocolError, match="Top-level JSON value must be an object"
+        ):
             parse_and_validate_sandbox_stdout(b'"just a string"')
-        with pytest.raises(SandboxResultProtocolError, match="Top-level JSON value must be an object"):
-            parse_and_validate_sandbox_stdout(b'42')
+        with pytest.raises(
+            SandboxResultProtocolError, match="Top-level JSON value must be an object"
+        ):
+            parse_and_validate_sandbox_stdout(b"42")
 
     def test_18_wrong_field_types_and_invalid_keys_rejected(self) -> None:
         """18. Invalid object keys (control characters or key length > 256) are strictly rejected."""
@@ -154,7 +166,9 @@ class TestSandboxStrictResultProtocolUnit:
         with pytest.raises(SandboxResultProtocolError):
             parse_and_validate_sandbox_stdout(raw_ctl)
         raw_long_key = json.dumps({"K" * 257: "value"}).encode()
-        with pytest.raises(SandboxResultProtocolError, match="Object key length .* exceeds maximum"):
+        with pytest.raises(
+            SandboxResultProtocolError, match="Object key length .* exceeds maximum"
+        ):
             parse_and_validate_sandbox_stdout(raw_long_key)
 
     def test_19_negative_or_out_of_range_values_rejected(self) -> None:
@@ -196,13 +210,17 @@ class TestSandboxStrictResultProtocolUnit:
     def test_25_huge_positive_integer_rejected(self) -> None:
         """25. Integer exceeding 64-bit signed max (2^63 - 1) is strictly rejected."""
         raw = b'{"val": 9223372036854775808}'
-        with pytest.raises(SandboxResultProtocolError, match="exceeds permitted 64-bit integer range"):
+        with pytest.raises(
+            SandboxResultProtocolError, match="exceeds permitted 64-bit integer range"
+        ):
             parse_and_validate_sandbox_stdout(raw)
 
     def test_26_huge_negative_integer_rejected(self) -> None:
         """26. Integer below 64-bit signed min (-2^63) is strictly rejected."""
         raw = b'{"val": -9223372036854775809}'
-        with pytest.raises(SandboxResultProtocolError, match="exceeds permitted 64-bit integer range"):
+        with pytest.raises(
+            SandboxResultProtocolError, match="exceeds permitted 64-bit integer range"
+        ):
             parse_and_validate_sandbox_stdout(raw)
 
     def test_27_valid_64bit_boundary_integers_accepted(self) -> None:
@@ -234,37 +252,49 @@ class TestSandboxStrictResultProtocolUnit:
     def test_30_whitespace_vertical_tab_leading_rejected(self) -> None:
         """30. Non-RFC 8259 whitespace (vertical tab 0x0B) before JSON is rejected."""
         raw = b'\x0b{"status": "ok"}'
-        with pytest.raises(SandboxResultProtocolError, match="Non-permitted whitespace character U\\+000B"):
+        with pytest.raises(
+            SandboxResultProtocolError, match="Non-permitted whitespace character U\\+000B"
+        ):
             parse_and_validate_sandbox_stdout(raw)
 
     def test_31_whitespace_vertical_tab_trailing_rejected(self) -> None:
         """31. Non-RFC 8259 whitespace (vertical tab 0x0B) after JSON is rejected."""
         raw = b'{"status": "ok"}\x0b'
-        with pytest.raises(SandboxResultProtocolError, match="Non-permitted whitespace character U\\+000B"):
+        with pytest.raises(
+            SandboxResultProtocolError, match="Non-permitted whitespace character U\\+000B"
+        ):
             parse_and_validate_sandbox_stdout(raw)
 
     def test_32_whitespace_form_feed_leading_rejected(self) -> None:
         """32. Non-RFC 8259 whitespace (form feed 0x0C) before JSON is rejected."""
         raw = b'\x0c{"status": "ok"}'
-        with pytest.raises(SandboxResultProtocolError, match="Non-permitted whitespace character U\\+000C"):
+        with pytest.raises(
+            SandboxResultProtocolError, match="Non-permitted whitespace character U\\+000C"
+        ):
             parse_and_validate_sandbox_stdout(raw)
 
     def test_33_whitespace_form_feed_trailing_rejected(self) -> None:
         """33. Non-RFC 8259 whitespace (form feed 0x0C) after JSON is rejected."""
         raw = b'{"status": "ok"}\x0c'
-        with pytest.raises(SandboxResultProtocolError, match="Non-permitted whitespace character U\\+000C"):
+        with pytest.raises(
+            SandboxResultProtocolError, match="Non-permitted whitespace character U\\+000C"
+        ):
             parse_and_validate_sandbox_stdout(raw)
 
     def test_34_whitespace_non_breaking_space_leading_rejected(self) -> None:
         """34. Non-RFC 8259 whitespace (NBSP U+00A0) before JSON is rejected."""
-        raw = " \u00a0 {\"status\": \"ok\"}".encode("utf-8")
-        with pytest.raises(SandboxResultProtocolError, match="Non-permitted whitespace character U\\+00A0"):
+        raw = ' \u00a0 {"status": "ok"}'.encode("utf-8")
+        with pytest.raises(
+            SandboxResultProtocolError, match="Non-permitted whitespace character U\\+00A0"
+        ):
             parse_and_validate_sandbox_stdout(raw)
 
     def test_35_whitespace_non_breaking_space_trailing_rejected(self) -> None:
         """35. Non-RFC 8259 whitespace (NBSP U+00A0) after JSON is rejected."""
-        raw = "{\"status\": \"ok\"} \u00a0 ".encode("utf-8")
-        with pytest.raises(SandboxResultProtocolError, match="Non-permitted whitespace character U\\+00A0"):
+        raw = '{"status": "ok"} \u00a0 '.encode("utf-8")
+        with pytest.raises(
+            SandboxResultProtocolError, match="Non-permitted whitespace character U\\+00A0"
+        ):
             parse_and_validate_sandbox_stdout(raw)
 
     def test_36_lone_unicode_surrogate_rejected(self) -> None:
@@ -284,7 +314,7 @@ class TestSandboxStrictResultProtocolUnit:
 
     def test_38_rfc8259_permitted_whitespace_accepted(self) -> None:
         """38. Standard RFC 8259 whitespace (space, tab, LF, CR) is accepted around JSON."""
-        raw = b" \t \r\n {\"status\": \"ok\", \"count\": 1} \n\r\t "
+        raw = b' \t \r\n {"status": "ok", "count": 1} \n\r\t '
         doc, _ = parse_and_validate_sandbox_stdout(raw)
         assert doc == {"status": "ok", "count": 1}
 
@@ -322,7 +352,9 @@ class TestSandboxStrictResultProtocolUnit:
 
     def test_43_underflow_below_subnormal_maps_to_signed_zero(self) -> None:
         """43. Float literals below IEEE 754 subnormal threshold underflow to signed zero (+0.0 / -0.0)."""
-        raw = b'{"under_pos": 1e-325, "under_neg": -1e-325, "deep_pos": 1e-999, "deep_neg": -1e-999}'
+        raw = (
+            b'{"under_pos": 1e-325, "under_neg": -1e-325, "deep_pos": 1e-999, "deep_neg": -1e-999}'
+        )
         doc, _ = parse_and_validate_sandbox_stdout(raw)
         assert doc["under_pos"] == 0.0
         assert math.copysign(1.0, doc["under_pos"]) == 1.0
@@ -348,23 +380,39 @@ class TestSandboxStrictResultProtocolUnit:
         doc, _ = parse_and_validate_sandbox_stdout(raw)
 
         # Values below halfway boundary (< 2**-1075 ≈ 2.47e-324) round to zero
-        assert doc["p1"] == 0.0 and math.copysign(1.0, doc["p1"]) == 1.0 and math.isfinite(doc["p1"])
-        assert doc["p2"] == 0.0 and math.copysign(1.0, doc["p2"]) == 1.0 and math.isfinite(doc["p2"])
+        assert (
+            doc["p1"] == 0.0 and math.copysign(1.0, doc["p1"]) == 1.0 and math.isfinite(doc["p1"])
+        )
+        assert (
+            doc["p2"] == 0.0 and math.copysign(1.0, doc["p2"]) == 1.0 and math.isfinite(doc["p2"])
+        )
 
         # Values above halfway boundary (> 2**-1075) round to minimum subnormal (2**-1074 ≈ 4.94e-324)
         assert doc["p3"] > 0.0 and math.copysign(1.0, doc["p3"]) == 1.0 and math.isfinite(doc["p3"])
         assert doc["p4"] > 0.0 and math.copysign(1.0, doc["p4"]) == 1.0 and math.isfinite(doc["p4"])
 
         # Negative values below halfway boundary round to negative zero (-0.0)
-        assert doc["n1"] == 0.0 and math.copysign(1.0, doc["n1"]) == -1.0 and math.isfinite(doc["n1"])
-        assert doc["n2"] == 0.0 and math.copysign(1.0, doc["n2"]) == -1.0 and math.isfinite(doc["n2"])
+        assert (
+            doc["n1"] == 0.0 and math.copysign(1.0, doc["n1"]) == -1.0 and math.isfinite(doc["n1"])
+        )
+        assert (
+            doc["n2"] == 0.0 and math.copysign(1.0, doc["n2"]) == -1.0 and math.isfinite(doc["n2"])
+        )
 
         # Negative values above halfway boundary round to negative minimum subnormal (-2**-1074)
-        assert doc["n3"] < 0.0 and math.copysign(1.0, doc["n3"]) == -1.0 and math.isfinite(doc["n3"])
-        assert doc["n4"] < 0.0 and math.copysign(1.0, doc["n4"]) == -1.0 and math.isfinite(doc["n4"])
+        assert (
+            doc["n3"] < 0.0 and math.copysign(1.0, doc["n3"]) == -1.0 and math.isfinite(doc["n3"])
+        )
+        assert (
+            doc["n4"] < 0.0 and math.copysign(1.0, doc["n4"]) == -1.0 and math.isfinite(doc["n4"])
+        )
 
         # Negative zero literal -0.0
-        assert doc["neg_zero"] == 0.0 and math.copysign(1.0, doc["neg_zero"]) == -1.0 and math.isfinite(doc["neg_zero"])
+        assert (
+            doc["neg_zero"] == 0.0
+            and math.copysign(1.0, doc["neg_zero"]) == -1.0
+            and math.isfinite(doc["neg_zero"])
+        )
 
 
 class TestSandboxResultProtocolContainerExecution:
@@ -378,7 +426,9 @@ class TestSandboxResultProtocolContainerExecution:
         assert res.result_payload == {"status": "success", "data": [10, 20, 30]}
         assert res.enforcement_details.get("exit_code") == 0
         assert res.enforcement_details.get("sealed_sha256") is not None
-        assert res.enforcement_details.get("sealed_sha256") == res.enforcement_details.get("transferred_sha256")
+        assert res.enforcement_details.get("sealed_sha256") == res.enforcement_details.get(
+            "transferred_sha256"
+        )
 
     def test_container_os_write_leading_text_rejected(self, runner: PythonSandboxRunner) -> None:
         """Verify direct os.write(1, ...) before output causes execution failure and no persistence."""
@@ -389,7 +439,9 @@ result = {"status": "should_be_rejected"}
 """
         res = runner.run(script, input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "malformed" in (res.error_message or "").lower() or "protocol_violation" in str(res.enforcement_details)
+        assert "malformed" in (res.error_message or "").lower() or "protocol_violation" in str(
+            res.enforcement_details
+        )
 
     def test_container_os_write_multiple_json_rejected(self, runner: PythonSandboxRunner) -> None:
         """Verify direct os.write(1, ...) of an extra JSON object causes execution failure."""
@@ -400,7 +452,9 @@ result = {"status": "genuine"}
 """
         res = runner.run(script, input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "unexpected trailing" in (res.error_message or "").lower() or "protocol_violation" in str(res.enforcement_details)
+        assert "unexpected trailing" in (
+            res.error_message or ""
+        ).lower() or "protocol_violation" in str(res.enforcement_details)
 
     def test_container_nan_constant_rejected(self, runner: PythonSandboxRunner) -> None:
         """Verify emitting NaN constant to stdout causes execution failure."""
@@ -431,7 +485,9 @@ os.write(1, b'{"overflow": 1e999}\\n')
 """
         res = runner.run(script, input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "overflow" in (res.error_message or "").lower() or "protocol_violation" in str(res.enforcement_details)
+        assert "overflow" in (res.error_message or "").lower() or "protocol_violation" in str(
+            res.enforcement_details
+        )
 
     def test_container_stdout_flood_immediately_killed(self, runner: PythonSandboxRunner) -> None:
         """Verify container writing > 5MB to stdout triggers immediate termination without accumulating unbounded data."""
@@ -445,7 +501,9 @@ for _ in range(100):
 """
         res = runner.run(script, input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "stdout limit" in (res.error_message or "").lower() or "stdout_overflow" in str(res.enforcement_details)
+        assert "stdout limit" in (res.error_message or "").lower() or "stdout_overflow" in str(
+            res.enforcement_details
+        )
         # Ensure runner did not buffer huge stdout
         assert len(res.stdout) == 0
 
@@ -465,7 +523,9 @@ result = {"status": "ok"}
         assert len(res.stderr.encode("utf-8")) <= 65536
         assert res.result_payload == {"status": "ok"}
 
-    def test_container_flood_abuse_ceiling_immediately_killed(self, runner: PythonSandboxRunner) -> None:
+    def test_container_flood_abuse_ceiling_immediately_killed(
+        self, runner: PythonSandboxRunner
+    ) -> None:
         """Verify container exceeding 10MB flood ceiling is immediately killed."""
         script = """
 import sys
@@ -477,20 +537,26 @@ for _ in range(200):
 """
         res = runner.run(script, input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "flood" in (res.error_message or "").lower() or "log_flood_protection" in str(res.enforcement_details)
+        assert "flood" in (res.error_message or "").lower() or "log_flood_protection" in str(
+            res.enforcement_details
+        )
 
     def test_container_reserved_key_prefix_rejected(self, runner: PythonSandboxRunner) -> None:
         """Verify script returning reserved host metadata keys (_vibe_*) is rejected."""
         script = "result = {'_vibe_metadata_spoof': 'forbidden'}"
         res = runner.run(script, input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "reserved host metadata" in (res.error_message or "").lower() or "protocol_violation" in str(res.enforcement_details)
+        assert "reserved host metadata" in (
+            res.error_message or ""
+        ).lower() or "protocol_violation" in str(res.enforcement_details)
 
 
 class TestSandboxTerminationStateMachine:
     """Tests verifying the container termination state machine and lifecycle guarantees."""
 
-    def test_container_exit_code_authoritative_for_completion(self, runner: PythonSandboxRunner) -> None:
+    def test_container_exit_code_authoritative_for_completion(
+        self, runner: PythonSandboxRunner
+    ) -> None:
         """Verify container exit code 0 is required for completion; non-zero exit fails even if output exists."""
         script = """
 import sys
@@ -513,24 +579,40 @@ result = {"timed_out_but_tried_to_return": True}
         assert res.result_payload is None
         assert "timed out" in (res.error_message or "").lower()
 
-    def test_pid1_signal_handling_sigterm_and_sigkill_teardown(self, runner: PythonSandboxRunner) -> None:
+    def test_pid1_signal_handling_sigterm_and_sigkill_teardown(
+        self, runner: PythonSandboxRunner
+    ) -> None:
         """Verify stop_and_remove_container uses bounded grace period and forced kill fallback."""
         container_name = f"vibe-test-sig-{uuid.uuid4().hex[:8]}"
         image_ref = runner.get_effective_image_ref()
 
         # Launch container running infinite sleep as PID 1
-        proc = subprocess.Popen([
-            "docker", "run", "-d",
-            "--name", container_name,
-            "--network", "none",
-            image_ref,
-            "python", "-c", "import time; time.sleep(60)"
-        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(
+            [
+                "docker",
+                "run",
+                "-d",
+                "--name",
+                container_name,
+                "--network",
+                "none",
+                image_ref,
+                "python",
+                "-c",
+                "import time; time.sleep(60)",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         out, _ = proc.communicate(timeout=25)
         cid = out.decode("utf-8", errors="replace").strip()
 
         # Confirm container is running
-        inspect_res = subprocess.run(["docker", "inspect", container_name, "--format", "{{.State.Running}}"], capture_output=True, text=True)
+        inspect_res = subprocess.run(
+            ["docker", "inspect", container_name, "--format", "{{.State.Running}}"],
+            capture_output=True,
+            text=True,
+        )
         assert "true" in inspect_res.stdout.lower()
 
         # Execute bounded stop with fallback kill and mandatory container_id
@@ -541,8 +623,12 @@ result = {"timed_out_but_tried_to_return": True}
         # Verify stop took bounded time and container is positively absent
         assert confirmed is True
         assert elapsed < 10.0, f"Stop and remove took too long: {elapsed}s"
-        check_after = subprocess.run(["docker", "inspect", container_name], capture_output=True, text=True)
-        assert check_after.returncode != 0, "Container still exists after stop_and_remove_container!"
+        check_after = subprocess.run(
+            ["docker", "inspect", container_name], capture_output=True, text=True
+        )
+        assert check_after.returncode != 0, (
+            "Container still exists after stop_and_remove_container!"
+        )
 
     def test_post_termination_validation_and_no_quota_leak_on_failure(self) -> None:
         """Verify malformed script does not reserve or leak quota in PostgreSQL and creates no artifact."""
@@ -585,7 +671,9 @@ result = {"timed_out_but_tried_to_return": True}
         assert isinstance(resp, SandboxExecutionResponse)
         assert resp.status == "timeout"
         assert resp.result_payload is None
-        assert "timed out" in resp.stderr.lower() or "timeout" in str(resp.enforcement_details.get("policy"))
+        assert "timed out" in resp.stderr.lower() or "timeout" in str(
+            resp.enforcement_details.get("policy")
+        )
         assert resp.enforcement_details.get("cleanup_confirmed") is True
 
     def test_all_five_execution_statuses_construct_and_serialize(self) -> None:
@@ -629,7 +717,9 @@ result = {"timed_out_but_tried_to_return": True}
 class TestStreamCollectorConcurrencyAndBoundaries:
     """Rigorous tests proving stream collection is concurrency-safe and boundary-checked."""
 
-    def test_boundary_stdout_one_byte_over_limit_triggers_kill(self, runner: PythonSandboxRunner) -> None:
+    def test_boundary_stdout_one_byte_over_limit_triggers_kill(
+        self, runner: PythonSandboxRunner
+    ) -> None:
         """Verify stdout exceeding 5 MiB by 1 byte triggers immediate termination and retains 0 bytes."""
         # 5 MiB = 5,242,880 bytes. 5,242,881 bytes must trigger overflow.
         script = """
@@ -645,7 +735,9 @@ while written < total:
 """
         res = runner.run(script, input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "stdout limit" in (res.error_message or "").lower() or "stdout_overflow" in str(res.enforcement_details)
+        assert "stdout limit" in (res.error_message or "").lower() or "stdout_overflow" in str(
+            res.enforcement_details
+        )
         assert len(res.stdout) == 0
 
     def test_boundary_4096_chunk_crossing(self, runner: PythonSandboxRunner) -> None:
@@ -659,9 +751,14 @@ for _ in range(1281):
 """
         res = runner.run(script, input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "stdout_overflow" in str(res.enforcement_details) or "stdout limit" in (res.error_message or "").lower()
+        assert (
+            "stdout_overflow" in str(res.enforcement_details)
+            or "stdout limit" in (res.error_message or "").lower()
+        )
 
-    def test_boundary_stderr_retention_and_excess_discard(self, runner: PythonSandboxRunner) -> None:
+    def test_boundary_stderr_retention_and_excess_discard(
+        self, runner: PythonSandboxRunner
+    ) -> None:
         """Verify stderr retention is strictly bounded to 64 KiB while excess is discarded."""
         script = """
 import sys
@@ -677,7 +774,9 @@ result = {"status": "ok"}
         assert res.result_payload == {"status": "ok"}
         assert len(res.stderr.encode("utf-8")) <= 65536
 
-    def test_concurrent_stdout_and_stderr_flooding_no_deadlock(self, runner: PythonSandboxRunner) -> None:
+    def test_concurrent_stdout_and_stderr_flooding_no_deadlock(
+        self, runner: PythonSandboxRunner
+    ) -> None:
         """Verify concurrent flooding on both streams does not deadlock and teardown triggers exactly once."""
         script = """
 import os
@@ -728,7 +827,9 @@ os.write(1, b"X" * (6 * 1024 * 1024))
 
         container_name = res.enforcement_details.get("container_name")
         if container_name:
-            check = subprocess.run(["docker", "inspect", container_name], capture_output=True, text=True)
+            check = subprocess.run(
+                ["docker", "inspect", container_name], capture_output=True, text=True
+            )
             assert check.returncode != 0, f"Container {container_name} survived overflow kill!"
 
     def test_exactly_once_overflow_election_barrier(self) -> None:
@@ -763,7 +864,9 @@ os.write(1, b"X" * (6 * 1024 * 1024))
         assert kill_count == 1
         assert len(winners) == 1
 
-    def test_concurrent_overflow_barrier_in_container_and_no_quota_leak(self, runner: PythonSandboxRunner) -> None:
+    def test_concurrent_overflow_barrier_in_container_and_no_quota_leak(
+        self, runner: PythonSandboxRunner
+    ) -> None:
         """Force container script to flood stdout and stderr concurrently with threading.Barrier.
 
         Verify exactly one termination is claimed, container is killed, no quota reserved, no artifact persisted.
@@ -810,7 +913,9 @@ t2.join()
             c_check = subprocess.run(["docker", "inspect", c_name], capture_output=True, text=True)
             assert c_check.returncode != 0, f"Container {c_name} survived!"
 
-    def test_simulate_docker_stop_failure_triggers_kill_and_rm_fallback(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_simulate_docker_stop_failure_triggers_kill_and_rm_fallback(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Verify that when docker stop times out, kill and rm execute as fallback and absence is confirmed."""
         call_log: list[str] = []
         orig_run = subprocess.run
@@ -822,7 +927,9 @@ t2.join()
                 if action == "stop":
                     raise subprocess.TimeoutExpired(cmd=cmd, timeout=kwargs.get("timeout", 5))
                 elif action in ("kill", "rm"):
-                    return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=b"", stderr=b"")
+                    return subprocess.CompletedProcess(
+                        args=cmd, returncode=0, stdout=b"", stderr=b""
+                    )
             return orig_run(cmd, *args, **kwargs)
 
         def mock_inspect(container_id, docker_client=None):
@@ -844,8 +951,11 @@ t2.join()
         assert "rm" in call_log
         assert "inspect" in call_log
 
-    def test_simulate_docker_rm_failure_fails_closed(self, monkeypatch: pytest.MonkeyPatch, runner: PythonSandboxRunner) -> None:
+    def test_simulate_docker_rm_failure_fails_closed(
+        self, monkeypatch: pytest.MonkeyPatch, runner: PythonSandboxRunner
+    ) -> None:
         """Verify that if container cannot be confirmed removed (inspect status 200), runner fails closed."""
+
         def mock_inspect(container_id, docker_client=None):
             # Container still present!
             return 200, {"Id": container_id, "State": {"Status": "running"}}, None
@@ -865,7 +975,10 @@ t2.join()
         # 2. On runner execution: must fail-closed!
         res = runner.run("result = {'status': 'ok'}", input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "cleanup could not be confirmed" in res.stderr.lower() or "cleanup_unconfirmed" in str(res.enforcement_details)
+        assert (
+            "cleanup could not be confirmed" in res.stderr.lower()
+            or "cleanup_unconfirmed" in str(res.enforcement_details)
+        )
         assert res.enforcement_details.get("cleanup_confirmed") is False
 
     def test_docker_inspect_positively_confirms_container_absence(self) -> None:
@@ -905,7 +1018,7 @@ t2.join()
         """Verify that inspect returncode 0 classifies as container_still_present and fails closed."""
         confirmed, err, cat = classify_docker_inspect_result(
             returncode=0,
-            stdout="[{\"Id\": \"1234567890abcdef\"}]",
+            stdout='[{"Id": "1234567890abcdef"}]',
             stderr="",
             container_name="vibe-test-container-present",
         )
@@ -971,6 +1084,7 @@ t2.join()
 
     def test_docker_inspect_timeout(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Verify that docker inspect timeout fails closed and records inspection_timeout in telemetry."""
+
         def mock_inspect(container_id, docker_client=None):
             return None, None, DockerTimeoutError("Docker inspection timed out after 3.0s")
 
@@ -984,7 +1098,9 @@ t2.join()
         assert err is not None
         assert "inspection_timeout" in err or "timeout" in err
 
-    def test_docker_stop_returning_nonzero_without_raising_exception(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_docker_stop_returning_nonzero_without_raising_exception(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Verify explicit handling of nonzero docker stop return codes, with kill/rm fallback."""
         call_log: list[str] = []
 
@@ -1001,7 +1117,9 @@ t2.join()
                         stderr=b"Error response from daemon: cannot stop container: context deadline exceeded",
                     )
                 elif action in ("kill", "rm"):
-                    return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=b"", stderr=b"")
+                    return subprocess.CompletedProcess(
+                        args=cmd, returncode=0, stdout=b"", stderr=b""
+                    )
             return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=b"", stderr=b"")
 
         def mock_inspect(container_id, docker_client=None):
@@ -1022,8 +1140,11 @@ t2.join()
         assert "rm" in call_log
         assert "inspect" in call_log
 
-    def test_docker_remove_failure_followed_by_confirmed_absence(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_docker_remove_failure_followed_by_confirmed_absence(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Verify that if rm fails (e.g. removal in progress) but inspect positively confirms absence, cleanup succeeds."""
+
         def mock_run(cmd, *args, **kwargs):
             if isinstance(cmd, list) and len(cmd) > 1 and cmd[0] == "docker":
                 action = cmd[1]
@@ -1049,8 +1170,11 @@ t2.join()
         assert confirmed is True
         assert err is None
 
-    def test_docker_remove_failure_followed_by_inconclusive_inspection(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_docker_remove_failure_followed_by_inconclusive_inspection(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Verify that if rm fails AND inspect is inconclusive/ambiguous, cleanup fails closed with all errors."""
+
         def mock_run(cmd, *args, **kwargs):
             if isinstance(cmd, list) and len(cmd) > 1 and cmd[0] == "docker":
                 action = cmd[1]
@@ -1064,7 +1188,11 @@ t2.join()
             return subprocess.CompletedProcess(args=cmd, returncode=0, stdout=b"", stderr=b"")
 
         def mock_inspect(container_id, docker_client=None):
-            return 500, None, DockerServerError("unexpected internal daemon response code 500", status_code=500)
+            return (
+                500,
+                None,
+                DockerServerError("unexpected internal daemon response code 500", status_code=500),
+            )
 
         monkeypatch.setattr(subprocess, "run", mock_run)
         monkeypatch.setattr(sandbox_mod, "structured_docker_inspect", mock_inspect)
@@ -1118,7 +1246,18 @@ t2.join()
 
         # Launch background container
         run_res = subprocess.run(
-            ["docker", "run", "-d", "--name", cname_orig, "--entrypoint", "python", image_ref, "-c", "import time; time.sleep(15)"],
+            [
+                "docker",
+                "run",
+                "-d",
+                "--name",
+                cname_orig,
+                "--entrypoint",
+                "python",
+                image_ref,
+                "-c",
+                "import time; time.sleep(15)",
+            ],
             capture_output=True,
             text=True,
         )
@@ -1128,13 +1267,15 @@ t2.join()
 
         try:
             # Rename container to simulate evasive renaming attack
-            rename_res = subprocess.run(["docker", "rename", cname_orig, cname_hidden], capture_output=True, text=True)
+            rename_res = subprocess.run(
+                ["docker", "rename", cname_orig, cname_hidden], capture_output=True, text=True
+            )
             assert rename_res.returncode == 0
 
             # Inspecting via immutable container_id discovers container still exists!
             confirmed, err, cat = classify_docker_inspect_result(
                 returncode=0,
-                stdout="[{\"Id\": \"" + cid + "\"}]",
+                stdout='[{"Id": "' + cid + '"}]',
                 stderr="",
                 container_name=cid,
             )
@@ -1142,12 +1283,16 @@ t2.join()
             assert cat == "container_still_present"
 
             # stop_and_remove_container targeting container_id safely tears down renamed container
-            confirmed_cleanup, cleanup_err = stop_and_remove_container(cname_orig, grace_seconds=1, container_id=cid)
+            confirmed_cleanup, cleanup_err = stop_and_remove_container(
+                cname_orig, grace_seconds=1, container_id=cid
+            )
             assert confirmed_cleanup is True
             assert cleanup_err is None
 
             # Verify container is truly absent after cleanup
-            verify_res = subprocess.run(["docker", "inspect", "--type", "container", cid], capture_output=True, text=True)
+            verify_res = subprocess.run(
+                ["docker", "inspect", "--type", "container", cid], capture_output=True, text=True
+            )
             assert verify_res.returncode != 0
             assert "no such container" in verify_res.stderr.lower()
 
@@ -1162,7 +1307,18 @@ t2.join()
         image_ref = runner.get_effective_image_ref()
 
         run_res = subprocess.run(
-            ["docker", "run", "-d", "--name", cname, "--entrypoint", "python", image_ref, "-c", "import time; time.sleep(10)"],
+            [
+                "docker",
+                "run",
+                "-d",
+                "--name",
+                cname,
+                "--entrypoint",
+                "python",
+                image_ref,
+                "-c",
+                "import time; time.sleep(10)",
+            ],
             capture_output=True,
             text=True,
         )
@@ -1184,7 +1340,9 @@ t2.join()
         assert err_final is None
 
         # Verify that human-readable CLI stderr phrase cannot independently confirm absence
-        inspect_res = subprocess.run(["docker", "inspect", "--type", "container", cid], capture_output=True, text=True)
+        inspect_res = subprocess.run(
+            ["docker", "inspect", "--type", "container", cid], capture_output=True, text=True
+        )
         assert inspect_res.returncode != 0
         cli_conf, _, cli_cat = classify_docker_inspect_result(
             inspect_res.returncode, inspect_res.stdout, inspect_res.stderr, cid
@@ -1272,7 +1430,9 @@ result = {
         assert err_200 is not None
         assert "still present" in err_200
 
-    def test_structured_docker_server_error_500_with_misleading_not_found_wording_fails_closed(self) -> None:
+    def test_structured_docker_server_error_500_with_misleading_not_found_wording_fails_closed(
+        self,
+    ) -> None:
         """Section 1: HTTP 500 containing misleading not-found wording MUST fail closed and be classified as server_error."""
         # Realistic error: daemon storage driver crashed or failed with not-found phrase inside 500 response
         misleading_500_body = "500 Internal Server Error: storage driver reported object not found: no such container metadata"
@@ -1293,24 +1453,31 @@ result = {
         """Section 1: Connection failure, permission failure, and timeout structured exceptions fail closed."""
         # Connection error
         conn_exc = DockerConnectionError("Failed to connect to docker.sock")
-        c1, e1, cat1 = classify_docker_inspect_result(api_exception=conn_exc, container_name="vibe-c1")
+        c1, e1, cat1 = classify_docker_inspect_result(
+            api_exception=conn_exc, container_name="vibe-c1"
+        )
         assert c1 is False
         assert cat1 == "daemon_unavailable"
 
         # Permission error (HTTP 403)
         perm_exc = DockerPermissionError("Permission denied accessing Docker API", status_code=403)
-        c2, e2, cat2 = classify_docker_inspect_result(status_code=403, api_exception=perm_exc, container_name="vibe-c1")
+        c2, e2, cat2 = classify_docker_inspect_result(
+            status_code=403, api_exception=perm_exc, container_name="vibe-c1"
+        )
         assert c2 is False
         assert cat2 == "permission_or_api_failure"
 
         # Timeout error
         time_exc = DockerTimeoutError("Docker Engine inspection timed out after 3s")
-        c3, e3, cat3 = classify_docker_inspect_result(api_exception=time_exc, container_name="vibe-c1")
+        c3, e3, cat3 = classify_docker_inspect_result(
+            api_exception=time_exc, container_name="vibe-c1"
+        )
         assert c3 is False
         assert cat3 == "timeout"
 
     def test_structured_docker_inspect_with_mocked_sdk_client(self) -> None:
         """Section 1: structured_docker_inspect accurately maps SDK client responses to status codes and exceptions."""
+
         class MockContainer:
             def __init__(self, cid: str) -> None:
                 self.attrs = {"Id": cid, "State": {"Status": "running"}}
@@ -1325,7 +1492,9 @@ result = {
                 elif self.mode == "not_found":
                     raise DockerNotFoundError("Container not found", status_code=404)
                 elif self.mode == "server_error":
-                    raise DockerServerError("500 Internal Server Error: driver error object not found", status_code=500)
+                    raise DockerServerError(
+                        "500 Internal Server Error: driver error object not found", status_code=500
+                    )
                 raise RuntimeError("Unexpected mock mode")
 
         class MockDockerClient:
@@ -1356,7 +1525,9 @@ result = {
         assert data3 is None
         assert isinstance(exc3, DockerServerError)
 
-    def test_mandatory_immutable_container_id_captured_and_passed(self, runner: PythonSandboxRunner) -> None:
+    def test_mandatory_immutable_container_id_captured_and_passed(
+        self, runner: PythonSandboxRunner
+    ) -> None:
         """Section 2: Execution captures full 64-character container ID at creation and passes it to cleanup."""
         res = runner.run("result = {'hello': 'world'}", input_data={}, bypass_ast=True)
         assert res.status == "completed", f"Execution failed: {res.stderr}"
@@ -1367,14 +1538,23 @@ result = {
         assert all(c in "0123456789abcdefABCDEF" for c in cid)
         assert res.enforcement_details.get("cleanup_confirmed") is True
 
-    def test_runner_fails_closed_when_container_id_cannot_be_captured(self, monkeypatch: pytest.MonkeyPatch, runner: PythonSandboxRunner) -> None:
+    def test_runner_fails_closed_when_container_id_cannot_be_captured(
+        self, monkeypatch: pytest.MonkeyPatch, runner: PythonSandboxRunner
+    ) -> None:
         """Section 2: If immutable container ID cannot be captured at creation, runner aborts and fails closed."""
         orig_run = subprocess.run
 
         def mock_run(cmd, *args, **kwargs):
-            if isinstance(cmd, list) and len(cmd) > 1 and cmd[0] == "docker" and cmd[1] == "inspect":
+            if (
+                isinstance(cmd, list)
+                and len(cmd) > 1
+                and cmd[0] == "docker"
+                and cmd[1] == "inspect"
+            ):
                 # Simulate inspect failing to return an ID
-                return subprocess.CompletedProcess(args=cmd, returncode=1, stdout=b"", stderr=b"no inspect")
+                return subprocess.CompletedProcess(
+                    args=cmd, returncode=1, stdout=b"", stderr=b"no inspect"
+                )
             return orig_run(cmd, *args, **kwargs)
 
         monkeypatch.setattr(subprocess, "run", mock_run)
@@ -1390,19 +1570,28 @@ result = {
 
         res = runner.run("result = {'ok': True}", input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "immutable container id" in res.stderr.lower() or "missing_immutable_container_id" in str(res.enforcement_details)
+        assert (
+            "immutable container id" in res.stderr.lower()
+            or "missing_immutable_container_id" in str(res.enforcement_details)
+        )
         assert res.enforcement_details.get("error") == "missing_immutable_container_id"
 
-    def test_immutable_image_reference_verified_against_pinned_digest(self, runner: PythonSandboxRunner) -> None:
+    def test_immutable_image_reference_verified_against_pinned_digest(
+        self, runner: PythonSandboxRunner
+    ) -> None:
         """Section 3: Effective image used by created container verified against configured digest and identity."""
         res = runner.run("result = {'provenance': 'verified'}", input_data={}, bypass_ast=True)
         assert res.status == "completed"
         details = res.enforcement_details
-        assert runner.image_digest in details.get("image_ref", "") or runner.image_digest in details.get("container_image_id", "")
+        assert runner.image_digest in details.get(
+            "image_ref", ""
+        ) or runner.image_digest in details.get("container_image_id", "")
         assert details.get("container_path") == "python"
         assert details.get("container_args") == ["/input/runner.py"]
 
-    def test_runner_fails_closed_on_image_provenance_mismatch(self, monkeypatch: pytest.MonkeyPatch, runner: PythonSandboxRunner) -> None:
+    def test_runner_fails_closed_on_image_provenance_mismatch(
+        self, monkeypatch: pytest.MonkeyPatch, runner: PythonSandboxRunner
+    ) -> None:
         """Section 3: If container metadata reports an unpinned/mismatched image digest, runner fails closed."""
         import app.analytics.python_sandbox as sandbox_mod
 
@@ -1427,10 +1616,14 @@ result = {
         monkeypatch.setattr(sandbox_mod, "verify_image_and_container_provenance", mock_provenance)
         res = runner.run("result = {'test': 1}", input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "provenance" in res.stderr.lower() or "image_provenance_mismatch" in str(res.enforcement_details)
+        assert "provenance" in res.stderr.lower() or "image_provenance_mismatch" in str(
+            res.enforcement_details
+        )
         assert res.enforcement_details.get("error") == "image_provenance_mismatch"
 
-    def test_runner_fails_closed_on_entrypoint_mismatch(self, monkeypatch: pytest.MonkeyPatch, runner: PythonSandboxRunner) -> None:
+    def test_runner_fails_closed_on_entrypoint_mismatch(
+        self, monkeypatch: pytest.MonkeyPatch, runner: PythonSandboxRunner
+    ) -> None:
         """Section 3: If container metadata reports a non-python entrypoint or shell wrapper, runner fails closed."""
         import app.analytics.python_sandbox as sandbox_mod
 
@@ -1455,7 +1648,9 @@ result = {
         monkeypatch.setattr(sandbox_mod, "verify_image_and_container_provenance", mock_provenance)
         res = runner.run("result = {'test': 1}", input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "entrypoint" in res.stderr.lower() or "entrypoint_mismatch" in str(res.enforcement_details)
+        assert "entrypoint" in res.stderr.lower() or "entrypoint_mismatch" in str(
+            res.enforcement_details
+        )
         assert res.enforcement_details.get("error") == "entrypoint_mismatch"
 
     def test_cli_no_such_container_cannot_independently_confirm_absence(self) -> None:
@@ -1491,7 +1686,9 @@ result = {
         )
         # On a machine where Docker API IS available, this will return 404.
         # But we explicitly test the classify path when connection fails:
-        conn_exc = DockerConnectionError("Docker Engine API unavailable; structured inspection cannot be performed")
+        conn_exc = DockerConnectionError(
+            "Docker Engine API unavailable; structured inspection cannot be performed"
+        )
         confirmed, err, cat = classify_docker_inspect_result(
             api_exception=conn_exc,
             container_name="vibe-test-missing-api",
@@ -1502,7 +1699,9 @@ result = {
 
     def test_structured_engine_api_404_confirms_absence(self) -> None:
         """Docker Engine API HTTP 404 response authoritatively confirms container absence."""
-        code, data, exc = query_docker_engine_api("/containers/nonexistent_engine_api_test_12345/json")
+        code, data, exc = query_docker_engine_api(
+            "/containers/nonexistent_engine_api_test_12345/json"
+        )
         assert code == 404
         assert data is None
         assert isinstance(exc, DockerNotFoundError)
@@ -1515,13 +1714,27 @@ result = {
         assert cat == "confirmed_absent"
         assert err is None
 
-    def test_structured_engine_api_200_confirms_container_exists(self, runner: PythonSandboxRunner) -> None:
+    def test_structured_engine_api_200_confirms_container_exists(
+        self, runner: PythonSandboxRunner
+    ) -> None:
         """Docker Engine API HTTP 200 response confirms container still exists."""
         img_ref = runner.get_effective_image_ref()
         cname = f"vibe-test-api-200-{uuid.uuid4().hex[:8]}"
         run_res = subprocess.run(
-            ["docker", "run", "-d", "--name", cname, "--entrypoint", "python", img_ref, "-c", "import time; time.sleep(30)"],
-            capture_output=True, text=True,
+            [
+                "docker",
+                "run",
+                "-d",
+                "--name",
+                cname,
+                "--entrypoint",
+                "python",
+                img_ref,
+                "-c",
+                "import time; time.sleep(30)",
+            ],
+            capture_output=True,
+            text=True,
         )
         if run_res.returncode != 0:
             pytest.skip("Docker container run failed.")
@@ -1544,8 +1757,19 @@ result = {
         img_ref = runner.get_effective_image_ref()
         cname = f"vibe-test-provenance-{uuid.uuid4().hex[:8]}"
         run_res = subprocess.run(
-            ["docker", "run", "-d", "--name", cname, "--entrypoint", "python", img_ref, "/input/runner.py"],
-            capture_output=True, text=True,
+            [
+                "docker",
+                "run",
+                "-d",
+                "--name",
+                cname,
+                "--entrypoint",
+                "python",
+                img_ref,
+                "/input/runner.py",
+            ],
+            capture_output=True,
+            text=True,
         )
         if run_res.returncode != 0:
             pytest.skip("Docker container run failed.")
@@ -1584,6 +1808,7 @@ result = {
 
     def test_image_provenance_rejects_mutable_tag(self) -> None:
         """verify_image_and_container_provenance rejects containers created with mutable :latest tag."""
+
         # Simulate container with :latest tag in Config.Image using mock SDK client
         class MockContainer:
             def __init__(self):
@@ -1608,4 +1833,3 @@ result = {
         )
         assert ok is False
         assert "mutable_tag_rejected" in (err or "")
-

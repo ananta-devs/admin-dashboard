@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import uuid
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -62,6 +63,7 @@ async def test_org(db_session: AsyncSession):
     org = await db_session.get(Organization, org_read.id)
     user = await db_session.get(User, user_read.id)
     from app.repositories.membership import MembershipRepository
+
     m_repo = MembershipRepository(db_session)
     membership = await m_repo.get(organization_id=org.id, user_id=user.id)
     return {"org": org, "user": user, "membership": membership}
@@ -217,7 +219,9 @@ async def test_member_can_upload_but_cannot_delete(test_org, member_membership, 
 
             # Member attempts to delete -> 403 Forbidden
             res_del = await client.delete(f"/api/v1/files/{file_id}")
-            assert res_del.status_code == 403, f"Expected 403 for member deletion, got {res_del.status_code}"
+            assert res_del.status_code == 403, (
+                f"Expected 403 for member deletion, got {res_del.status_code}"
+            )
 
             # Owner can delete it
             app.dependency_overrides[get_current_membership] = lambda: owner_membership
@@ -228,7 +232,9 @@ async def test_member_can_upload_but_cannot_delete(test_org, member_membership, 
 
 
 @pytest.mark.asyncio
-async def test_viewer_cannot_upload_or_delete_but_can_read(test_org, viewer_membership, session_factory):
+async def test_viewer_cannot_upload_or_delete_but_can_read(
+    test_org, viewer_membership, session_factory
+):
     """Verify viewer cannot upload (403) or delete (403), but can read/download."""
     owner_membership = test_org["membership"]
 
@@ -268,7 +274,9 @@ async def test_viewer_cannot_upload_or_delete_but_can_read(test_org, viewer_memb
                 "content_type": "text/csv",
             }
             res_viewer_up = await client.post("/api/v1/files/upload", json=upload_attempt)
-            assert res_viewer_up.status_code == 403, f"Expected 403 for viewer upload, got {res_viewer_up.status_code}"
+            assert res_viewer_up.status_code == 403, (
+                f"Expected 403 for viewer upload, got {res_viewer_up.status_code}"
+            )
 
             # 2. Viewer read list -> 200 OK
             res_viewer_list = await client.get("/api/v1/files")
@@ -281,7 +289,8 @@ async def test_viewer_cannot_upload_or_delete_but_can_read(test_org, viewer_memb
 
             # 4. Viewer delete attempt -> 403 Forbidden
             res_viewer_del = await client.delete(f"/api/v1/files/{file_id}")
-            assert res_viewer_del.status_code == 403, f"Expected 403 for viewer delete, got {res_viewer_del.status_code}"
+            assert res_viewer_del.status_code == 403, (
+                f"Expected 403 for viewer delete, got {res_viewer_del.status_code}"
+            )
     finally:
         app.dependency_overrides.clear()
-

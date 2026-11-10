@@ -11,11 +11,9 @@ Fulfills Phase 10 Stage 2 requirements:
 from __future__ import annotations
 
 import os
-import shutil
 import subprocess
-import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 
 class PhysicalBackupError(Exception):
@@ -40,21 +38,29 @@ class PhysicalBackupRunner:
         self.max_rate = max_rate
 
     def build_basebackup_command(
-        self, target_dir: str | Path, tablespace_mappings: List[Tuple[str, str]] | None = None
-    ) -> List[str]:
+        self, target_dir: str | Path, tablespace_mappings: list[tuple[str, str]] | None = None
+    ) -> list[str]:
         """Construct safe command argument list using -D/--pgdata."""
         cmd = [
             "pg_basebackup",
-            "-h", self.pg_host,
-            "-p", str(self.pg_port),
-            "-U", self.pg_user,
-            "-D", str(target_dir),
+            "-h",
+            self.pg_host,
+            "-p",
+            str(self.pg_port),
+            "-U",
+            self.pg_user,
+            "-D",
+            str(target_dir),
             "-Fp",  # Plain format required by pg_verifybackup
-            "-X", "stream",  # Stream required WAL concurrently
-            "-c", "fast",    # Fast checkpoint
-            "-r", self.max_rate,
-            "-s", "10",
-            "-w",   # Do not prompt for password (read from env)
+            "-X",
+            "stream",  # Stream required WAL concurrently
+            "-c",
+            "fast",  # Fast checkpoint
+            "-r",
+            self.max_rate,
+            "-s",
+            "10",
+            "-w",  # Do not prompt for password (read from env)
         ]
 
         if tablespace_mappings:
@@ -63,7 +69,7 @@ class PhysicalBackupRunner:
 
         return cmd
 
-    def build_verifybackup_command(self, backup_dir: str | Path) -> List[str]:
+    def build_verifybackup_command(self, backup_dir: str | Path) -> list[str]:
         """Construct safe pg_verifybackup command argument list."""
         manifest_path = Path(backup_dir) / "backup_manifest"
         return [
@@ -75,9 +81,9 @@ class PhysicalBackupRunner:
     def execute_backup(
         self,
         staging_dir: str | Path,
-        tablespace_mappings: List[Tuple[str, str]] | None = None,
+        tablespace_mappings: list[tuple[str, str]] | None = None,
         timeout_seconds: int = 1800,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute physical base backup and offline verification."""
         target_path = Path(staging_dir).resolve()
         target_path.mkdir(parents=True, exist_ok=True)
@@ -100,7 +106,9 @@ class PhysicalBackupRunner:
                 check=False,
             )
             if proc.returncode != 0:
-                raise PhysicalBackupError(f"pg_basebackup failed (code {proc.returncode}): {proc.stderr.strip()}")
+                raise PhysicalBackupError(
+                    f"pg_basebackup failed (code {proc.returncode}): {proc.stderr.strip()}"
+                )
 
             # 2. Verify plain directory using pg_verifybackup
             verify_cmd = self.build_verifybackup_command(target_path)
@@ -120,7 +128,9 @@ class PhysicalBackupRunner:
 
             # 3. Read backup manifest to extract metadata
             manifest_file = target_path / "backup_manifest"
-            manifest_content = manifest_file.read_text(encoding="utf-8") if manifest_file.exists() else ""
+            manifest_content = (
+                manifest_file.read_text(encoding="utf-8") if manifest_file.exists() else ""
+            )
 
             return {
                 "status": "SUCCESS",
@@ -130,5 +140,6 @@ class PhysicalBackupRunner:
             }
 
         except subprocess.TimeoutExpired as e:
-            raise PhysicalBackupError(f"Physical backup timed out after {timeout_seconds} seconds.") from e
-
+            raise PhysicalBackupError(
+                f"Physical backup timed out after {timeout_seconds} seconds."
+            ) from e

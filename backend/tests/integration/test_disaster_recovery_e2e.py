@@ -19,8 +19,7 @@ Exercises the complete disaster recovery lifecycle:
 import io
 import os
 import tempfile
-import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -35,7 +34,7 @@ from app.services.backup.retention_engine import (
     WalSegmentMetadata,
 )
 from app.services.backup.rpo_probe import RpoProbeEngine
-from app.services.backup.wal_archiver import WAL_SEGMENT_SIZE, WalArchiverService, WalConflictError
+from app.services.backup.wal_archiver import WAL_SEGMENT_SIZE, WalArchiverService
 from app.services.backup.wal_uploader import WalUploaderService
 from app.services.crypto.backup_cipher import BackupCipherService
 from app.services.crypto.manifest_signer import ManifestSigner
@@ -201,7 +200,9 @@ def test_s3_object_lock_and_delete_marker_immunity(dr_environment):
 
     # Retrieve by exact original VersionId
     out_original = io.BytesIO()
-    storage.download_stream("physical/base/backup_test.enc", out_original, version_id=res1.version_id)
+    storage.download_stream(
+        "physical/base/backup_test.enc", out_original, version_id=res1.version_id
+    )
     assert out_original.getvalue() == original_data
 
 
@@ -253,14 +254,16 @@ def test_failure_injection_tampered_manifest_rejected(dr_environment):
 
 def test_failure_injection_missing_wal_freezes_pruning():
     """Failure Injection: Missing or unverified WAL segment halts retention pruning."""
-    engine = RetentionEngine(daily_retention_days=14, weekly_retention_days=56, monthly_retention_days=365)
-    now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
+    engine = RetentionEngine(
+        daily_retention_days=14, weekly_retention_days=56, monthly_retention_days=365
+    )
+    now = datetime(2026, 11, 4, 12, 0, tzinfo=UTC)
 
     backup = BackupArtifactMetadata(
         backup_id="b-old",
         artifact_id="art-old",
         backup_type="PHYSICAL_BASE",
-        created_at=datetime(2026, 9, 1, 0, 0, tzinfo=timezone.utc),  # Expired (> 60 days)
+        created_at=datetime(2026, 9, 1, 0, 0, tzinfo=UTC),  # Expired (> 60 days)
         start_lsn="0/01000000",
         stop_lsn="0/01000100",
         timeline_id=1,
@@ -278,13 +281,15 @@ def test_failure_injection_missing_wal_freezes_pruning():
         timeline_id=1,
         lsn_start="0/01000000",
         lsn_stop="0/01000100",
-        created_at=datetime(2026, 9, 1, 0, 0, tzinfo=timezone.utc),
+        created_at=datetime(2026, 9, 1, 0, 0, tzinfo=UTC),
         s3_version_id="v-wal",
         sha256="wal_hash",
         verified_remote=False,
     )
 
-    expired_backups, prunable_wal = engine.resolve_prunable_backups([backup], [unverified_wal], now=now)
+    expired_backups, prunable_wal = engine.resolve_prunable_backups(
+        [backup], [unverified_wal], now=now
+    )
     # Fail-closed: Pruning must be completely frozen!
     assert expired_backups == []
     assert prunable_wal == []
@@ -303,6 +308,7 @@ def test_catastrophic_host_loss_and_remote_only_recovery(dr_environment):
     7. Verify recovered database state and certified recovery point.
     """
     import shutil
+
     env = dr_environment
 
     # 1. Orchestrate base backup
@@ -431,4 +437,3 @@ def test_persisted_job_state_survives_restart(dr_environment):
     assert found is not None
     assert found["status"] == "COMPLETED"
     assert found["remote_version_id"] == completed_job.remote_version_id
-

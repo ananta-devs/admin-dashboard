@@ -37,16 +37,16 @@ from app.core.config import settings
 
 class PROCESS_MEMORY_COUNTERS(ctypes.Structure):
     _fields_ = [
-        ('cb', wintypes.DWORD),
-        ('PageFaultCount', wintypes.DWORD),
-        ('PeakWorkingSetSize', ctypes.c_size_t),
-        ('WorkingSetSize', ctypes.c_size_t),
-        ('QuotaPeakPagedPoolUsage', ctypes.c_size_t),
-        ('QuotaPagedPoolUsage', ctypes.c_size_t),
-        ('QuotaPeakNonPagedPoolUsage', ctypes.c_size_t),
-        ('QuotaNonPagedPoolUsage', ctypes.c_size_t),
-        ('PagefileUsage', ctypes.c_size_t),
-        ('PeakPagefileUsage', ctypes.c_size_t),
+        ("cb", wintypes.DWORD),
+        ("PageFaultCount", wintypes.DWORD),
+        ("PeakWorkingSetSize", ctypes.c_size_t),
+        ("WorkingSetSize", ctypes.c_size_t),
+        ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+        ("QuotaPagedPoolUsage", ctypes.c_size_t),
+        ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+        ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+        ("PagefileUsage", ctypes.c_size_t),
+        ("PeakPagefileUsage", ctypes.c_size_t),
     ]
 
 
@@ -57,7 +57,9 @@ def get_current_rss_mb() -> float:
         # PROCESS_QUERY_INFORMATION (0x0400) | PROCESS_VM_READ (0x0010)
         handle = ctypes.windll.kernel32.OpenProcess(0x0410, False, os.getpid())
         if handle:
-            if ctypes.windll.psapi.GetProcessMemoryInfo(handle, ctypes.byref(counters), counters.cb):
+            if ctypes.windll.psapi.GetProcessMemoryInfo(
+                handle, ctypes.byref(counters), counters.cb
+            ):
                 ctypes.windll.kernel32.CloseHandle(handle)
                 return counters.WorkingSetSize / (1024 * 1024)
             ctypes.windll.kernel32.CloseHandle(handle)
@@ -110,7 +112,9 @@ async def run_benchmark_scenario(
         # Persist result artifact
         t2 = time.perf_counter()
         result_id = uuid.uuid4()
-        result_path = storage.get_result_artifact_path(org_id, job_id, result_id, claim_generation=1)
+        result_path = storage.get_result_artifact_path(
+            org_id, job_id, result_id, claim_generation=1
+        )
         result_path.parent.mkdir(parents=True, exist_ok=True)
         tmp_path = result_path.with_suffix(".parquet.tmp")
 
@@ -202,11 +206,13 @@ async def main():
     results = [res1, res2, res3]
     print("\nBENCHMARK RESULTS TABLE:")
     print("-" * 115)
-    print(f"{'Scenario':<42} | {'Cells':<8} | {'Snap(KB)':<9} | {'Comp(s)':<8} | {'Total(s)':<8} | {'Peak RSS':<9} | {'Throughput'}")
+    print(
+        f"{'Scenario':<42} | {'Cells':<8} | {'Snap(KB)':<9} | {'Comp(s)':<8} | {'Total(s)':<8} | {'Peak RSS':<9} | {'Throughput'}"
+    )
     print("-" * 115)
     for r in results:
         print(
-            f"{r['scenario']:<42} | {r['cells']:<8} | {r['snapshot_size_bytes']//1024:<9} | "
+            f"{r['scenario']:<42} | {r['cells']:<8} | {r['snapshot_size_bytes'] // 1024:<9} | "
             f"{r['comp_time_sec']:<8} | {r['total_time_sec']:<8} | {r['peak_rss_mb']:<6} MB | {r['throughput_cells_per_sec']:,.0f} cells/s"
         )
     print("-" * 115)

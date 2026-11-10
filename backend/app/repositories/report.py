@@ -35,9 +35,7 @@ class ReportDefinitionRepository:
         await self.session.flush()
         return definition
 
-    async def get_by_id(
-        self, id: uuid.UUID, organization_id: uuid.UUID
-    ) -> ReportDefinition | None:
+    async def get_by_id(self, id: uuid.UUID, organization_id: uuid.UUID) -> ReportDefinition | None:
         stmt = (
             select(ReportDefinition)
             .options(selectinload(ReportDefinition.sections))
@@ -57,9 +55,7 @@ class ReportDefinitionRepository:
     ) -> ReportDefinition | None:
         stmt = (
             select(ReportDefinition)
-            .options(
-                selectinload(ReportDefinition.sections)
-            )
+            .options(selectinload(ReportDefinition.sections))
             .where(
                 ReportDefinition.id == id,
                 ReportDefinition.organization_id == organization_id,
@@ -115,9 +111,7 @@ class ReportDefinitionRepository:
         await self.session.flush()
         return definition
 
-    async def archive(
-        self, id: uuid.UUID, organization_id: uuid.UUID
-    ) -> ReportDefinition | None:
+    async def archive(self, id: uuid.UUID, organization_id: uuid.UUID) -> ReportDefinition | None:
         definition = await self.get_by_id(id, organization_id)
         if not definition:
             return None
@@ -128,9 +122,7 @@ class ReportDefinitionRepository:
         await self.session.flush()
         return definition
 
-    async def unarchive(
-        self, id: uuid.UUID, organization_id: uuid.UUID
-    ) -> ReportDefinition | None:
+    async def unarchive(self, id: uuid.UUID, organization_id: uuid.UUID) -> ReportDefinition | None:
         definition = await self.get_by_id(id, organization_id)
         if not definition:
             return None
@@ -160,9 +152,7 @@ class ReportSectionRepository:
         await self.session.flush()
         return section
 
-    async def get_by_id(
-        self, id: uuid.UUID, organization_id: uuid.UUID
-    ) -> ReportSection | None:
+    async def get_by_id(self, id: uuid.UUID, organization_id: uuid.UUID) -> ReportSection | None:
         stmt = select(ReportSection).where(
             ReportSection.id == id,
             ReportSection.organization_id == organization_id,
@@ -237,9 +227,7 @@ class ReportRunRepository:
         await self.session.flush()
         return run
 
-    async def get_by_id(
-        self, id: uuid.UUID, organization_id: uuid.UUID
-    ) -> ReportRun | None:
+    async def get_by_id(self, id: uuid.UUID, organization_id: uuid.UUID) -> ReportRun | None:
         stmt = select(ReportRun).where(
             ReportRun.id == id,
             ReportRun.organization_id == organization_id,
@@ -315,11 +303,7 @@ class ReportRunRepository:
     ) -> tuple[bool, ReportRun | None]:
         """Atomically claim a queued or expired running run for execution."""
         now = utc_now()
-        stmt = (
-            select(ReportRun)
-            .where(ReportRun.id == run_id)
-            .with_for_update()
-        )
+        stmt = select(ReportRun).where(ReportRun.id == run_id).with_for_update()
         run = (await self.session.execute(stmt)).scalar_one_or_none()
         if not run:
             return False, None
@@ -380,7 +364,7 @@ class ReportRunRepository:
             )
         )
         res = await self.session.execute(stmt)
-        return res.rowcount > 0
+        return getattr(res, "rowcount", 0) > 0
 
     async def finalize_run_success(
         self,
@@ -428,7 +412,7 @@ class ReportRunRepository:
             )
         )
         res = await self.session.execute(stmt)
-        return res.rowcount > 0
+        return getattr(res, "rowcount", 0) > 0
 
     async def finalize_run_failure(
         self,
@@ -568,11 +552,10 @@ class ReportOutboxRepository:
             )
         )
         res = await self.session.execute(stmt)
-        return res.rowcount
+        return getattr(res, "rowcount", 0)
 
     async def get_pending_count(self) -> int:
         stmt = select(func.count(ReportOutboxEvent.id)).where(
             ReportOutboxEvent.published_at.is_(None)
         )
         return (await self.session.execute(stmt)).scalar_one() or 0
-

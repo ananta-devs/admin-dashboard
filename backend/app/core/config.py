@@ -243,13 +243,28 @@ class Settings(BaseSettings):
         default="http://localhost:3000/integrations/callback",
         description="Google OAuth authorized redirect URI",
     )
-    PYTHON_SANDBOX_TIMEOUT_SECONDS: int = Field(default=15, description="Governed Python execution timeout")
-    PYTHON_SANDBOX_MAX_MEMORY_MB: int = Field(default=256, description="Memory limit for isolated execution")
-    PYTHON_SANDBOX_MAX_CELLS: int = Field(default=500000, description="Max cells processed in script run")
-    PYTHON_SANDBOX_ENABLED: bool = Field(default=False, description="Enable user-defined Python script execution")
-    PYTHON_SANDBOX_ISOLATION_TYPE: str = Field(default="docker_oci", description="Isolation runtime: docker_oci or disabled")
-    PYTHON_SANDBOX_IMAGE_REPO: str = Field(default="vibe-python-sandbox", description="Repository name of sandbox image")
-    PYTHON_SANDBOX_IMAGE: str = Field(default="vibe-python-sandbox:latest", description="Pinned OCI container image for sandbox execution")
+    PYTHON_SANDBOX_TIMEOUT_SECONDS: int = Field(
+        default=15, description="Governed Python execution timeout"
+    )
+    PYTHON_SANDBOX_MAX_MEMORY_MB: int = Field(
+        default=256, description="Memory limit for isolated execution"
+    )
+    PYTHON_SANDBOX_MAX_CELLS: int = Field(
+        default=500000, description="Max cells processed in script run"
+    )
+    PYTHON_SANDBOX_ENABLED: bool = Field(
+        default=False, description="Enable user-defined Python script execution"
+    )
+    PYTHON_SANDBOX_ISOLATION_TYPE: str = Field(
+        default="docker_oci", description="Isolation runtime: docker_oci or disabled"
+    )
+    PYTHON_SANDBOX_IMAGE_REPO: str = Field(
+        default="vibe-python-sandbox", description="Repository name of sandbox image"
+    )
+    PYTHON_SANDBOX_IMAGE: str = Field(
+        default="vibe-python-sandbox:latest",
+        description="Pinned OCI container image for sandbox execution",
+    )
     PYTHON_SANDBOX_IMAGE_DIGEST: str = Field(
         default="sha256:e4ba810cbecd430e97de30e389c9d88099a73a8f0efe13935a566a8ac8db2ab4",
         description="Immutable digest of pinned sandbox image for cryptographic attestation",
@@ -291,10 +306,15 @@ class Settings(BaseSettings):
                 raise ValueError(f"Cryptographic key {name} must be at least 32 characters long.")
 
         if self.REPORT_RENDERER_SECRET and len(self.REPORT_RENDERER_SECRET) < 32:
-            raise ValueError("Cryptographic key REPORT_RENDERER_SECRET must be at least 32 characters long.")
+            raise ValueError(
+                "Cryptographic key REPORT_RENDERER_SECRET must be at least 32 characters long."
+            )
 
         all_keys = list(core_keys.values())
-        if self.REPORT_RENDERER_SECRET and self.REPORT_RENDERER_SECRET != "dev_report_renderer_secret_key_change_in_production":
+        if (
+            self.REPORT_RENDERER_SECRET
+            and self.REPORT_RENDERER_SECRET != "dev_report_renderer_secret_key_change_in_production"
+        ):
             all_keys.append(self.REPORT_RENDERER_SECRET)
 
         if len(all_keys) != len(set(all_keys)):
@@ -314,7 +334,11 @@ class Settings(BaseSettings):
                 "REDIS_PASSWORD": self.REDIS_PASSWORD,
             }
             for name, secret in infra_secrets.items():
-                if name in self.model_fields_set and secret and (secret.startswith("dev_") or "change_in_prod" in secret):
+                if (
+                    name in self.model_fields_set
+                    and secret
+                    and (secret.startswith("dev_") or "change_in_prod" in secret)
+                ):
                     raise ValueError(
                         f"Insecure default password detected for {name} in production environment."
                     )
@@ -323,14 +347,25 @@ class Settings(BaseSettings):
             if self.REPORT_RENDERER_SERVICE_URL:
                 url = self.REPORT_RENDERER_SERVICE_URL.lower().strip()
                 if not (url.startswith("http://") or url.startswith("https://")):
-                    raise ValueError("REPORT_RENDERER_SERVICE_URL must use http:// or https:// scheme in production.")
+                    raise ValueError(
+                        "REPORT_RENDERER_SERVICE_URL must use http:// or https:// scheme in production."
+                    )
                 sec = self.REPORT_RENDERER_SECRET
-                if not sec or sec.startswith("dev_") or "change_in_prod" in sec or "0123456789" in sec:
+                if (
+                    not sec
+                    or sec.startswith("dev_")
+                    or "change_in_prod" in sec
+                    or "0123456789" in sec
+                ):
                     raise ValueError(
                         "Insecure default key detected for REPORT_RENDERER_SECRET in production environment."
                     )
-                if not self.REDIS_URL or not (self.REDIS_URL.startswith("redis://") or self.REDIS_URL.startswith("rediss://")):
-                    raise ValueError("Valid REDIS_URL must be configured in production for distributed replay protection.")
+                if not self.REDIS_URL or not (
+                    self.REDIS_URL.startswith("redis://") or self.REDIS_URL.startswith("rediss://")
+                ):
+                    raise ValueError(
+                        "Valid REDIS_URL must be configured in production for distributed replay protection."
+                    )
             if "*" in self.ALLOWED_ORIGINS:
                 raise ValueError(
                     "Wildcard origin '*' cannot be used with credential-aware CORS in production."

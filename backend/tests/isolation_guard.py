@@ -9,17 +9,20 @@ from __future__ import annotations
 
 import os
 from urllib.parse import urlparse
+
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 APPROVED_TEST_DATABASES = frozenset({"vibe_enterprise_test"})
-PROHIBITED_DATABASES = frozenset({
-    "vibe_enterprise",
-    "vibe_benchmark",
-    "postgres",
-    "template0",
-    "template1",
-})
+PROHIBITED_DATABASES = frozenset(
+    {
+        "vibe_enterprise",
+        "vibe_benchmark",
+        "postgres",
+        "template0",
+        "template1",
+    }
+)
 
 
 def extract_database_name(url: str) -> str:
@@ -27,7 +30,9 @@ def extract_database_name(url: str) -> str:
     if not url:
         return ""
     # Remove async driver prefix for standard urlparse if needed
-    cleaned = url.replace("postgresql+asyncpg://", "postgresql://").replace("postgresql+psycopg://", "postgresql://")
+    cleaned = url.replace("postgresql+asyncpg://", "postgresql://").replace(
+        "postgresql+psycopg://", "postgresql://"
+    )
     parsed = urlparse(cleaned)
     db_name = (parsed.path or "").lstrip("/")
     return db_name
@@ -35,7 +40,7 @@ def extract_database_name(url: str) -> str:
 
 def validate_database_url(url: str) -> str:
     """Validate database URL string against approved test database registry.
-    
+
     Raises:
         RuntimeError: If URL points to a prohibited or unapproved database.
     """
@@ -66,7 +71,7 @@ def validate_database_url(url: str) -> str:
 
 async def assert_test_database_connection(session_or_engine: AsyncSession | AsyncEngine) -> str:
     """Execute 'SELECT current_database()' on active connection and assert approved test identity.
-    
+
     Raises:
         RuntimeError: If runtime database identity is not an approved test database.
     """
@@ -79,7 +84,9 @@ async def assert_test_database_connection(session_or_engine: AsyncSession | Asyn
             actual_db = res.scalar()
 
     if not actual_db:
-        raise RuntimeError("FATAL: Unable to determine active database identity via 'SELECT current_database()'.")
+        raise RuntimeError(
+            "FATAL: Unable to determine active database identity via 'SELECT current_database()'."
+        )
 
     if actual_db in PROHIBITED_DATABASES:
         raise RuntimeError(
@@ -110,4 +117,3 @@ def get_enforced_test_database_url() -> str:
     default_test_url = "postgresql+asyncpg://vibe_admin:dev_secret_postgres_pass_change_in_prod@127.0.0.1:5432/vibe_enterprise_test"
     validate_database_url(default_test_url)
     return default_test_url
-

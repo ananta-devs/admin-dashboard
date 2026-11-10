@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import uuid
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from app.api.dependencies.auth import get_current_membership, verify_csrf_token
-from app.core.config import settings
 from app.db.session import get_db_session
 from app.main import app
 from app.models.membership import OrganizationMembership
@@ -17,9 +17,6 @@ from app.models.organization import Organization
 from app.models.user import User
 from app.schemas.organization import ProvisionOrganizationInput
 from app.services.organization import OrganizationService
-from app.services.role import RoleService
-
-
 from tests.isolation_guard import assert_test_database_connection, get_enforced_test_database_url
 
 
@@ -57,6 +54,7 @@ async def test_org(db_session: AsyncSession):
     org = await db_session.get(Organization, org_read.id)
     user = await db_session.get(User, user_read.id)
     from app.repositories.membership import MembershipRepository
+
     m_repo = MembershipRepository(db_session)
     membership = await m_repo.get(organization_id=org.id, user_id=user.id)
     return {"org": org, "user": user, "membership": membership}
@@ -67,9 +65,10 @@ async def member_user(db_session: AsyncSession, test_org):
     """Create a user with only a viewer/member role (lacking admin/audit permissions)."""
     org = test_org["org"]
     from app.repositories.role import RoleRepository
+
     role_repo = RoleRepository(db_session)
     viewer_role = await role_repo.get_by_slug("viewer", org.id)
-    
+
     suffix = uuid.uuid4().hex[:6]
     email = f"viewer-{suffix}@example.com"
     user = User(
@@ -89,6 +88,7 @@ async def member_user(db_session: AsyncSession, test_org):
     await db_session.flush()
 
     from app.models.role import MembershipRole
+
     m_role = MembershipRole(
         membership_id=membership.id,
         role_id=viewer_role.id,
@@ -148,6 +148,7 @@ async def test_system_telemetry_authorized_admin(test_org, session_factory):
 @pytest.mark.asyncio
 async def test_system_telemetry_rbac_forbidden_for_viewer(member_user, session_factory):
     """Test that viewer without organization.settings.update or audit.read gets 403 Forbidden."""
+
     async def override_db():
         async with session_factory() as s:
             yield s

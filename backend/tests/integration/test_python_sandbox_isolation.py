@@ -34,7 +34,9 @@ def sandbox_runner() -> PythonSandboxRunner:
 class TestPythonSandboxAdversarialIsolation:
     """Adversarial test suite verifying OS-level isolation invariants."""
 
-    def test_01_read_application_environment_secrets(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_01_read_application_environment_secrets(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Attempt to read application environment secrets (must find sanitized empty env)."""
         code = """
 import os
@@ -68,7 +70,9 @@ result = {"master_key_exposed": found or ("ENCRYPTION_MASTER_KEY" in os.environ)
         payload = res.result_payload or {}
         assert payload.get("master_key_exposed") is False
 
-    def test_03_read_database_and_redis_credentials(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_03_read_database_and_redis_credentials(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Attempt to find database/redis credentials in environment."""
         code = """
 import os
@@ -143,9 +147,15 @@ socket.gethostbyname("google.com")
 """
         res = sandbox_runner.run(code, input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "gaierror" in res.stderr or "Name or service not known" in res.stderr or "Temporary failure" in res.stderr
+        assert (
+            "gaierror" in res.stderr
+            or "Name or service not known" in res.stderr
+            or "Temporary failure" in res.stderr
+        )
 
-    def test_09_make_http_and_raw_socket_connections(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_09_make_http_and_raw_socket_connections(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Attempt TCP socket connection to external internet (must fail with Network unreachable)."""
         code = """
 import socket
@@ -157,7 +167,9 @@ s.connect(("8.8.8.8", 53))
         assert res.status == "failed"
         assert "Network is unreachable" in res.stderr or "Errno 101" in res.stderr
 
-    def test_10_access_postgres_and_redis_endpoints(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_10_access_postgres_and_redis_endpoints(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Attempt connection to internal services on host (5432, 6379)."""
         code = """
 import socket
@@ -214,7 +226,9 @@ except Exception as e:
         assert "Windows" not in str(payload.get("files", []))
         assert "Users" not in str(payload.get("files", []))
 
-    def test_13_inspect_process_environment_and_fds(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_13_inspect_process_environment_and_fds(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Attempt to inspect process file descriptors (/proc/self/fd)."""
         code = """
 import os
@@ -243,7 +257,9 @@ result = {
         payload = res.result_payload or {}
         assert payload.get("subclasses_count", 0) > 0
 
-    def test_15_access_denied_builtins_and_imports(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_15_access_denied_builtins_and_imports(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Attempt to write to the read-only root filesystem."""
         code = """
 with open("/etc/pwned.txt", "w") as f:
@@ -270,7 +286,10 @@ for _ in range(100):
             assert (
                 "Resource temporarily unavailable" in res.stderr
                 or "Errno 11" in res.stderr
-                or (res.enforcement_details and res.enforcement_details.get("exit_code") in (137, 1, -9))
+                or (
+                    res.enforcement_details
+                    and res.enforcement_details.get("exit_code") in (137, 1, -9)
+                )
                 or "resource limit" in (res.error_message or "").lower()
             )
 
@@ -321,7 +340,11 @@ x = bytearray(500 * 1024 * 1024)
         res = sandbox_runner.run(code, input_data={}, timeout_seconds=15, bypass_ast=True)
         assert res.status in ("failed", "timeout")
         if res.status == "failed":
-            assert "137" in str(res.error_message) or "OOM" in str(res.error_message) or res.error_message is not None
+            assert (
+                "137" in str(res.error_message)
+                or "OOM" in str(res.error_message)
+                or res.error_message is not None
+            )
 
     def test_20_write_excessive_temporary_data(self, sandbox_runner: PythonSandboxRunner) -> None:
         """Attempt to write 100MB to /tmp tmpfs (enforced by size=64m cap)."""
@@ -332,7 +355,11 @@ with open("/tmp/large.bin", "wb") as f:
         res = sandbox_runner.run(code, input_data={}, timeout_seconds=15, bypass_ast=True)
         assert res.status in ("failed", "timeout")
         if res.status == "failed":
-            assert "No space left on device" in res.stderr or "Errno 28" in res.stderr or "1" in str(res.enforcement_details.get("exit_code"))
+            assert (
+                "No space left on device" in res.stderr
+                or "Errno 28" in res.stderr
+                or "1" in str(res.enforcement_details.get("exit_code"))
+            )
 
     def test_21_produce_excessive_stdout_stderr(self, sandbox_runner: PythonSandboxRunner) -> None:
         """Verify stdout is truncated to bounded 64KB ceiling."""
@@ -346,7 +373,9 @@ result = {"status": "ok"}
         assert res.status == "completed"
         assert len(res.stdout) <= 65536
 
-    def test_22_attempt_to_exceed_execution_time_limits(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_22_attempt_to_exceed_execution_time_limits(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Attempt sleep longer than timeout."""
         code = """
 import time
@@ -355,7 +384,9 @@ time.sleep(20)
         res = sandbox_runner.run(code, input_data={}, bypass_ast=True)
         assert res.status == "timeout"
 
-    def test_23_verify_ephemeral_workspace_destroyed(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_23_verify_ephemeral_workspace_destroyed(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Verify that transient host directory is deleted immediately after execution."""
         code = """
 with open("test_artifact.txt", "w") as f:
@@ -366,6 +397,7 @@ result = {"done": True}
         assert res.status == "completed"
         # Search temporary directory on host to confirm no vibe_sandbox_* folders remain
         import tempfile
+
         tmp_base = Path(tempfile.gettempdir())
         leftovers = list(tmp_base.glob("vibe_sandbox_*"))
         assert len(leftovers) == 0, f"Found lingering sandbox workspaces: {leftovers}"
@@ -378,7 +410,9 @@ result = {"done": True}
         assert "disabled" in res.error_message.lower()
         assert res.isolation_backend == "disabled"
 
-    def test_25_read_only_input_mount_blocks_tampering(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_25_read_only_input_mount_blocks_tampering(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Verify that user code cannot modify /input mount (read-only filesystem)."""
         code = """
 try:
@@ -391,7 +425,10 @@ except Exception as e:
         # Execution succeeds with error recorded or fails with Read-only file system
         if res.status == "completed":
             payload = res.result_payload or {}
-            assert "Read-only file system" in str(payload.get("error")) or payload.get("tampered") is False
+            assert (
+                "Read-only file system" in str(payload.get("error"))
+                or payload.get("tampered") is False
+            )
 
     def test_26_output_symlink_attack_rejected(self, sandbox_runner: PythonSandboxRunner) -> None:
         """Verify that replacing output with a symlink to host/container secrets is rejected."""
@@ -411,7 +448,9 @@ sys.exit(0)
         assert res.status == "failed"
         assert "symlink" in (res.error_message or "").lower() or "symlink" in res.stderr.lower()
 
-    def test_27_relative_symlink_traversal_rejected(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_27_relative_symlink_traversal_rejected(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Verify relative path traversal symlink is rejected by safe directory validation."""
         code = """
 import os
@@ -467,7 +506,9 @@ result = {"done": True}
         assert len(runner.image_digest) == 71  # 'sha256:' + 64 hex chars
         assert "@sha256:" in runner.get_effective_image_ref()
 
-    def test_32_hard_writable_workspace_quota_blocks_large_writes(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_32_hard_writable_workspace_quota_blocks_large_writes(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Verify that writing beyond the 64MB workspace tmpfs quota fails with disk quota exhausted."""
         code = """
 try:
@@ -482,7 +523,9 @@ except Exception as e:
         if res.status == "completed":
             payload = res.result_payload or {}
             assert payload.get("wrote") is False
-            assert "No space left on device" in str(payload.get("error")) or "Errno 28" in str(payload.get("error"))
+            assert "No space left on device" in str(payload.get("error")) or "Errno 28" in str(
+                payload.get("error")
+            )
         else:
             assert res.status == "failed"
 
@@ -504,11 +547,15 @@ except Exception as e:
             payload = res.result_payload or {}
             assert payload.get("unbounded") is False
             assert payload.get("count", 0) <= 1024
-            assert "No space left on device" in str(payload.get("error")) or "Errno 28" in str(payload.get("error"))
+            assert "No space left on device" in str(payload.get("error")) or "Errno 28" in str(
+                payload.get("error")
+            )
         else:
             assert res.status == "failed"
 
-    def test_34_directory_depth_exhaustion_defense(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_34_directory_depth_exhaustion_defense(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Verify directory depth ceiling prevents recursive nested directory resource exhaustion."""
         code = """
 import os
@@ -526,7 +573,9 @@ except Exception as e:
         if res.status == "completed":
             payload = res.result_payload or {}
             assert payload.get("success") is False
-            assert "Directory depth limit exceeded" in str(payload.get("error")) or "RecursionError" in str(payload.get("type"))
+            assert "Directory depth limit exceeded" in str(
+                payload.get("error")
+            ) or "RecursionError" in str(payload.get("type"))
         else:
             assert res.status == "failed"
 
@@ -538,7 +587,9 @@ except Exception as e:
         assert not ref.endswith(":latest")
         assert runner.verify_image_digest() is True
 
-    def test_36_sandbox_controller_authenticated_interface(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_36_sandbox_controller_authenticated_interface(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Verify that SandboxController enforces service token authentication and request boundaries."""
         import uuid
 
@@ -585,7 +636,9 @@ with open("/output/output.json", "w") as f:
         assert res.status == "failed"
         assert "5mb" in (res.error_message or "").lower() or "5mb" in res.stderr.lower()
 
-    def test_39_output_80mb_attempt_blocked_by_tmpfs_quota(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_39_output_80mb_attempt_blocked_by_tmpfs_quota(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Verify that an 80MB output attempt fails at filesystem boundary on 8MB tmpfs."""
         code = """
 with open("/output/output.json", "w") as f:
@@ -593,7 +646,12 @@ with open("/output/output.json", "w") as f:
 """
         res = sandbox_runner.run(code, input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "no space left on device" in res.stderr.lower() or "errno 28" in res.stderr.lower() or "5mb" in res.stderr.lower() or res.status == "failed"
+        assert (
+            "no space left on device" in res.stderr.lower()
+            or "errno 28" in res.stderr.lower()
+            or "5mb" in res.stderr.lower()
+            or res.status == "failed"
+        )
 
     def test_40_output_inode_exhaustion_defense(self, sandbox_runner: PythonSandboxRunner) -> None:
         """Verify that exhausting inodes on /output (nr_inodes=16) triggers No space left on device."""
@@ -610,11 +668,16 @@ except Exception as e:
         if res.status == "completed":
             payload = res.result_payload or {}
             assert payload.get("success") is False
-            assert "no space left on device" in str(payload.get("error")).lower() or "errno 28" in str(payload.get("error")).lower()
+            assert (
+                "no space left on device" in str(payload.get("error")).lower()
+                or "errno 28" in str(payload.get("error")).lower()
+            )
         else:
             assert res.status == "failed"
 
-    def test_41_output_multiple_unexpected_files_rejected(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_41_output_multiple_unexpected_files_rejected(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Verify that creating multiple unexpected files in /output is rejected."""
         code = """
 import json
@@ -625,9 +688,13 @@ with open("/output/malicious_side_channel.txt", "w") as f:
 """
         res = sandbox_runner.run(code, input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "unexpected" in (res.error_message or "").lower() or "unexpected" in res.stderr.lower()
+        assert (
+            "unexpected" in (res.error_message or "").lower() or "unexpected" in res.stderr.lower()
+        )
 
-    def test_42_output_symlink_replacement_rejected(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_42_output_symlink_replacement_rejected(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Verify that replacing output with symlink inside /output is rejected."""
         code = """
 import os
@@ -642,7 +709,9 @@ except Exception as e:
         assert res.status == "failed"
         assert "symlink" in (res.error_message or "").lower() or "symlink" in res.stderr.lower()
 
-    def test_43_output_directory_traversal_rejected(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_43_output_directory_traversal_rejected(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Verify that creating subdirectories in /output is rejected."""
         code = """
 import os
@@ -652,11 +721,17 @@ with open("/output/sub_dir/nested/output.json", "w") as f:
 """
         res = sandbox_runner.run(code, input_data={}, bypass_ast=True)
         assert res.status == "failed"
-        assert "unexpected directory" in (res.error_message or "").lower() or "unexpected directory" in res.stderr.lower()
+        assert (
+            "unexpected directory" in (res.error_message or "").lower()
+            or "unexpected directory" in res.stderr.lower()
+        )
 
-    def test_44_output_workspace_and_output_cleanup_normal_run(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_44_output_workspace_and_output_cleanup_normal_run(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Verify that after normal execution, container and host temporary folders are deleted and no volume created."""
         import subprocess
+
         code = "result = {'clean': True}"
         res = sandbox_runner.run(code, input_data={}, bypass_ast=True)
         assert res.status == "completed"
@@ -666,12 +741,17 @@ with open("/output/sub_dir/nested/output.json", "w") as f:
         assert volume_name is None
 
         if container_name:
-            c_check = subprocess.run(["docker", "ps", "-a", "--filter", f"name={container_name}", "-q"], capture_output=True, text=True)
+            c_check = subprocess.run(
+                ["docker", "ps", "-a", "--filter", f"name={container_name}", "-q"],
+                capture_output=True,
+                text=True,
+            )
             assert c_check.stdout.strip() == "", f"Container {container_name} was not removed"
 
     def test_45_output_cleanup_after_container_termination(self) -> None:
         """Verify that when a container times out, both container and temporary resources are cleaned up."""
         import subprocess
+
         runner = PythonSandboxRunner(force_enabled=True, timeout_seconds=2)
         code = """
 import time
@@ -681,17 +761,27 @@ time.sleep(10)
         assert res.status in ("failed", "timeout")
 
         # Confirm no vibe-sandbox containers remain active
-        c_check = subprocess.run(["docker", "ps", "--filter", "label=vibe.managed=true", "-q"], capture_output=True, text=True)
+        c_check = subprocess.run(
+            ["docker", "ps", "--filter", "label=vibe.managed=true", "-q"],
+            capture_output=True,
+            text=True,
+        )
         assert c_check.stdout.strip() == ""
 
-    def test_46_output_concurrent_executions_filesystem_isolation(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_46_output_concurrent_executions_filesystem_isolation(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Verify concurrent executions run in parallel with isolated filesystems without cross-talk."""
         import concurrent.futures
 
         def run_one(val: str) -> dict:
             code = f"result = {{'marker': '{val}'}}"
             r = sandbox_runner.run(code, input_data={}, bypass_ast=True)
-            return {"status": r.status, "payload": r.result_payload, "details": r.enforcement_details}
+            return {
+                "status": r.status,
+                "payload": r.result_payload,
+                "details": r.enforcement_details,
+            }
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             fut_a = executor.submit(run_one, "WORKER_ALPHA")
@@ -767,18 +857,28 @@ time.sleep(10)
 
         with TestClient(agent_app, base_url="http://test") as client:
             # 1. Invalid signature rejected
-            r_bad = client.post("/api/v1/sandbox/execute", json=req_payload, headers={"X-Sandbox-Token": "bad.sig"})
+            r_bad = client.post(
+                "/api/v1/sandbox/execute", json=req_payload, headers={"X-Sandbox-Token": "bad.sig"}
+            )
             assert r_bad.status_code == 403
 
             # 2. Token scope mismatch rejected (wrong execution_id)
             mismatch_payload = dict(req_payload)
             mismatch_payload["execution_id"] = "different-exec"
-            r_mis = client.post("/api/v1/sandbox/execute", json=mismatch_payload, headers={"X-Sandbox-Token": valid_token})
+            r_mis = client.post(
+                "/api/v1/sandbox/execute",
+                json=mismatch_payload,
+                headers={"X-Sandbox-Token": valid_token},
+            )
             assert r_mis.status_code == 403
 
             # 3. Revocation of execution ID blocks subsequent calls
             revocation_registry.revoke_execution(exec_id)
-            r_rev = client.post("/api/v1/sandbox/execute", json=req_payload, headers={"X-Sandbox-Token": valid_token})
+            r_rev = client.post(
+                "/api/v1/sandbox/execute",
+                json=req_payload,
+                headers={"X-Sandbox-Token": valid_token},
+            )
             assert r_rev.status_code == 403
             assert "revoked" in r_rev.text.lower()
 
@@ -798,7 +898,18 @@ time.sleep(10)
 
         subprocess.run(["docker", "volume", "create", stale_v], capture_output=True, check=True)
         subprocess.run(
-            ["docker", "run", "-d", "--name", stale_c, "--label", "vibe.managed=true", "vibe-python-sandbox:latest", "sleep", "1"],
+            [
+                "docker",
+                "run",
+                "-d",
+                "--name",
+                stale_c,
+                "--label",
+                "vibe.managed=true",
+                "vibe-python-sandbox:latest",
+                "sleep",
+                "1",
+            ],
             capture_output=True,
             check=True,
         )
@@ -808,26 +919,40 @@ time.sleep(10)
         assert reaped >= 1
 
         # Confirm stale container was removed
-        c_check = subprocess.run(["docker", "ps", "-a", "--filter", f"name={stale_c}", "-q"], capture_output=True, text=True)
+        c_check = subprocess.run(
+            ["docker", "ps", "-a", "--filter", f"name={stale_c}", "-q"],
+            capture_output=True,
+            text=True,
+        )
         assert c_check.stdout.strip() == ""
         # Confirm stale volume was removed
-        v_check = subprocess.run(["docker", "volume", "ls", "--filter", f"name={stale_v}", "-q"], capture_output=True, text=True)
+        v_check = subprocess.run(
+            ["docker", "volume", "ls", "--filter", f"name={stale_v}", "-q"],
+            capture_output=True,
+            text=True,
+        )
         assert v_check.stdout.strip() == ""
 
     def test_50_runtime_seccomp_and_kernel_caps_attestation(self) -> None:
         """Attest kernel security attributes: UID, GID, CapEff, NoNewPrivs, and Seccomp mode."""
         import subprocess
+
         effective_image = PythonSandboxRunner().get_effective_image_ref()
         cmd = [
-            "docker", "run", "--rm",
-            "--security-opt", "no-new-privileges:true",
-            "--cap-drop", "ALL",
+            "docker",
+            "run",
+            "--rm",
+            "--security-opt",
+            "no-new-privileges:true",
+            "--cap-drop",
+            "ALL",
             effective_image,
-            "python", "-c",
+            "python",
+            "-c",
             "with open('/proc/self/status') as f:\n"
             "    for l in f:\n"
             "        if any(k in l for k in ['Uid:', 'Gid:', 'CapEff:', 'NoNewPrivs:', 'Seccomp:']):\n"
-            "            print(l.strip())"
+            "            print(l.strip())",
         ]
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
         assert res.returncode == 0
@@ -838,7 +963,9 @@ time.sleep(10)
         assert "NoNewPrivs:\t1" in out
         assert "Seccomp:\t2" in out
 
-    def test_51_adversarial_artifact_volume_bypass_attack(self, sandbox_runner: PythonSandboxRunner) -> None:
+    def test_51_adversarial_artifact_volume_bypass_attack(
+        self, sandbox_runner: PythonSandboxRunner
+    ) -> None:
         """Verify untrusted container has ZERO named volumes, /artifact does not exist, and /input is read-only."""
         import subprocess
 
@@ -890,7 +1017,11 @@ result = {
         assert res.enforcement_details.get("volume_name") is None
 
         # Verify no active or lingering Docker volumes were created
-        v_check = subprocess.run(["docker", "volume", "ls", "--filter", "name=vibe-out-", "-q"], capture_output=True, text=True)
+        v_check = subprocess.run(
+            ["docker", "volume", "ls", "--filter", "name=vibe-out-", "-q"],
+            capture_output=True,
+            text=True,
+        )
         assert v_check.stdout.strip() == ""
 
     def test_52_safe_output_persistence_and_quota_accounting(self) -> None:
@@ -1012,7 +1143,9 @@ sys.exit(0)
         )
         assert res.enforcement_details is not None
         assert res.enforcement_details.get("sealed_sha256") is not None
-        assert res.enforcement_details.get("transferred_sha256") == res.enforcement_details.get("sealed_sha256")
+        assert res.enforcement_details.get("transferred_sha256") == res.enforcement_details.get(
+            "sealed_sha256"
+        )
         assert res.enforcement_details.get("requested_manifest_digest") is not None
 
         # Verify no orphaned vibe-sandbox containers remain running
@@ -1054,7 +1187,11 @@ result = {"control_separation": "verified", "binary_safe": True}
         # corrupts the JSON result stream and is strictly rejected as a protocol violation
         assert res.status == "failed"
         assert res.result_payload is None
-        assert "protocol" in (res.error_message or "").lower() or "malformed" in (res.error_message or "").lower() or "utf-8" in (res.error_message or "").lower()
+        assert (
+            "protocol" in (res.error_message or "").lower()
+            or "malformed" in (res.error_message or "").lower()
+            or "utf-8" in (res.error_message or "").lower()
+        )
 
     def test_55_supervisor_crash_and_cancellation_safety(self) -> None:
         """Adversarial Test 55: Failure propagation, infinite loop timeout, and hash verification."""
@@ -1137,7 +1274,10 @@ result = fd_attempts
         # In Gate 9 strict JSON result protocol, attempting to write forged data or control frames to stdout
         # corrupts the JSON result stream and is strictly rejected as a protocol violation
         assert res.status == "failed"
-        assert "malformed" in (res.error_message or "").lower() or "protocol" in (res.error_message or "").lower()
+        assert (
+            "malformed" in (res.error_message or "").lower()
+            or "protocol" in (res.error_message or "").lower()
+        )
 
     def test_57_pidfd_getfd_and_ptrace_attach_rejected(self) -> None:
         """Adversarial Test 57: Attempt to clone supervisor descriptors via pidfd_getfd or attach with ptrace."""
@@ -1222,16 +1362,25 @@ result = proc_attempts
         res = runner.run(adversarial_script, input_data={}, bypass_ast=True, timeout_seconds=15)
         assert res.status == "completed", f"Execution failed: {res.stderr}"
         payload = res.result_payload or {}
-        if res.enforcement_details and res.enforcement_details.get("pid_1_architecture") == "direct_user_pid1":
+        if (
+            res.enforcement_details
+            and res.enforcement_details.get("pid_1_architecture") == "direct_user_pid1"
+        ):
             # In Gate 8 direct PID 1 architecture, there is no supervisor inside the container.
             # Container PID 1 is the untrusted user workload; the host Sandbox Agent's environment and memory
             # are completely outside the container and cannot be accessed through container procfs.
             assert res.status == "completed"
         else:
             # All reads MUST be blocked with PermissionError
-            assert payload.get("environ") == "PermissionError", f"Expected PermissionError, got {payload.get('environ')}"
-            assert payload.get("maps") == "PermissionError", f"Expected PermissionError, got {payload.get('maps')}"
-            assert payload.get("mem") == "PermissionError", f"Expected PermissionError, got {payload.get('mem')}"
+            assert payload.get("environ") == "PermissionError", (
+                f"Expected PermissionError, got {payload.get('environ')}"
+            )
+            assert payload.get("maps") == "PermissionError", (
+                f"Expected PermissionError, got {payload.get('maps')}"
+            )
+            assert payload.get("mem") == "PermissionError", (
+                f"Expected PermissionError, got {payload.get('mem')}"
+            )
 
     def test_59_supervisor_dumpability_and_signal_immunity(self) -> None:
         """Adversarial Test 59: Supervisor dumpability cannot be altered, and supervisor is immune to child signals."""
@@ -1334,7 +1483,9 @@ result = {"descendant_test": "completed"}
         assert res.result_payload == {"descendant_test": "completed"}
         assert res.enforcement_details is not None
         assert res.enforcement_details.get("sealed_sha256") is not None
-        assert res.enforcement_details.get("sealed_sha256") == res.enforcement_details.get("transferred_sha256")
+        assert res.enforcement_details.get("sealed_sha256") == res.enforcement_details.get(
+            "transferred_sha256"
+        )
 
     def test_62_output_modification_after_sealing_blocked(self) -> None:
         """Adversarial Test 62: Read-only output permissions (0400 file, 0500 directory) prevent mutation after sealing."""
@@ -1376,8 +1527,12 @@ result = mutation_results
         res = runner.run(adversarial_script, input_data={}, bypass_ast=True, timeout_seconds=15)
         assert res.status == "completed", f"Execution failed: {res.stderr}"
         payload = res.result_payload or {}
-        assert payload.get("write") == "PermissionError", f"Expected PermissionError, got {payload.get('write')}"
-        assert payload.get("unlink") == "PermissionError", f"Expected PermissionError, got {payload.get('unlink')}"
+        assert payload.get("write") == "PermissionError", (
+            f"Expected PermissionError, got {payload.get('write')}"
+        )
+        assert payload.get("unlink") == "PermissionError", (
+            f"Expected PermissionError, got {payload.get('unlink')}"
+        )
 
     def test_63_runtime_cgroup_and_platform_capabilities_attestation(self) -> None:
         """Adversarial Test 63: Runtime cgroup version, platform capabilities, and isolation attestation."""
@@ -1385,7 +1540,9 @@ result = mutation_results
         if not runner.check_docker_available():
             pytest.skip("Docker runtime unavailable on this host.")
 
-        res = runner.run("result = {'ping': 'pong'}", input_data={}, bypass_ast=True, timeout_seconds=10)
+        res = runner.run(
+            "result = {'ping': 'pong'}", input_data={}, bypass_ast=True, timeout_seconds=10
+        )
         assert res.status == "completed"
         assert res.enforcement_details is not None
         assert res.enforcement_details.get("cgroup_version") == 2
@@ -1463,7 +1620,10 @@ while True:
         duration = time.perf_counter() - start
 
         assert res.status in ("timeout", "failed")
-        assert "timeout" in (res.error_message or "").lower() or "timed out" in (res.stderr or "").lower()
+        assert (
+            "timeout" in (res.error_message or "").lower()
+            or "timed out" in (res.stderr or "").lower()
+        )
         assert duration < 8.0, f"Timeout took too long to enforce: {duration:.2f}s"
 
     def test_67_pid1_double_fork_and_session_escape_containment(self) -> None:
@@ -1505,14 +1665,21 @@ result = {"daemon_spawned": True}
         if not runner.check_docker_available():
             pytest.skip("Docker runtime unavailable on this host.")
 
-        res = runner.run("result = {'checked_termination': True}", input_data={}, bypass_ast=True, timeout_seconds=10)
+        res = runner.run(
+            "result = {'checked_termination': True}",
+            input_data={},
+            bypass_ast=True,
+            timeout_seconds=10,
+        )
         assert res.status == "completed"
         c_name = res.enforcement_details.get("container_name")
         assert c_name is not None
 
         # Confirm container is completely removed and no longer running on host
         check = subprocess.run(["docker", "inspect", c_name], capture_output=True, text=True)
-        assert check.returncode != 0, "Container unexpectedly still exists after execution completed!"
+        assert check.returncode != 0, (
+            "Container unexpectedly still exists after execution completed!"
+        )
 
     def test_69_stdout_result_channel_and_stderr_diagnostic_channel(self) -> None:
         """Gate 8 Test 69: Clean channel separation between structured JSON stdout and diagnostic stderr logs."""
@@ -1567,6 +1734,6 @@ result = {"status": "ok", "channel": "stdout_json"}
         )
         assert resp2.status == "completed"
         assert resp2.result_payload == {"gate": 8, "success": True}
-        assert resp2.enforcement_details.get("sealed_sha256") == resp1.enforcement_details.get("sealed_sha256")
-
-
+        assert resp2.enforcement_details.get("sealed_sha256") == resp1.enforcement_details.get(
+            "sealed_sha256"
+        )

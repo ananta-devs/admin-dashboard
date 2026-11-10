@@ -41,14 +41,16 @@ class DataProcessingError(AnalyticsError):
 
 
 class WorkerFencingViolationError(AnalyticsError):
-    def __init__(self, message: str = "Worker lost lease or fencing token invalidated by newer worker."):
+    def __init__(
+        self, message: str = "Worker lost lease or fencing token invalidated by newer worker."
+    ):
         super().__init__(message, code="FENCING_VIOLATION")
 
 
 class StorageQuotaUnavailableError(AnalyticsError):
     """Raised when the authoritative quota storage ledger cannot be reached, failing closed safely."""
 
-    def __init__(self, message: str = "Authoritative storage quota service is temporarily unavailable."):
+    def __init__(
+        self, message: str = "Authoritative storage quota service is temporarily unavailable."
+    ):
         super().__init__(message, code="STORAGE_QUOTA_UNAVAILABLE")
-
-

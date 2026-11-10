@@ -167,7 +167,9 @@ async def test_governed_python_execution_against_sheet(
     # Create sheet with records
     ws_repo = WorkspaceRepository(db_session)
     ws_list = await ws_repo.list_by_organization(org_id)
-    wb = Workbook(organization_id=org_id, workspace_id=ws_list[0].id, name="Py WB", created_by_user_id=user_id)
+    wb = Workbook(
+        organization_id=org_id, workspace_id=ws_list[0].id, name="Py WB", created_by_user_id=user_id
+    )
     db_session.add(wb)
     await db_session.flush()
 
@@ -175,10 +177,30 @@ async def test_governed_python_execution_against_sheet(
     db_session.add(sheet)
     await db_session.flush()
 
-    r0 = SheetRow(sheet_id=sheet.id, organization_id=org_id, row_index=0, cells={"A": {"v": "Val", "c": "Val", "f": None}})
-    r1 = SheetRow(sheet_id=sheet.id, organization_id=org_id, row_index=1, cells={"A": {"v": 10, "c": 10, "f": None}})
-    r2 = SheetRow(sheet_id=sheet.id, organization_id=org_id, row_index=2, cells={"A": {"v": 20, "c": 20, "f": None}})
-    r3 = SheetRow(sheet_id=sheet.id, organization_id=org_id, row_index=3, cells={"A": {"v": 30, "c": 30, "f": None}})
+    r0 = SheetRow(
+        sheet_id=sheet.id,
+        organization_id=org_id,
+        row_index=0,
+        cells={"A": {"v": "Val", "c": "Val", "f": None}},
+    )
+    r1 = SheetRow(
+        sheet_id=sheet.id,
+        organization_id=org_id,
+        row_index=1,
+        cells={"A": {"v": 10, "c": 10, "f": None}},
+    )
+    r2 = SheetRow(
+        sheet_id=sheet.id,
+        organization_id=org_id,
+        row_index=2,
+        cells={"A": {"v": 20, "c": 20, "f": None}},
+    )
+    r3 = SheetRow(
+        sheet_id=sheet.id,
+        organization_id=org_id,
+        row_index=3,
+        cells={"A": {"v": 30, "c": 30, "f": None}},
+    )
     db_session.add_all([r0, r1, r2, r3])
     await db_session.commit()
 
@@ -281,6 +303,7 @@ async def test_governed_sandbox_security_rejections(
 
     # Run with small timeout for testing
     from unittest.mock import patch
+
     with patch("app.services.script.settings.PYTHON_SANDBOX_TIMEOUT_SECONDS", 2):
         run_res_3 = await api_client.post(
             f"/api/v1/scripts/{bad_script_3}/run",
@@ -408,7 +431,9 @@ async def test_python_script_tenant_isolation_and_rbac(
     )
     # Give member_b member role (has update)
     member_role = await role_repo.get_by_slug("member", org_a_id) or viewer_role
-    db_session.add(MembershipRole(membership_id=mem_b.id, role_id=member_role.id, organization_id=org_a_id))
+    db_session.add(
+        MembershipRole(membership_id=mem_b.id, role_id=member_role.id, organization_id=org_a_id)
+    )
     await db_session.commit()
 
     _, b_token, b_csrf = await sess_service.create_session(
@@ -437,7 +462,9 @@ async def test_python_script_tenant_isolation_and_rbac(
         OrganizationMembership(user_id=user_admin.id, organization_id=org_a_id)
     )
     admin_role = await role_repo.get_by_slug("admin", org_a_id) or viewer_role
-    db_session.add(MembershipRole(membership_id=mem_admin.id, role_id=admin_role.id, organization_id=org_a_id))
+    db_session.add(
+        MembershipRole(membership_id=mem_admin.id, role_id=admin_role.id, organization_id=org_a_id)
+    )
     await db_session.commit()
 
     _, adm_token, adm_csrf = await sess_service.create_session(
@@ -456,5 +483,3 @@ async def test_python_script_tenant_isolation_and_rbac(
     )
     assert adm_upd.status_code == 200, adm_upd.text
     assert adm_upd.json()["title"] == "Admin Managed Title"
-
-

@@ -25,7 +25,9 @@ def test_concurrent_quota_reservation_authoritative_ledger() -> None:
     storage = AnalyticsStorageService()
     org_id = uuid.uuid4()
     quota_limit = 50_000  # 50 KB
-    reservation_size = 20_000  # 20 KB (allows at most 2 concurrent: 20k + 20k = 40k <= 50k; 3rd is 60k > 50k)
+    reservation_size = (
+        20_000  # 20 KB (allows at most 2 concurrent: 20k + 20k = 40k <= 50k; 3rd is 60k > 50k)
+    )
 
     start_event = threading.Event()
     release_event = threading.Event()

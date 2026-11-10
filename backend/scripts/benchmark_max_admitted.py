@@ -21,7 +21,11 @@ df = pl.DataFrame(data)
 t_gen = time.perf_counter() - t0
 
 # Write temporary Parquet snapshot
-snap_path = Path("/app/uploads/analytics/bench_500k.parquet") if os.path.exists("/app/uploads/analytics") else Path("uploads/analytics/bench_500k.parquet")
+snap_path = (
+    Path("/app/uploads/analytics/bench_500k.parquet")
+    if os.path.exists("/app/uploads/analytics")
+    else Path("uploads/analytics/bench_500k.parquet")
+)
 snap_path.parent.mkdir(parents=True, exist_ok=True)
 
 t1 = time.perf_counter()
@@ -32,7 +36,9 @@ file_size = snap_path.stat().st_size
 # Execute analytics operations
 t2 = time.perf_counter()
 read_df = pl.read_parquet(snap_path)
-res_describe = registry.execute("describe_columns", read_df, {"columns": ["col_0", "col_1", "col_2"]})
+res_describe = registry.execute(
+    "describe_columns", read_df, {"columns": ["col_0", "col_1", "col_2"]}
+)
 t_describe = time.perf_counter() - t2
 
 t3 = time.perf_counter()
@@ -59,8 +65,11 @@ print(f"Parquet snapshot size on disk:  {file_size:,} bytes ({file_size / 1024 /
 print(f"Describe columns exec time:     {t_describe:.3f} s")
 print(f"Profile dataset exec time:      {t_profile:.3f} s")
 if cgroup_mem_current is not None:
-    print(f"cgroup memory.current:          {cgroup_mem_current:,} bytes ({cgroup_mem_current / 1024 / 1024:.2f} MB)")
+    print(
+        f"cgroup memory.current:          {cgroup_mem_current:,} bytes ({cgroup_mem_current / 1024 / 1024:.2f} MB)"
+    )
 if cgroup_mem_peak is not None:
-    print(f"cgroup memory.peak:             {cgroup_mem_peak:,} bytes ({cgroup_mem_peak / 1024 / 1024:.2f} MB)")
+    print(
+        f"cgroup memory.peak:             {cgroup_mem_peak:,} bytes ({cgroup_mem_peak / 1024 / 1024:.2f} MB)"
+    )
 print("=== BENCHMARK COMPLETE ===")
-

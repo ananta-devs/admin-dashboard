@@ -56,4 +56,3 @@ def execute_spreadsheet_sync(
         return loop.run_until_complete(_run())
     finally:
         loop.close()
-

@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.core.exceptions import (
     AuthenticationError,
     EmailNotVerifiedError,
+    EntityNotFoundError,
     ForbiddenError,
     InvalidTokenError,
 )
@@ -322,7 +323,7 @@ async def update_me(
     user_repo = UserRepository(db)
     user = await user_repo.get_by_id(session.user_id)
     if not user:
-        raise EntityNotFoundError("User profile not found")
+        raise EntityNotFoundError("User", str(session.user_id))
     async with transaction(db):
         user.display_name = input_data.display_name.strip()
     return AuthResponse(

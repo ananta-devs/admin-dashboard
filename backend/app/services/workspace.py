@@ -145,9 +145,7 @@ class WorkspaceService:
 
         return WorkspaceRead.model_validate(workspace)
 
-    async def delete_workspace(
-        self, workspace_id: uuid.UUID, organization_id: uuid.UUID
-    ) -> None:
+    async def delete_workspace(self, workspace_id: uuid.UUID, organization_id: uuid.UUID) -> None:
         """Safely delete a workspace enforcing default protection and dependency checks."""
         workspace = await self.workspace_repo.get_by_id(workspace_id, organization_id)
         if not workspace:
@@ -160,9 +158,7 @@ class WorkspaceService:
         # 2. Check dependent active resources within transaction
         async with transaction(self.session):
             stats = await self.workspace_repo.count_resources(workspace_id, organization_id)
-            blocking = [
-                f"{kind} ({count})" for kind, count in stats.items() if count > 0
-            ]
+            blocking = [f"{kind} ({count})" for kind, count in stats.items() if count > 0]
             if blocking:
                 raise ConflictError(
                     f"Cannot delete workspace '{workspace.name}': active dependent resources exist: "

@@ -69,14 +69,26 @@ async def test_rejection_of_one_million_cells_before_snapshot(tmp_path: Path) ->
         # 1. Sheet lookup
         MagicMock(scalar_one_or_none=MagicMock(return_value=mock_sheet)),
         # 2. Columns lookup (10 columns)
-        MagicMock(scalars=MagicMock(return_value=MagicMock(all=MagicMock(return_value=[
-            _SimpleCol(i, f"col_{i}") for i in range(10)
-        ])))),
+        MagicMock(
+            scalars=MagicMock(
+                return_value=MagicMock(
+                    all=MagicMock(return_value=[_SimpleCol(i, f"col_{i}") for i in range(10)])
+                )
+            )
+        ),
         # 3. Rows lookup (100,000 rows with 10 non-empty cells each = 1,000,000 cells)
-        MagicMock(scalars=MagicMock(return_value=MagicMock(all=MagicMock(return_value=[
-            _SimpleRow(r, {f"c_{c}": {"v": 42.0, "c": 42.0} for c in range(10)})
-            for r in range(100_000)
-        ])))),
+        MagicMock(
+            scalars=MagicMock(
+                return_value=MagicMock(
+                    all=MagicMock(
+                        return_value=[
+                            _SimpleRow(r, {f"c_{c}": {"v": 42.0, "c": 42.0} for c in range(10)})
+                            for r in range(100_000)
+                        ]
+                    )
+                )
+            )
+        ),
     ]
 
     # Attempt snapshot capture
@@ -90,7 +102,9 @@ async def test_rejection_of_one_million_cells_before_snapshot(tmp_path: Path) ->
         )
 
     # Must fail on maximum non-empty cells bound
-    assert "Sheet exceeds maximum allowable non-empty cells: 1000000 > 500000" in str(exc_info.value)
+    assert "Sheet exceeds maximum allowable non-empty cells: 1000000 > 500000" in str(
+        exc_info.value
+    )
 
     # Verify no snapshot files were written to disk
     snapshot_files = list((tmp_path / "snapshots").glob("**/*.parquet"))
@@ -112,12 +126,12 @@ async def test_admission_and_processing_of_maximum_allowed_cells(tmp_path: Path)
     mock_sheet.organization_id = org_id
     mock_sheet.version = 1
 
-    mock_cols = [
-        _SimpleCol(i, f"metric_{i}") for i in range(10)
-    ]
+    mock_cols = [_SimpleCol(i, f"metric_{i}") for i in range(10)]
 
     mock_rows = [
-        _SimpleRow(r, {f"c_{c}": {"v": float(r * 10 + c), "c": float(r * 10 + c)} for c in range(10)})
+        _SimpleRow(
+            r, {f"c_{c}": {"v": float(r * 10 + c), "c": float(r * 10 + c)} for c in range(10)}
+        )
         for r in range(50_000)
     ]
 

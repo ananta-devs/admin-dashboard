@@ -99,6 +99,7 @@ def test_hmac_verify_fails_legacy_v1_signature():
     msg_v1 = f"{ts}:{nonce}:POST:/render:".encode() + body
     import hashlib
     import hmac
+
     sig_v1 = hmac.new(secret.encode("utf-8"), msg_v1, hashlib.sha256).hexdigest()
 
     # Even if client claims version 2, the V1 signature payload is rejected
@@ -276,7 +277,9 @@ def test_hmac_verify_fails_newline_injection():
     secret = "test_shared_secret_key"
     body = b'{"action": "test"}'
 
-    with pytest.raises(AuthenticationError, match="Control characters or newlines not allowed in tenant_id"):
+    with pytest.raises(
+        AuthenticationError, match="Control characters or newlines not allowed in tenant_id"
+    ):
         RendererAuthService.generate_signature(
             secret=secret,
             method="POST",
@@ -285,7 +288,9 @@ def test_hmac_verify_fails_newline_injection():
             tenant_id="tenant-1\nINJECTED",
         )
 
-    with pytest.raises(AuthenticationError, match="Control characters or newlines not allowed in report_id"):
+    with pytest.raises(
+        AuthenticationError, match="Control characters or newlines not allowed in report_id"
+    ):
         RendererAuthService.generate_signature(
             secret=secret,
             method="POST",
@@ -333,7 +338,9 @@ def test_hmac_verify_fails_replayed_nonce():
 
 def test_production_config_rejects_legacy_v1_flag():
     """Verify that Settings validation rejects REPORT_RENDERER_ALLOW_LEGACY_V1 in production."""
-    with pytest.raises(ValueError, match="REPORT_RENDERER_ALLOW_LEGACY_V1 is strictly prohibited in production"):
+    with pytest.raises(
+        ValueError, match="REPORT_RENDERER_ALLOW_LEGACY_V1 is strictly prohibited in production"
+    ):
         Settings(
             ENVIRONMENT="production",
             REPORT_RENDERER_ALLOW_LEGACY_V1=True,
@@ -526,7 +533,9 @@ async def test_cancellation_endpoint_and_tenant_binding():
         assert resp.status_code == 401
 
         # 2. Missing version header fails (401)
-        bad_payload = json.dumps({"run_id": run_id, "organization_id": org_id, "report_id": report_id}).encode()
+        bad_payload = json.dumps(
+            {"run_id": run_id, "organization_id": org_id, "report_id": report_id}
+        ).encode()
         sig, ts, nonce, _ = RendererAuthService.generate_signature(
             secret=settings.REPORT_RENDERER_SECRET,
             method="POST",
@@ -567,7 +576,9 @@ async def test_cancellation_endpoint_and_tenant_binding():
 
         # 4. Authenticated but mismatched tenant (Cross-tenant attack) fails (403)
         evil_org = str(uuid.uuid4())
-        evil_payload = json.dumps({"run_id": run_id, "organization_id": evil_org, "report_id": report_id}).encode()
+        evil_payload = json.dumps(
+            {"run_id": run_id, "organization_id": evil_org, "report_id": report_id}
+        ).encode()
         evil_sig, ts, nonce, version = RendererAuthService.generate_signature(
             secret=settings.REPORT_RENDERER_SECRET,
             method="POST",
@@ -590,7 +601,9 @@ async def test_cancellation_endpoint_and_tenant_binding():
         assert "Cross-tenant" in resp.json()["detail"]
 
         # 5. Authenticated valid cancellation succeeds (200)
-        valid_payload = json.dumps({"run_id": run_id, "organization_id": org_id, "report_id": report_id}).encode()
+        valid_payload = json.dumps(
+            {"run_id": run_id, "organization_id": org_id, "report_id": report_id}
+        ).encode()
         sig, ts, nonce, version = RendererAuthService.generate_signature(
             secret=settings.REPORT_RENDERER_SECRET,
             method="POST",

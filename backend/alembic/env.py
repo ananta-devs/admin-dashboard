@@ -17,7 +17,11 @@ config = context.config
 # Overwrite sqlalchemy.url with the sync psycopg connection string
 sync_url = (
     os.environ.get("DATABASE_SYNC_URL")
-    or (os.environ.get("DATABASE_URL", "").replace("+asyncpg", "+psycopg") if os.environ.get("DATABASE_URL") else "")
+    or (
+        os.environ.get("DATABASE_URL", "").replace("+asyncpg", "+psycopg")
+        if os.environ.get("DATABASE_URL")
+        else ""
+    )
     or settings.DATABASE_SYNC_URL
 )
 config.set_main_option("sqlalchemy.url", sync_url)
@@ -52,6 +56,7 @@ def run_migrations_online() -> None:
         expected_db = os.environ.get("E2E_EXPECTED_DATABASE")
         if expected_db:
             from sqlalchemy import text
+
             actual_db = connection.execute(text("SELECT current_database();")).scalar()
             if actual_db != expected_db:
                 raise RuntimeError(

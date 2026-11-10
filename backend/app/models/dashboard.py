@@ -70,9 +70,7 @@ class Dashboard(Base):
         nullable=False,
     )
 
-    __table_args__ = (
-        UniqueConstraint("id", "organization_id", name="uq_dashboards_id_org"),
-    )
+    __table_args__ = (UniqueConstraint("id", "organization_id", name="uq_dashboards_id_org"),)
 
     widgets: Mapped[list[DashboardWidget]] = relationship(
         "DashboardWidget",

@@ -162,4 +162,3 @@ class WidgetDataQueryResponse(BaseModel):
     data: list[dict[str, Any]]
     total_rows: int
     summary: dict[str, Any] = Field(default_factory=dict)
-

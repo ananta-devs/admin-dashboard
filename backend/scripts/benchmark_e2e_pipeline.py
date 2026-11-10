@@ -63,7 +63,9 @@ def get_current_rss_mb() -> float:
             counters.cb = ctypes.sizeof(PROCESS_MEMORY_COUNTERS)
             handle = ctypes.windll.kernel32.OpenProcess(0x0410, False, os.getpid())
             if handle:
-                if ctypes.windll.psapi.GetProcessMemoryInfo(handle, ctypes.byref(counters), counters.cb):
+                if ctypes.windll.psapi.GetProcessMemoryInfo(
+                    handle, ctypes.byref(counters), counters.cb
+                ):
                     ctypes.windll.kernel32.CloseHandle(handle)
                     return float(counters.WorkingSetSize) / (1024 * 1024)
                 ctypes.windll.kernel32.CloseHandle(handle)
@@ -85,23 +87,27 @@ def generate_benchmark_dataframe(n_rows: int) -> tuple[pl.DataFrame, pd.DataFram
     margin_col = rng.normal(0.25, 0.08, size=n_rows).round(4)
     discount_col = rng.uniform(0.0, 0.35, size=n_rows).round(2)
 
-    pl_df = pl.DataFrame({
-        "Category": cat_col,
-        "Region": reg_col,
-        "Amount": amount_col,
-        "Quantity": qty_col,
-        "Margin": margin_col,
-        "Discount": discount_col,
-    })
+    pl_df = pl.DataFrame(
+        {
+            "Category": cat_col,
+            "Region": reg_col,
+            "Amount": amount_col,
+            "Quantity": qty_col,
+            "Margin": margin_col,
+            "Discount": discount_col,
+        }
+    )
 
-    pd_df = pd.DataFrame({
-        "Category": cat_col,
-        "Region": reg_col,
-        "Amount": amount_col,
-        "Quantity": qty_col,
-        "Margin": margin_col,
-        "Discount": discount_col,
-    })
+    pd_df = pd.DataFrame(
+        {
+            "Category": cat_col,
+            "Region": reg_col,
+            "Amount": amount_col,
+            "Quantity": qty_col,
+            "Margin": margin_col,
+            "Discount": discount_col,
+        }
+    )
 
     return pl_df, pd_df
 
@@ -116,23 +122,33 @@ def benchmark_polars_operation(op_name: str, pl_df: pl.DataFrame, n_rows: int) -
     elif op_name == "profile_dataset":
         registry.execute("profile_dataset", pl_df, {})
     elif op_name == "correlation_matrix":
-        registry.execute("correlation_matrix", pl_df, {"columns": ["Amount", "Quantity", "Margin", "Discount"]})
+        registry.execute(
+            "correlation_matrix", pl_df, {"columns": ["Amount", "Quantity", "Margin", "Discount"]}
+        )
     elif op_name == "group_by_aggregate":
-        registry.execute("group_by_aggregate", pl_df, {
-            "group_by": ["Region", "Category"],
-            "aggregations": [
-                {"column": "Amount", "function": "sum"},
-                {"column": "Quantity", "function": "average"},
-                {"column": "Margin", "function": "average"},
-            ],
-        })
+        registry.execute(
+            "group_by_aggregate",
+            pl_df,
+            {
+                "group_by": ["Region", "Category"],
+                "aggregations": [
+                    {"column": "Amount", "function": "sum"},
+                    {"column": "Quantity", "function": "average"},
+                    {"column": "Margin", "function": "average"},
+                ],
+            },
+        )
     elif op_name == "filter_dataset":
-        registry.execute("filter_dataset", pl_df, {
-            "filters": [
-                {"column": "Amount", "operator": "greater_than_or_equal", "value": 500.0},
-                {"column": "Region", "operator": "equals", "value": "North"},
-            ]
-        })
+        registry.execute(
+            "filter_dataset",
+            pl_df,
+            {
+                "filters": [
+                    {"column": "Amount", "operator": "greater_than_or_equal", "value": 500.0},
+                    {"column": "Region", "operator": "equals", "value": "North"},
+                ]
+            },
+        )
     elif op_name == "data_quality_profile":
         registry.execute("data_quality_profile", pl_df, {})
     else:
@@ -168,11 +184,17 @@ def benchmark_pandas_operation(op_name: str, pd_df: pd.DataFrame, n_rows: int) -
     elif op_name == "correlation_matrix":
         _ = pd_df[["Amount", "Quantity", "Margin", "Discount"]].corr().to_dict()
     elif op_name == "group_by_aggregate":
-        _ = pd_df.groupby(["Region", "Category"]).agg({
-            "Amount": "sum",
-            "Quantity": "mean",
-            "Margin": "mean",
-        }).reset_index()
+        _ = (
+            pd_df.groupby(["Region", "Category"])
+            .agg(
+                {
+                    "Amount": "sum",
+                    "Quantity": "mean",
+                    "Margin": "mean",
+                }
+            )
+            .reset_index()
+        )
     elif op_name == "filter_dataset":
         _ = pd_df[(pd_df["Amount"] >= 500.0) & (pd_df["Region"] == "North")]
     elif op_name == "data_quality_profile":
@@ -205,7 +227,9 @@ def benchmark_serialization_and_atomic_io(pl_df: pl.DataFrame, org_id: uuid.UUID
 
     # 1. Parquet write
     t0 = time.perf_counter()
-    temp_parquet = storage.get_result_artifact_path(org_id, job_id, result_id, claim_generation=1, ext="tmp")
+    temp_parquet = storage.get_result_artifact_path(
+        org_id, job_id, result_id, claim_generation=1, ext="tmp"
+    )
     pl_df.write_parquet(temp_parquet, compression="zstd")
     t1 = time.perf_counter()
     parquet_write_sec = t1 - t0
@@ -219,7 +243,9 @@ def benchmark_serialization_and_atomic_io(pl_df: pl.DataFrame, org_id: uuid.UUID
     json_size_bytes = len(json_bytes)
 
     # 3. Atomic rename with fsync
-    final_parquet = storage.get_result_artifact_path(org_id, job_id, result_id, claim_generation=1, ext="parquet")
+    final_parquet = storage.get_result_artifact_path(
+        org_id, job_id, result_id, claim_generation=1, ext="parquet"
+    )
     t0 = time.perf_counter()
     storage.atomic_promote(temp_parquet, final_parquet)
     t1 = time.perf_counter()
@@ -247,14 +273,16 @@ async def run_end_to_end_pipeline_benchmark(n_runs: int = 50) -> dict[str, Any]:
     # Find existing test org/workspace/workbook/sheet
     async with async_session_maker() as session:
         from sqlalchemy import select
+
         res = await session.execute(select(Sheet).limit(1))
         sheet = res.scalar_one_or_none()
         if not sheet:
             raise RuntimeError("No sheets found in DB. Run integration tests first.")
         sheet_id = sheet.id
         wb_id = sheet.workbook_id
-        
+
         from app.models.spreadsheet import Workbook
+
         wb = (await session.execute(select(Workbook).where(Workbook.id == wb_id))).scalar_one()
         org_id = wb.organization_id
         ws_id = wb.workspace_id
@@ -266,7 +294,7 @@ async def run_end_to_end_pipeline_benchmark(n_runs: int = 50) -> dict[str, Any]:
         "execution_async_ms": [],
         "db_commit_ms": [],
     }
-    
+
     cpu_measurements = []
     mem_measurements = []
 
@@ -403,8 +431,10 @@ async def main() -> None:
         for op in operations:
             polars_res = benchmark_polars_operation(op, pl_df, n_rows)
             pandas_res = benchmark_pandas_operation(op, pd_df, n_rows)
-            speedup = round(pandas_res["duration_sec"] / max(0.00001, polars_res["duration_sec"]), 2)
-            
+            speedup = round(
+                pandas_res["duration_sec"] / max(0.00001, polars_res["duration_sec"]), 2
+            )
+
             combined = {
                 "operation": op,
                 "rows": n_rows,
@@ -415,7 +445,9 @@ async def main() -> None:
                 "speedup_factor": speedup,
             }
             exec_results.append(combined)
-            print(f"  [{op:<22}] {n_rows:>7,} rows | Polars: {polars_res['duration_sec']:>7.4f}s | Pandas: {pandas_res['duration_sec']:>7.4f}s | Speedup: {speedup:>5.1f}x")
+            print(
+                f"  [{op:<22}] {n_rows:>7,} rows | Polars: {polars_res['duration_sec']:>7.4f}s | Pandas: {pandas_res['duration_sec']:>7.4f}s | Speedup: {speedup:>5.1f}x"
+            )
 
     # Category B: End-to-End Pipeline Latency
     print("\n" + "-" * 80)

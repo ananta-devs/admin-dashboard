@@ -12,7 +12,7 @@ Fulfills Phase 10 Stage 4 requirements:
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from app.core.config import settings
 from app.tasks.celery_app import celery_app
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task(name="app.tasks.backup.sync_continuous_wal", bind=True, max_retries=3)
-def sync_continuous_wal(self) -> Dict[str, Any]:
+def sync_continuous_wal(self) -> dict[str, Any]:
     """Scan local spool directory and upload unverified WAL segments to remote storage."""
     try:
         from app.services.backup.remote_storage import S3StorageAdapter
@@ -45,18 +45,19 @@ def sync_continuous_wal(self) -> Dict[str, Any]:
         }
     except Exception as exc:
         logger.error(f"Error syncing continuous WAL: {exc}", exc_info=True)
-        raise self.retry(exc=exc, countdown=10 * (2 ** self.request.retries))
+        raise self.retry(exc=exc, countdown=10 * (2**self.request.retries))
 
 
 @celery_app.task(name="app.tasks.backup.execute_scheduled_physical_backup", bind=True)
-def execute_scheduled_physical_backup(self) -> Dict[str, Any]:
+def execute_scheduled_physical_backup(self) -> dict[str, Any]:
     """Execute scheduled physical base backup, encryption, signing, and remote upload."""
     try:
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
         from app.services.backup.orchestrator import BackupOrchestrationService
         from app.services.backup.remote_storage import S3StorageAdapter
         from app.services.crypto.backup_cipher import BackupCipherService
         from app.services.crypto.manifest_signer import ManifestSigner
-        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
         storage = S3StorageAdapter(storage_root=settings.BACKUP_STORAGE_DIR)
         master_kek = bytes.fromhex(settings.ENCRYPTION_MASTER_KEY[:64])
@@ -86,14 +87,15 @@ def execute_scheduled_physical_backup(self) -> Dict[str, Any]:
 
 
 @celery_app.task(name="app.tasks.backup.execute_scheduled_logical_backup", bind=True)
-def execute_scheduled_logical_backup(self) -> Dict[str, Any]:
+def execute_scheduled_logical_backup(self) -> dict[str, Any]:
     """Execute scheduled custom logical export, encryption, signing, and remote upload."""
     try:
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
         from app.services.backup.orchestrator import BackupOrchestrationService
         from app.services.backup.remote_storage import S3StorageAdapter
         from app.services.crypto.backup_cipher import BackupCipherService
         from app.services.crypto.manifest_signer import ManifestSigner
-        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
         storage = S3StorageAdapter(storage_root=settings.BACKUP_STORAGE_DIR)
         master_kek = bytes.fromhex(settings.ENCRYPTION_MASTER_KEY[:64])
@@ -122,7 +124,7 @@ def execute_scheduled_logical_backup(self) -> Dict[str, Any]:
 
 
 @celery_app.task(name="app.tasks.backup.emit_rpo_probe", bind=True)
-def emit_rpo_probe(self) -> Dict[str, Any]:
+def emit_rpo_probe(self) -> dict[str, Any]:
     """Emit synchronous disaster recovery probe and record confirmed commit LSN."""
     from app.services.backup.rpo_probe import RpoProbeEngine
 
@@ -134,4 +136,3 @@ def emit_rpo_probe(self) -> Dict[str, Any]:
         "emitted_at": probe.emitted_at.isoformat(),
         "status": probe.status,
     }
-

@@ -9,13 +9,12 @@ Verifies:
 from __future__ import annotations
 
 import uuid
-from pathlib import Path
 from unittest.mock import patch
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
-from app.core.exceptions import ValidationError
 from app.models.organization import Organization
 from app.models.user import User
 from app.schemas.organization import ProvisionOrganizationInput
@@ -75,7 +74,9 @@ async def test_upload_failure_cleans_up_disk(test_org, session_factory):
         staging_dir = service.staging_dir
 
         # Mock repo.create to simulate a DB crash / exception after physical write
-        with patch.object(service.repo, "create", side_effect=RuntimeError("Simulated DB crash during commit")):
+        with patch.object(
+            service.repo, "create", side_effect=RuntimeError("Simulated DB crash during commit")
+        ):
             with pytest.raises(RuntimeError, match="Simulated DB crash"):
                 await service.upload_bytes(
                     organization_id=org.id,

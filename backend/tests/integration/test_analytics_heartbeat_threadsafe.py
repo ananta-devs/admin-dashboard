@@ -43,7 +43,10 @@ async def test_heartbeat_thread_disposal_and_loop_closure() -> None:
         interval_seconds=0.05,
     )
 
-    with patch("app.repositories.analytics.AnalyticsJobRepository.renew_lease_with_fencing", return_value=True):
+    with patch(
+        "app.repositories.analytics.AnalyticsJobRepository.renew_lease_with_fencing",
+        return_value=True,
+    ):
         thread.start()
         # Allow thread to run at least one tick
         await asyncio.sleep(0.12)
@@ -80,7 +83,10 @@ async def test_heartbeat_thread_safe_signaling_unblocks_main_loop() -> None:
     )
 
     # Simulate lease fencing violation on first renewal
-    with patch("app.repositories.analytics.AnalyticsJobRepository.renew_lease_with_fencing", return_value=False):
+    with patch(
+        "app.repositories.analytics.AnalyticsJobRepository.renew_lease_with_fencing",
+        return_value=False,
+    ):
         thread.start()
 
         # Main loop awaits asyncio_abort_event
@@ -167,11 +173,15 @@ def test_heartbeat_ticks_during_heavy_sync_computation() -> None:
         interval_seconds=0.05,
     )
 
-    with patch("app.repositories.analytics.AnalyticsJobRepository.renew_lease_with_fencing", return_value=True):
+    with patch(
+        "app.repositories.analytics.AnalyticsJobRepository.renew_lease_with_fencing",
+        return_value=True,
+    ):
         thread.start()
 
         # Perform heavy synchronous Polars / CPU computation in main thread
         import polars as pl
+
         t0 = time.time()
         while time.time() - t0 < 0.3:
             df = pl.DataFrame({"a": list(range(10000))})

@@ -114,9 +114,7 @@ async def update_dashboard(
     membership: OrganizationMembership = Depends(get_current_membership),
 ) -> DashboardDetailRead:
     service = DashboardService(session)
-    dashboard = await service.update_dashboard(
-        dashboard_id, membership.organization_id, payload
-    )
+    dashboard = await service.update_dashboard(dashboard_id, membership.organization_id, payload)
     return DashboardDetailRead.model_validate(dashboard)
 
 
@@ -209,9 +207,7 @@ async def create_widget(
     membership: OrganizationMembership = Depends(get_current_membership),
 ) -> WidgetRead:
     service = DashboardService(session)
-    widget = await service.create_widget(
-        dashboard_id, membership.organization_id, payload
-    )
+    widget = await service.create_widget(dashboard_id, membership.organization_id, payload)
     return WidgetRead.model_validate(widget)
 
 
@@ -270,9 +266,7 @@ async def delete_widget(
     membership: OrganizationMembership = Depends(get_current_membership),
 ) -> None:
     service = DashboardService(session)
-    await service.delete_widget(
-        widget_id, membership.organization_id, dashboard_id=dashboard_id
-    )
+    await service.delete_widget(widget_id, membership.organization_id, dashboard_id=dashboard_id)
 
 
 @router.post(
@@ -291,9 +285,7 @@ async def update_dashboard_layout(
     membership: OrganizationMembership = Depends(get_current_membership),
 ) -> list[WidgetRead]:
     service = DashboardService(session)
-    updated = await service.batch_update_layout(
-        dashboard_id, membership.organization_id, payload
-    )
+    updated = await service.batch_update_layout(dashboard_id, membership.organization_id, payload)
     return [WidgetRead.model_validate(w) for w in updated]
 
 
@@ -373,4 +365,3 @@ async def export_dashboard(
         "layout_config": dash.layout_config,
         "widgets": [WidgetRead.model_validate(w).model_dump() for w in dash.widgets],
     }
-

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import select
@@ -20,9 +20,9 @@ def format_action_title(action: str) -> str:
 
 
 def format_relative_time(dt: datetime) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
+        dt = dt.replace(tzinfo=UTC)
     diff_sec = int((now - dt).total_seconds())
 
     if diff_sec < 60:
@@ -38,7 +38,9 @@ def format_relative_time(dt: datetime) -> str:
 
 
 def format_action_description(event: AdministrativeAuditEvent) -> str:
-    target = f"{event.target_type} ({event.target_id[:8]})" if event.target_id else event.target_type
+    target = (
+        f"{event.target_type} ({event.target_id[:8]})" if event.target_id else event.target_type
+    )
     return f"Administrative operation on {target} recorded in ledger."
 
 
@@ -83,7 +85,6 @@ class NotificationService:
             is_success = any(k in ev.action for k in ("created", "assigned", "completed"))
             item_type: Any = "warning" if is_warn else ("success" if is_success else "info")
 
-            items.push if False else None  # type guard
             items.append(
                 NotificationItem(
                     id=notif_id,
@@ -98,7 +99,7 @@ class NotificationService:
         # 4. Process system telemetry notification
         try:
             health_svc = SystemHealthService(self.db)
-            telemetry = await health_svc.get_operational_telemetry(organization_id)
+            telemetry = await health_svc.get_subsystems_telemetry(organization_id)
             subsystems = telemetry.get("subsystems", {})
             is_healthy = telemetry.get("overall_status") == "Healthy"
 
@@ -141,7 +142,9 @@ class NotificationService:
                     items.append(
                         NotificationItem(
                             id=dr_id,
-                            title="Disaster Recovery SLA Active" if sla else "Disaster Recovery Warning",
+                            title="Disaster Recovery SLA Active"
+                            if sla
+                            else "Disaster Recovery Warning",
                             description=(
                                 f"Continuous WAL replication verified within RPO SLA (< {target_min}m target)."
                                 if sla
@@ -163,7 +166,7 @@ class NotificationService:
         organization_id: uuid.UUID,
         notification_ids: list[str] | None = None,
     ) -> int:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         ids_to_mark = notification_ids
 
         if not ids_to_mark:
@@ -208,7 +211,7 @@ class NotificationService:
         organization_id: uuid.UUID,
         notification_id: str,
     ) -> None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         stmt = (
             pg_insert(UserNotificationState)
             .values(
@@ -240,7 +243,7 @@ class NotificationService:
         organization_id: uuid.UUID,
         notification_id: str,
     ) -> None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         stmt = (
             pg_insert(UserNotificationState)
             .values(
@@ -265,4 +268,3 @@ class NotificationService:
         )
         await self.db.execute(stmt)
         await self.db.commit()
-

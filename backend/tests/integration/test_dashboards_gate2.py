@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import UTC
 from typing import Any
 
 import pytest
@@ -83,7 +84,9 @@ async def test_gate2_polars_filter_operators_and_validation(
 ) -> None:
     """Verify Gate 2 Polars operators: gte, lte, in, between, and strict backend validation."""
     uid = uuid.uuid4().hex[:8]
-    data, csrf, org_id = await register_and_login_helper(api_client, f"gate2_user_{uid}@example.com")
+    data, csrf, org_id = await register_and_login_helper(
+        api_client, f"gate2_user_{uid}@example.com"
+    )
     user_id = uuid.UUID(data["user"]["id"])
 
     ws_repo = WorkspaceRepository(db_session)
@@ -91,7 +94,9 @@ async def test_gate2_polars_filter_operators_and_validation(
     ws_id = ws_list[0].id
 
     # Create sheet with test data
-    wb = Workbook(organization_id=org_id, workspace_id=ws_id, name="Gate2 WB", created_by_user_id=user_id)
+    wb = Workbook(
+        organization_id=org_id, workspace_id=ws_id, name="Gate2 WB", created_by_user_id=user_id
+    )
     db_session.add(wb)
     await db_session.flush()
 
@@ -231,7 +236,9 @@ async def test_gate2_atomic_dashboard_duplication(
 ) -> None:
     """Verify atomic dashboard duplication creates independent copies with all widgets."""
     uid = uuid.uuid4().hex[:8]
-    data, csrf, org_id = await register_and_login_helper(api_client, f"duplicate_user_{uid}@example.com")
+    data, csrf, org_id = await register_and_login_helper(
+        api_client, f"duplicate_user_{uid}@example.com"
+    )
     user_id = uuid.UUID(data["user"]["id"])
 
     ws_repo = WorkspaceRepository(db_session)
@@ -239,7 +246,9 @@ async def test_gate2_atomic_dashboard_duplication(
     ws_id = ws_list[0].id
 
     # Create dummy sheet
-    wb = Workbook(organization_id=org_id, workspace_id=ws_id, name="Dup WB", created_by_user_id=user_id)
+    wb = Workbook(
+        organization_id=org_id, workspace_id=ws_id, name="Dup WB", created_by_user_id=user_id
+    )
     db_session.add(wb)
     await db_session.flush()
     sheet = Sheet(workbook_id=wb.id, organization_id=org_id, name="DupSheet")
@@ -294,7 +303,9 @@ async def test_gate2_atomic_dashboard_duplication(
     assert len(dup_data["widgets"]) == 2
 
     # Verify widget IDs are newly created and distinct
-    orig_detail = (await api_client.get(f"/api/v1/dashboards/{source_dash_id}", headers={"X-CSRF-Token": csrf})).json()
+    orig_detail = (
+        await api_client.get(f"/api/v1/dashboards/{source_dash_id}", headers={"X-CSRF-Token": csrf})
+    ).json()
     orig_w_ids = {w["id"] for w in orig_detail["widgets"]}
     dup_w_ids = {w["id"] for w in dup_data["widgets"]}
     assert orig_w_ids.isdisjoint(dup_w_ids)
@@ -307,8 +318,10 @@ async def test_gate2_temporal_and_date_filtering(
     tmp_path: Any,
 ) -> None:
     """DEF-02 Regression: Verify Polars filtering on pl.Date, pl.Datetime, tz-aware and naive timestamps."""
+    from datetime import date, datetime
+
     import polars as pl
-    from datetime import date, datetime, timezone
+
     from app.models.analytics import AnalyticsJob, AnalyticsJobStatus, AnalyticsResult
 
     uid = uuid.uuid4().hex[:8]
@@ -321,32 +334,36 @@ async def test_gate2_temporal_and_date_filtering(
 
     # Create Parquet artifact with temporal columns: pl.Datetime (UTC), pl.Datetime (naive), pl.Date
     parquet_path = tmp_path / f"analytics_{uid}.parquet"
-    df = pl.DataFrame({
-        "event_id": [1, 2, 3, 4],
-        "created_at": [
-            datetime(2026, 11, 2, 8, 0, tzinfo=timezone.utc),
-            datetime(2026, 11, 2, 18, 0, tzinfo=timezone.utc),
-            datetime(2026, 11, 3, 0, 0, tzinfo=timezone.utc), # On boundary
-            datetime(2026, 11, 3, 12, 0, tzinfo=timezone.utc),
-        ],
-        "naive_dt": [
-            datetime(2026, 11, 2, 8, 0),
-            datetime(2026, 11, 2, 18, 0),
-            datetime(2026, 11, 3, 0, 0),
-            datetime(2026, 11, 3, 12, 0),
-        ],
-        "event_date": [
-            date(2026, 11, 2),
-            date(2026, 11, 2),
-            date(2026, 11, 3),
-            date(2026, 11, 4),
-        ],
-        "revenue": [100.0, 200.0, 300.0, 400.0],
-    })
+    df = pl.DataFrame(
+        {
+            "event_id": [1, 2, 3, 4],
+            "created_at": [
+                datetime(2026, 11, 2, 8, 0, tzinfo=UTC),
+                datetime(2026, 11, 2, 18, 0, tzinfo=UTC),
+                datetime(2026, 11, 3, 0, 0, tzinfo=UTC),  # On boundary
+                datetime(2026, 11, 3, 12, 0, tzinfo=UTC),
+            ],
+            "naive_dt": [
+                datetime(2026, 11, 2, 8, 0),
+                datetime(2026, 11, 2, 18, 0),
+                datetime(2026, 11, 3, 0, 0),
+                datetime(2026, 11, 3, 12, 0),
+            ],
+            "event_date": [
+                date(2026, 11, 2),
+                date(2026, 11, 2),
+                date(2026, 11, 3),
+                date(2026, 11, 4),
+            ],
+            "revenue": [100.0, 200.0, 300.0, 400.0],
+        }
+    )
     df.write_parquet(parquet_path)
 
     # Create dummy workbook and sheet for AnalyticsJob foreign keys
-    wb = Workbook(organization_id=org_id, workspace_id=ws_id, name="Analytics WB", created_by_user_id=user_id)
+    wb = Workbook(
+        organization_id=org_id, workspace_id=ws_id, name="Analytics WB", created_by_user_id=user_id
+    )
     db_session.add(wb)
     await db_session.flush()
     sheet = Sheet(workbook_id=wb.id, organization_id=org_id, name="AnalyticsSheet")
@@ -393,7 +410,9 @@ async def test_gate2_temporal_and_date_filtering(
             "widget_type": "data_table",
             "source_type": "analytics_result",
             "source_id": str(res_item.id),
-            "query_config": {"columns": ["event_id", "created_at", "naive_dt", "event_date", "revenue"]},
+            "query_config": {
+                "columns": ["event_id", "created_at", "naive_dt", "event_date", "revenue"]
+            },
         },
         headers={"X-CSRF-Token": csrf},
     )
@@ -478,11 +497,15 @@ async def test_gate2_cross_tenant_source_authorization_security(
 ) -> None:
     """DEF-03 Security Regression: Verify cross-tenant widget source authorization and data isolation."""
     uid_a = uuid.uuid4().hex[:8]
-    data_a, csrf_a, org_a_id = await register_and_login_helper(api_client, f"org_a_{uid_a}@example.com")
+    data_a, csrf_a, org_a_id = await register_and_login_helper(
+        api_client, f"org_a_{uid_a}@example.com"
+    )
     user_a_id = uuid.UUID(data_a["user"]["id"])
 
     uid_b = uuid.uuid4().hex[:8]
-    data_b, csrf_b, org_b_id = await register_and_login_helper(api_client, f"org_b_{uid_b}@example.com")
+    data_b, csrf_b, org_b_id = await register_and_login_helper(
+        api_client, f"org_b_{uid_b}@example.com"
+    )
     user_b_id = uuid.UUID(data_b["user"]["id"])
 
     ws_repo = WorkspaceRepository(db_session)
@@ -490,7 +513,12 @@ async def test_gate2_cross_tenant_source_authorization_security(
     ws_b = (await ws_repo.list_by_organization(org_b_id))[0]
 
     # 1. Create sensitive Sheet in Org A
-    wb_a = Workbook(organization_id=org_a_id, workspace_id=ws_a.id, name="Org A Secrets", created_by_user_id=user_a_id)
+    wb_a = Workbook(
+        organization_id=org_a_id,
+        workspace_id=ws_a.id,
+        name="Org A Secrets",
+        created_by_user_id=user_a_id,
+    )
     db_session.add(wb_a)
     await db_session.flush()
 
@@ -507,7 +535,12 @@ async def test_gate2_cross_tenant_source_authorization_security(
     db_session.add(row_a)
 
     # Create legitimate Sheet in Org B
-    wb_b = Workbook(organization_id=org_b_id, workspace_id=ws_b.id, name="Org B Public", created_by_user_id=user_b_id)
+    wb_b = Workbook(
+        organization_id=org_b_id,
+        workspace_id=ws_b.id,
+        name="Org B Public",
+        created_by_user_id=user_b_id,
+    )
     db_session.add(wb_b)
     await db_session.flush()
 
@@ -589,7 +622,9 @@ async def test_gate2_widget_to_dashboard_url_binding(
     ws_repo = WorkspaceRepository(db_session)
     ws_id = (await ws_repo.list_by_organization(org_id))[0].id
 
-    wb = Workbook(organization_id=org_id, workspace_id=ws_id, name="Binding WB", created_by_user_id=user_id)
+    wb = Workbook(
+        organization_id=org_id, workspace_id=ws_id, name="Binding WB", created_by_user_id=user_id
+    )
     db_session.add(wb)
     await db_session.flush()
     sheet = Sheet(workbook_id=wb.id, organization_id=org_id, name="BindingSheet")
@@ -597,22 +632,45 @@ async def test_gate2_widget_to_dashboard_url_binding(
     await db_session.commit()
 
     # Create Dashboard 1 and Dashboard 2
-    d1 = (await api_client.post("/api/v1/dashboards", json={"workspace_id": str(ws_id), "title": "Dash 1"}, headers={"X-CSRF-Token": csrf})).json()["id"]
-    d2 = (await api_client.post("/api/v1/dashboards", json={"workspace_id": str(ws_id), "title": "Dash 2"}, headers={"X-CSRF-Token": csrf})).json()["id"]
+    d1 = (
+        await api_client.post(
+            "/api/v1/dashboards",
+            json={"workspace_id": str(ws_id), "title": "Dash 1"},
+            headers={"X-CSRF-Token": csrf},
+        )
+    ).json()["id"]
+    d2 = (
+        await api_client.post(
+            "/api/v1/dashboards",
+            json={"workspace_id": str(ws_id), "title": "Dash 2"},
+            headers={"X-CSRF-Token": csrf},
+        )
+    ).json()["id"]
 
     # Create Widget in Dashboard 1
-    w1 = (await api_client.post(
-        f"/api/v1/dashboards/{d1}/widgets",
-        json={"title": "W1 in D1", "widget_type": "bar", "source_type": "sheet", "source_id": str(sheet.id)},
-        headers={"X-CSRF-Token": csrf},
-    )).json()["id"]
+    w1 = (
+        await api_client.post(
+            f"/api/v1/dashboards/{d1}/widgets",
+            json={
+                "title": "W1 in D1",
+                "widget_type": "bar",
+                "source_type": "sheet",
+                "source_id": str(sheet.id),
+            },
+            headers={"X-CSRF-Token": csrf},
+        )
+    ).json()["id"]
 
     # Valid query on Dash 1
-    ok_q = await api_client.post(f"/api/v1/dashboards/{d1}/widgets/{w1}/query", headers={"X-CSRF-Token": csrf})
+    ok_q = await api_client.post(
+        f"/api/v1/dashboards/{d1}/widgets/{w1}/query", headers={"X-CSRF-Token": csrf}
+    )
     assert ok_q.status_code == 200
 
     # Invalid query: mismatched dashboard in URL (Dash 2)
-    mismatch_q = await api_client.post(f"/api/v1/dashboards/{d2}/widgets/{w1}/query", headers={"X-CSRF-Token": csrf})
+    mismatch_q = await api_client.post(
+        f"/api/v1/dashboards/{d2}/widgets/{w1}/query", headers={"X-CSRF-Token": csrf}
+    )
     assert mismatch_q.status_code == 404
 
     # Invalid update: mismatched dashboard in URL
@@ -624,7 +682,9 @@ async def test_gate2_widget_to_dashboard_url_binding(
     assert mismatch_patch.status_code == 404
 
     # Invalid delete: mismatched dashboard in URL
-    mismatch_del = await api_client.delete(f"/api/v1/dashboards/{d2}/widgets/{w1}", headers={"X-CSRF-Token": csrf})
+    mismatch_del = await api_client.delete(
+        f"/api/v1/dashboards/{d2}/widgets/{w1}", headers={"X-CSRF-Token": csrf}
+    )
     assert mismatch_del.status_code == 404
 
 
@@ -634,10 +694,12 @@ async def test_gate2_optimistic_concurrency_dashboard_update(
     db_session: AsyncSession,
 ) -> None:
     """DEF-07: Verify optimistic concurrency conflict rejection on stale expected_updated_at."""
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timedelta
 
     uid = uuid.uuid4().hex[:8]
-    data, csrf, org_id = await register_and_login_helper(api_client, f"concurrency_{uid}@example.com")
+    data, csrf, org_id = await register_and_login_helper(
+        api_client, f"concurrency_{uid}@example.com"
+    )
     ws_repo = WorkspaceRepository(db_session)
     ws_id = (await ws_repo.list_by_organization(org_id))[0].id
 
@@ -651,7 +713,7 @@ async def test_gate2_optimistic_concurrency_dashboard_update(
     actual_updated_at = create_res.json()["updated_at"]
 
     # 1. Attempt update with stale expected_updated_at (1 hour in the past) -> 409 Conflict
-    stale_dt = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    stale_dt = (datetime.now(UTC) - timedelta(hours=1)).isoformat()
     conflict_res = await api_client.patch(
         f"/api/v1/dashboards/{dash_id}",
         json={"title": "Stale Edit", "expected_updated_at": stale_dt},
@@ -667,4 +729,3 @@ async def test_gate2_optimistic_concurrency_dashboard_update(
     )
     assert ok_res.status_code == 200
     assert ok_res.json()["title"] == "Valid Edit"
-

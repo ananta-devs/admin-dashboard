@@ -13,19 +13,16 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-import json
-import os
 import secrets
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
 
 import polars as pl
 import pytest
-from sqlalchemy import select, text
-from sqlalchemy.exc import DBAPIError, IntegrityError
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
@@ -50,23 +47,20 @@ from app.models.workspace import Workspace
 from app.repositories.analytics import AnalyticsResultRepository
 from app.repositories.report import (
     ReportDefinitionRepository,
-    ReportOutboxRepository,
     ReportRunRepository,
     ReportSectionRepository,
 )
 from app.repositories.role import RoleRepository
 from app.schemas.report import (
     ReportDefinitionCreateInput,
-    ReportDefinitionUpdateInput,
     ReportRunTriggerInput,
     ReportSectionCreateInput,
-    ReportSectionUpdateInput,
 )
 from app.services.report import ReportService
 from app.services.report_snapshot import ReportSnapshotService
 from app.services.report_storage import ReportStorageService
 from app.services.role import RoleService
-from app.tasks.dispatcher import OutboxDispatcher, ReportingOutboxDispatcher
+from app.tasks.dispatcher import ReportingOutboxDispatcher
 from app.tasks.reporting import _execute_report_run_async
 
 
@@ -254,9 +248,7 @@ async def test_gate3_report_section_repository_ordering_and_safe_reorder(
 
     # 2. Reorder: reverse order [s2, s1, s0]
     # Without safe two-phase reindexing, setting s2 to 0 would collide with existing s0
-    reordered = await sec_repo.reorder_sections(
-        report_def.id, t["org"].id, [s2.id, s1.id, s0.id]
-    )
+    reordered = await sec_repo.reorder_sections(report_def.id, t["org"].id, [s2.id, s1.id, s0.id])
     assert [s.id for s in reordered] == [s2.id, s1.id, s0.id]
     assert [s.sort_order for s in reordered] == [0, 1, 2]
 
@@ -565,10 +557,30 @@ async def test_gate3_snapshot_materialization_under_repeatable_read(
     await db_session.flush()
 
     # Add header and 3 data rows
-    r0 = SheetRow(sheet_id=sheet.id, organization_id=t["org"].id, row_index=0, cells={"A": {"v": "Product"}, "B": {"v": "Sales"}})
-    r1 = SheetRow(sheet_id=sheet.id, organization_id=t["org"].id, row_index=1, cells={"A": {"v": "Alpha"}, "B": {"v": 100}})
-    r2 = SheetRow(sheet_id=sheet.id, organization_id=t["org"].id, row_index=2, cells={"A": {"v": "Beta"}, "B": {"v": 250}})
-    r3 = SheetRow(sheet_id=sheet.id, organization_id=t["org"].id, row_index=3, cells={"A": {"v": "Gamma"}, "B": {"v": 400}})
+    r0 = SheetRow(
+        sheet_id=sheet.id,
+        organization_id=t["org"].id,
+        row_index=0,
+        cells={"A": {"v": "Product"}, "B": {"v": "Sales"}},
+    )
+    r1 = SheetRow(
+        sheet_id=sheet.id,
+        organization_id=t["org"].id,
+        row_index=1,
+        cells={"A": {"v": "Alpha"}, "B": {"v": 100}},
+    )
+    r2 = SheetRow(
+        sheet_id=sheet.id,
+        organization_id=t["org"].id,
+        row_index=2,
+        cells={"A": {"v": "Beta"}, "B": {"v": 250}},
+    )
+    r3 = SheetRow(
+        sheet_id=sheet.id,
+        organization_id=t["org"].id,
+        row_index=3,
+        cells={"A": {"v": "Gamma"}, "B": {"v": 400}},
+    )
     db_session.add_all([r0, r1, r2, r3])
     await db_session.flush()
 
@@ -696,6 +708,7 @@ async def test_gate3_external_parquet_validation_and_checksum_integrity(
     await db_session.flush()
 
     from app.models.analytics import AnalyticsJob
+
     job = AnalyticsJob(
         organization_id=t["org"].id,
         workspace_id=t["workspace"].id,
@@ -739,7 +752,9 @@ async def test_gate3_external_parquet_validation_and_checksum_integrity(
     report_def = await report_service.create_report_definition(
         t["org"].id,
         t["user"].id,
-        ReportDefinitionCreateInput(workspace_id=t["workspace"].id, title="Parquet Verified Report"),
+        ReportDefinitionCreateInput(
+            workspace_id=t["workspace"].id, title="Parquet Verified Report"
+        ),
     )
     await report_service.add_section(
         report_def.id,
@@ -980,9 +995,7 @@ async def test_gate3_concurrent_idempotency_race(
         assert len(runs) == 1
         assert runs[0].id == winner_run_id
 
-        events_stmt = select(ReportOutboxEvent).where(
-            ReportOutboxEvent.run_id == winner_run_id
-        )
+        events_stmt = select(ReportOutboxEvent).where(ReportOutboxEvent.run_id == winner_run_id)
         events = (await verify_session.execute(events_stmt)).scalars().all()
         assert len(events) == 1
 

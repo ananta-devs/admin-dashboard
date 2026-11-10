@@ -15,8 +15,8 @@ import uuid
 # Append backend root to sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sqlalchemy import create_engine, text
 import redis
+from sqlalchemy import create_engine, text
 
 
 def get_sync_db_url(db_name: str = "vibe_enterprise_test") -> str:
@@ -136,7 +136,13 @@ def cleanup_run(
         redis_password = os.environ.get("REDIS_PASSWORD", "dev_secret_redis_pass_change_in_prod")
         redis_host = os.environ.get("REDIS_HOST", "127.0.0.1")
         redis_port = int(os.environ.get("REDIS_PORT", "6379"))
-        r = redis.Redis(host=redis_host, port=redis_port, password=redis_password, db=redis_db, decode_responses=True)
+        r = redis.Redis(
+            host=redis_host,
+            port=redis_port,
+            password=redis_password,
+            db=redis_db,
+            decode_responses=True,
+        )
         keys = r.keys(f"e2e:{run_id}:*")
         if keys:
             deleted_keys = r.delete(*keys)
@@ -153,7 +159,9 @@ if __name__ == "__main__":
     parser.add_argument("--run-id", required=True, help="Unique E2E test run ID")
     parser.add_argument("--org-ids", nargs="*", default=[], help="Exact organization UUIDs")
     parser.add_argument("--user-ids", nargs="*", default=[], help="Exact user UUIDs")
-    parser.add_argument("--expected-db", default="vibe_enterprise_test", help="Expected database name")
+    parser.add_argument(
+        "--expected-db", default="vibe_enterprise_test", help="Expected database name"
+    )
     parser.add_argument("--redis-db", type=int, default=15, help="Redis DB index")
     args = parser.parse_args()
 

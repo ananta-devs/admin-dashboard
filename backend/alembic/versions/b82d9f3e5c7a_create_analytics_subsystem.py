@@ -30,13 +30,28 @@ def upgrade() -> None:
     op.create_table(
         "analytics_jobs",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4),
-        sa.Column("organization_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "organization_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("workspace_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("source_workbook_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("source_sheet_id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("requested_by_user_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
+        sa.Column(
+            "requested_by_user_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
         sa.Column("operation_id", sa.String(length=100), nullable=False),
-        sa.Column("parameters", postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default=sa.text("'{}'::jsonb")),
+        sa.Column(
+            "parameters",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=False,
+            server_default=sa.text("'{}'::jsonb"),
+        ),
         sa.Column("status", sa.String(length=30), nullable=False, server_default="queued"),
         sa.Column("progress_percent", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("current_stage", sa.String(length=100), nullable=True),
@@ -51,11 +66,15 @@ def upgrade() -> None:
         sa.Column("idempotency_key", sa.String(length=100), nullable=True),
         sa.Column("worker_id", sa.String(length=100), nullable=True),
         sa.Column("lease_expires_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.Column("queued_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
         sa.Column("cancellation_requested_at", sa.DateTime(timezone=True), nullable=True),
         sa.UniqueConstraint("id", "organization_id", name="uq_analytics_jobs_id_org"),
         sa.ForeignKeyConstraint(
@@ -79,9 +98,13 @@ def upgrade() -> None:
     )
     op.create_index("ix_analytics_jobs_organization_id", "analytics_jobs", ["organization_id"])
     op.create_index("ix_analytics_jobs_workspace_id", "analytics_jobs", ["workspace_id"])
-    op.create_index("ix_analytics_jobs_source_workbook_id", "analytics_jobs", ["source_workbook_id"])
+    op.create_index(
+        "ix_analytics_jobs_source_workbook_id", "analytics_jobs", ["source_workbook_id"]
+    )
     op.create_index("ix_analytics_jobs_source_sheet_id", "analytics_jobs", ["source_sheet_id"])
-    op.create_index("ix_analytics_jobs_requested_by_user_id", "analytics_jobs", ["requested_by_user_id"])
+    op.create_index(
+        "ix_analytics_jobs_requested_by_user_id", "analytics_jobs", ["requested_by_user_id"]
+    )
     op.create_index("ix_analytics_jobs_operation_id", "analytics_jobs", ["operation_id"])
     op.create_index("ix_analytics_jobs_status", "analytics_jobs", ["status"])
     op.create_index("ix_analytics_jobs_lease_expires_at", "analytics_jobs", ["lease_expires_at"])
@@ -103,38 +126,79 @@ def upgrade() -> None:
     op.create_table(
         "analytics_outbox_events",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4),
-        sa.Column("job_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("analytics_jobs.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("organization_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("event_type", sa.String(length=50), nullable=False, server_default="analytics.job.scheduled"),
+        sa.Column(
+            "job_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("analytics_jobs.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "organization_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "event_type",
+            sa.String(length=50),
+            nullable=False,
+            server_default="analytics.job.scheduled",
+        ),
         sa.Column("payload", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("attempts", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("locked_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("locked_by", sa.String(length=100), nullable=True),
         sa.Column("last_error", sa.Text(), nullable=True),
         sa.Column("published_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
     )
     op.create_index("ix_analytics_outbox_job_id", "analytics_outbox_events", ["job_id"])
-    op.create_index("ix_analytics_outbox_organization_id", "analytics_outbox_events", ["organization_id"])
+    op.create_index(
+        "ix_analytics_outbox_organization_id", "analytics_outbox_events", ["organization_id"]
+    )
     op.create_index("ix_analytics_outbox_published_at", "analytics_outbox_events", ["published_at"])
-    op.create_index("ix_analytics_outbox_pending", "analytics_outbox_events", ["published_at", "locked_at"])
+    op.create_index(
+        "ix_analytics_outbox_pending", "analytics_outbox_events", ["published_at", "locked_at"]
+    )
 
     # 3. Create analytics_results table
     op.create_table(
         "analytics_results",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, default=uuid.uuid4),
-        sa.Column("job_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("analytics_jobs.id", ondelete="CASCADE"), nullable=False, unique=True),
-        sa.Column("organization_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "job_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("analytics_jobs.id", ondelete="CASCADE"),
+            nullable=False,
+            unique=True,
+        ),
+        sa.Column(
+            "organization_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("organizations.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("result_type", sa.String(length=50), nullable=False),
-        sa.Column("result_payload", postgresql.JSONB(astext_type=sa.Text()), nullable=False, server_default=sa.text("'{}'::jsonb")),
+        sa.Column(
+            "result_payload",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=False,
+            server_default=sa.text("'{}'::jsonb"),
+        ),
         sa.Column("artifact_path", sa.String(length=500), nullable=True),
         sa.Column("artifact_size_bytes", sa.BigInteger(), nullable=True),
         sa.Column("artifact_checksum_sha256", sa.String(length=64), nullable=True),
         sa.Column("row_count", sa.Integer(), nullable=True),
         sa.Column("column_count", sa.Integer(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
     )
-    op.create_index("ix_analytics_results_organization_id", "analytics_results", ["organization_id"])
+    op.create_index(
+        "ix_analytics_results_organization_id", "analytics_results", ["organization_id"]
+    )
     op.create_index("ix_analytics_results_job_id", "analytics_results", ["job_id"])
 
     # 4. Seed permissions table with analytics permission codes
@@ -150,16 +214,46 @@ def upgrade() -> None:
     )
 
     analytics_perms = [
-        {"id": uuid.uuid4(), "code": "analytics.read", "name": "View Analytics", "description": "View analytics operations, jobs, and results", "category": "analytics", "created_at": now},
-        {"id": uuid.uuid4(), "code": "analytics.create", "name": "Create Analysis", "description": "Submit and execute analytical jobs", "category": "analytics", "created_at": now},
-        {"id": uuid.uuid4(), "code": "analytics.cancel", "name": "Cancel Analysis", "description": "Cancel queued or running analytical jobs", "category": "analytics", "created_at": now},
-        {"id": uuid.uuid4(), "code": "analytics.export", "name": "Export Analysis", "description": "Export analytical results and publish to spreadsheets", "category": "analytics", "created_at": now},
+        {
+            "id": uuid.uuid4(),
+            "code": "analytics.read",
+            "name": "View Analytics",
+            "description": "View analytics operations, jobs, and results",
+            "category": "analytics",
+            "created_at": now,
+        },
+        {
+            "id": uuid.uuid4(),
+            "code": "analytics.create",
+            "name": "Create Analysis",
+            "description": "Submit and execute analytical jobs",
+            "category": "analytics",
+            "created_at": now,
+        },
+        {
+            "id": uuid.uuid4(),
+            "code": "analytics.cancel",
+            "name": "Cancel Analysis",
+            "description": "Cancel queued or running analytical jobs",
+            "category": "analytics",
+            "created_at": now,
+        },
+        {
+            "id": uuid.uuid4(),
+            "code": "analytics.export",
+            "name": "Export Analysis",
+            "description": "Export analytical results and publish to spreadsheets",
+            "category": "analytics",
+            "created_at": now,
+        },
     ]
     op.bulk_insert(permissions_table, analytics_perms)
 
     # 5. Backfill system roles with analytics permissions
     connection = op.get_bind()
-    rows = connection.execute(sa.text("SELECT code, id FROM permissions WHERE code LIKE 'analytics.%'")).fetchall()
+    rows = connection.execute(
+        sa.text("SELECT code, id FROM permissions WHERE code LIKE 'analytics.%'")
+    ).fetchall()
     perm_map = {code: p_id for code, p_id in rows}
 
     role_perms_table = sa.table(
@@ -169,20 +263,42 @@ def upgrade() -> None:
         sa.column("created_at", sa.DateTime(timezone=True)),
     )
 
-    org_roles = connection.execute(sa.text("SELECT id, slug FROM organization_roles WHERE is_system = true")).fetchall()
+    org_roles = connection.execute(
+        sa.text("SELECT id, slug FROM organization_roles WHERE is_system = true")
+    ).fetchall()
     role_perm_entries = []
     for r_id, slug in org_roles:
         if slug in ("owner", "admin"):
-            for code in ("analytics.read", "analytics.create", "analytics.cancel", "analytics.export"):
+            for code in (
+                "analytics.read",
+                "analytics.create",
+                "analytics.cancel",
+                "analytics.export",
+            ):
                 if code in perm_map:
-                    role_perm_entries.append({"role_id": r_id, "permission_id": perm_map[code], "created_at": now})
+                    role_perm_entries.append(
+                        {"role_id": r_id, "permission_id": perm_map[code], "created_at": now}
+                    )
         elif slug == "member":
-            for code in ("analytics.read", "analytics.create", "analytics.cancel", "analytics.export"):
+            for code in (
+                "analytics.read",
+                "analytics.create",
+                "analytics.cancel",
+                "analytics.export",
+            ):
                 if code in perm_map:
-                    role_perm_entries.append({"role_id": r_id, "permission_id": perm_map[code], "created_at": now})
+                    role_perm_entries.append(
+                        {"role_id": r_id, "permission_id": perm_map[code], "created_at": now}
+                    )
         elif slug == "viewer":
             if "analytics.read" in perm_map:
-                role_perm_entries.append({"role_id": r_id, "permission_id": perm_map["analytics.read"], "created_at": now})
+                role_perm_entries.append(
+                    {
+                        "role_id": r_id,
+                        "permission_id": perm_map["analytics.read"],
+                        "created_at": now,
+                    }
+                )
 
     if role_perm_entries:
         op.bulk_insert(role_perms_table, role_perm_entries)
@@ -191,14 +307,14 @@ def upgrade() -> None:
 def downgrade() -> None:
     # 1. Remove analytics permissions from role_permissions
     connection = op.get_bind()
-    connection.execute(sa.text(
-        "DELETE FROM role_permissions WHERE permission_id IN (SELECT id FROM permissions WHERE code LIKE 'analytics.%')"
-    ))
+    connection.execute(
+        sa.text(
+            "DELETE FROM role_permissions WHERE permission_id IN (SELECT id FROM permissions WHERE code LIKE 'analytics.%')"
+        )
+    )
 
     # 2. Delete analytics permissions from permissions table
-    connection.execute(sa.text(
-        "DELETE FROM permissions WHERE code LIKE 'analytics.%'"
-    ))
+    connection.execute(sa.text("DELETE FROM permissions WHERE code LIKE 'analytics.%'"))
 
     # 3. Drop tables in reverse order
     op.drop_table("analytics_results")
