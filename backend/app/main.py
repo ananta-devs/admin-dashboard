@@ -173,21 +173,24 @@ async def authentication_error_handler(request: Request, exc: AuthenticationErro
     )
     # If the client sent a session cookie that failed authentication (e.g. stale/revoked/server restart),
     # explicitly clear it from the client so the browser does not stay trapped in an unauthorized loop.
-    cookie_name = settings.SESSION_COOKIE_NAME
-    if request.cookies.get(cookie_name) or request.cookies.get("vibe_session"):
-        response.delete_cookie(
-            key=cookie_name,
-            path="/",
-            httponly=True,
-            samesite="lax",
-        )
-        if cookie_name != "vibe_session":
+    # Do not clear valid sessions on in-session verification errors (e.g. invalid current password during MFA setup).
+    session_invalid = getattr(request.state, "session", None) is None
+    if session_invalid:
+        cookie_name = settings.SESSION_COOKIE_NAME
+        if request.cookies.get(cookie_name) or request.cookies.get("vibe_session"):
             response.delete_cookie(
-                key="vibe_session",
+                key=cookie_name,
                 path="/",
                 httponly=True,
                 samesite="lax",
             )
+            if cookie_name != "vibe_session":
+                response.delete_cookie(
+                    key="vibe_session",
+                    path="/",
+                    httponly=True,
+                    samesite="lax",
+                )
     return response
 
 

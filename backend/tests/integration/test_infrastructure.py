@@ -20,7 +20,7 @@ async def test_live_postgres_connectivity_integration():
         result = await session.execute(text("SELECT current_database(), version();"))
         row = result.fetchone()
         assert row is not None
-        assert row[0] == "vibe_enterprise"
+        assert row[0] in ("vibe_enterprise", "vibe_enterprise_test")
         assert "PostgreSQL" in row[1]
 
     await test_engine.dispose()

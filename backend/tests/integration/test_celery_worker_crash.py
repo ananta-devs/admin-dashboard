@@ -139,6 +139,14 @@ async def test_real_celery_worker_crash_and_redelivery(
     trigger_path.parent.mkdir(parents=True, exist_ok=True)
     trigger_path.write_text("STAGE_6_DURING_COMPUTE\n")
 
+    # Verify Celery worker daemon is actively connected
+    from app.tasks.celery_app import celery_app
+
+    inspect = celery_app.control.inspect(timeout=1.0)
+    workers = inspect.ping() if inspect else None
+    if not workers:
+        pytest.skip("Celery worker (vibe_analytics_worker) is not running")
+
     # Queue task to Celery on Redis
     async_res = execute_analytics_job.delay(str(job.id))
     assert async_res.id is not None

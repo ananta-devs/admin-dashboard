@@ -352,6 +352,15 @@ def test_catastrophic_host_loss_and_remote_only_recovery(dr_environment):
 
     # 4. SIMULATE CATASTROPHIC HOST LOSS:
     # Destroy the original local spool directory and all local scratch files!
+    # WAL files are marked read-only (0o444); ensure writable permissions before rmtree on Windows
+    import stat
+
+    for p in spool_dir.rglob("*"):
+        if p.is_file():
+            try:
+                p.chmod(stat.S_IWRITE | stat.S_IREAD)
+            except OSError:
+                pass
     shutil.rmtree(spool_dir)
     assert not spool_dir.exists(), "Local WAL spool must be completely destroyed"
 

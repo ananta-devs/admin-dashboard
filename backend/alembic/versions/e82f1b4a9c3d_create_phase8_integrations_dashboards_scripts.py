@@ -546,6 +546,14 @@ def upgrade() -> None:
         },
         {
             "id": uuid.uuid4(),
+            "code": "analytics.scripts.manage",
+            "name": "Manage All Python Scripts",
+            "description": "Manage, override, and reassign analytical scripts across all workspace members",
+            "category": "analytics",
+            "created_at": now,
+        },
+        {
+            "id": uuid.uuid4(),
             "code": "analytics.scripts.manage_dependencies",
             "name": "Manage Script Dependencies",
             "description": "Manage allowlisted dependencies for Python scripts",
@@ -582,6 +590,7 @@ def upgrade() -> None:
         "analytics.scripts.update",
         "analytics.scripts.execute",
         "analytics.scripts.delete",
+        "analytics.scripts.manage",
         "analytics.scripts.manage_dependencies",
     ]
     member_new_perms = [
