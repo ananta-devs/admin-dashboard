@@ -149,7 +149,7 @@ flowchart TD
 ### Step 1: Clone & Configure Environment
 
 ```bash
-git clone https://github.com/your-username/admin-dashboard.git
+git clone https://github.com/ananta-devs/admin-dashboard.git
 cd admin-dashboard
 
 # Copy environment configuration template
